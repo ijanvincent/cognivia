@@ -1,0 +1,37 @@
+include:
+  - local: '.gitlab-ci.env.yml'
+
+image: ubuntu:22.04
+
+stages:
+  - deploy
+
+deploy_production:
+  stage: deploy
+  extends:
+    - .deploy_variables_prod
+  only:
+    - main
+  before_script:
+    - apt update
+    - apt install -y curl sshpass git
+    - curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+    - dpkg -i cloudflared.deb
+  script:
+    - |
+      sshpass -p "$SSH_PASSWORD" ssh \
+        -o StrictHostKeyChecking=no \
+        -o "ProxyCommand=cloudflared access ssh --hostname %h" \
+        $SSH_USER@$SSH_HOST << 'EOF'
+      set -e
+      echo "Connected to Cognivia Production Server"
+      cd /home/cognivia
+      echo "Pulling latest code..."
+      git pull origin main
+      echo "Restarting Docker containers..."
+      docker-compose down
+      docker-compose up -d --build
+      echo "Running migrations..."
+      docker exec cognivia_backend php artisan migrate --force
+      echo "Deployment finished successfully!"
+      EOF
