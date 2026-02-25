@@ -3,16 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Http\Resources\CategoryResource;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        protected CategoryService $categoryService
+    ) {}
+
     public function index()
     {
-        $categories = Category::all();
-
-        return response()->json($categories);
+        return CategoryResource::collection(
+            $this->categoryService->getAll()
+        );
     }
 
     public function store(Request $request)
@@ -23,8 +28,8 @@ class CategoryController extends Controller
             'color' => 'nullable|string',
         ]);
 
-        $category = Category::create($request->all());
+        $category = $this->categoryService->create($request->all());
 
-        return response()->json($category, 201);
+        return new CategoryResource($category);
     }
 }

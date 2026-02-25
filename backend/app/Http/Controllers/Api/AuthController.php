@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Resources\UserResource;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        protected AuthService $authService
+    ) {}
+
     public function register(Request $request)
     {
         $request->validate([
@@ -18,17 +21,11 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = $user->createToken('cognivia')->plainTextToken;
+        $result = $this->authService->register($request->all());
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
         ], 201);
     }
 
@@ -39,28 +36,18 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $token = $user->createToken('cognivia')->plainTextToken;
+        $result = $this->authService->login($request->all());
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ]);
+        return response()->json(['message' => 'Logged out successfully']);
     }
 }
