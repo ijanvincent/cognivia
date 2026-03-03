@@ -2,6 +2,8 @@ import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 
 import App from './../app.jsx';
+import PrivateRoute from './private-route.jsx';
+
 
 import DashboardV1 from './../pages/dashboard/dashboard-v1.js';
 import DashboardV2 from './../pages/dashboard/dashboard-v2.js';
@@ -88,17 +90,17 @@ const AppRoute = [
     children: [
     	{
 				path: '', 
-				element: <Navigate to='/dashboard/v3' />
+				element: <Navigate to='/user/login-v3' />
 			},
     	{
 				path: 'dashboard/*', 
 				element: <Outlet />,
 				children: [
-					{ path: 'v1', element: <DashboardV1 /> },
-					{ path: 'v2', element: <DashboardV2 /> },
-					{ path: 'v3', element: <DashboardV3 /> },
-					{ path: '*', element: <ExtraError /> }
-				]
+    { path: 'v1', element: <PrivateRoute><DashboardV1 /></PrivateRoute> },
+    { path: 'v2', element: <PrivateRoute><DashboardV2 /></PrivateRoute> },
+    { path: 'v3', element: <PrivateRoute><DashboardV3 /></PrivateRoute> },
+    { path: '*', element: <ExtraError /> }
+]
 			},
 			{
 				path: 'email/*', 
