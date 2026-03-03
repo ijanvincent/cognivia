@@ -13,6 +13,23 @@ services:
     depends_on:
       - mysql
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    container_name: cognivia_frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - HOST=0.0.0.0
+      - PORT=3001
+    networks:
+      - cognivia_network
   nginx:
     image: nginx:alpine
     container_name: cognivia_nginx
@@ -26,6 +43,7 @@ services:
       - cognivia_network
     depends_on:
       - backend
+      - frontend
 
   mysql:
     image: mysql:8.0
