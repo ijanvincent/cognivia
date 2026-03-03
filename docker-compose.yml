@@ -50,10 +50,10 @@ services:
     container_name: cognivia_mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: cognivia
-      MYSQL_ROOT_PASSWORD: cognivia123
-      MYSQL_PASSWORD: cognivia123
-      MYSQL_USER: cognivia_user
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
     ports:
       - "3307:3306"
     volumes:
