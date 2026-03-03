@@ -1,0 +1,21 @@
+<div className="widget-list rounded mb-4">
+  <div className="widget-list-item">
+    <div className="widget-list-media">
+      <img src="/assets/img/user/user-12.jpg" width="50" alt="" className="rounded" />
+    </div>
+    <div className="widget-list-content">
+      <h4 className="widget-list-title">Christopher Struth</h4>
+      <p className="widget-list-desc">Bank Transfer</p>
+    </div>
+    <div className="widget-list-action">
+      <a href="#/" data-bs-toggle="dropdown" className="text-gray-500"><i className="fa fa-ellipsis-h fs-14px"></i></a>
+      <div className="dropdown-menu dropdown-menu-end">
+        <a href="#/" className="dropdown-item">Option 1</a>
+        <a href="#/" className="dropdown-item">Option 2</a>
+        <a href="#/" className="dropdown-item">Option 3</a>
+        <div className="dropdown-divider"></div>
+        <a href="#/" className="dropdown-item">Option 4</a>
+      </div>
+    </div>
+  </div>
+</div>

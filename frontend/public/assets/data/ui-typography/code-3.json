@@ -1,0 +1,3 @@
+<p className="text-left">Left aligned text.</p>
+<p className="text-center">Center aligned text.</p>
+<p className="text-end">Right aligned text.</p>

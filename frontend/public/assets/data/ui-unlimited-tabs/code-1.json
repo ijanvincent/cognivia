@@ -1,0 +1,34 @@
+&lt;!-- inverse theme --&gt;
+&lt;div class="panel panel-inverse panel-with-tabs"&gt;
+  &lt;div class="panel-heading p-0"&gt;
+    &lt;div class="tab-overflow"&gt;
+      &lt;ul class="nav nav-tabs nav-tabs-inverse"&gt;
+        &lt;li class="nav-item prev-button"&gt;&lt;a href="javascript:;" data-click="prev-tab" class="nav-link text-primary"&gt;&lt;i class="fa fa-arrow-left"&gt;&lt;/i&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li class="nav-item"&gt;
+          &lt;a href="#nav-tab-1" data-bs-toggle="tab" class="nav-link active"&gt;Nav Tab 1&lt;/a&gt;
+        &lt;/li&gt;
+        ...
+        &lt;li class="nav-item next-button"&gt;&lt;a href="javascript:;" data-click="next-tab" class="nav-link text-primary"&gt;&lt;i class="fa fa-arrow-right"&gt;&lt;/i&gt;&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;div class="panel-heading-btn me-2 ms-2 d-flex"&gt;
+      &lt;a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-secondary" data-toggle="panel-expand"&gt;&lt;i class="fa fa-expand"&gt;&lt;/i&gt;&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="panel-body tab-content"&gt;
+    &lt;div class="tab-pane fade active show" id="nav-tab-1"&gt;
+      ...
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- default theme --&gt;
+&lt;div class="panel panel-with-tabs"&gt;
+  &lt;div class="panel-heading p-0"&gt;
+    &lt;div class="tab-overflow"&gt;
+      &lt;ul class="nav nav-tabs"&gt;
+        ...
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;

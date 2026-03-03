@@ -1,0 +1,22 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithSearchSidebar() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppSidebarSearch(true);
+    
+    return () => {
+      context.handleSetAppSidebarSearch(false);
+    };
+  }, [context]);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithSearchSidebar;

@@ -1,0 +1,18 @@
+<Panel>
+  <PanelHeader>
+    Panel with Toolbar & Footer
+  </PanelHeader>
+  <div className="panel-toolbar">
+    <div className="btn-group me-5px">
+      ...
+    </div>
+    <div className="btn-group">
+      ...
+    </div>
+  </div>
+  <textarea className="form-control rounded-0 border-start-0 border-end-0 p-3 bg-light" rows="5">This is a form textarea.</textarea>
+  <PanelFooter className="text-end border-0">
+    <a href="#" className="btn btn-white btn-sm">Cancel</a>
+    <a href="#" className="btn btn-primary btn-sm ms-5px">Action</a>
+  </PanelFooter>
+</Panel>

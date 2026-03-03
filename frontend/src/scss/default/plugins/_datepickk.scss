@@ -1,0 +1,184 @@
+#Datepickk .d-calendar {
+	body & {
+		background: none;
+		font-size: $font-size-base * 1.1;
+		color: var(--#{$prefix}component-color);
+		
+		& .d-header {
+			background: none !important;
+			padding: $spacer * .75 $spacer $spacer * .25;
+			color: var(--#{$prefix}component-color) !important;
+			font-weight: $font-weight-bold;
+			font-size: $font-size-lg * 1.25;
+			text-transform: capitalize;
+			display: flex;
+			align-items: center;
+			
+			& #d-previous,
+			& #d-next {
+				border: none;
+				transform: none;
+				position: relative;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: auto;
+				font-size: $font-size-lg;
+				
+				@include fontawesome();
+				
+				&:after,
+				&:before {
+					position: relative;
+					border: none;
+					top: 0;
+					left: 0;
+					right: 0;
+				}
+				&:before {
+					content: '\f053';
+				}
+				&:hover {
+					background: none;
+					opacity: .5;
+				}
+			}
+			& #d-next {
+				&:before {
+					content: '\f054';
+				}
+			}
+			& p {
+				flex: 1;
+				margin: 0;
+				
+				& .d-year {
+					margin: 0 $spacer * .25;
+				}
+			}
+		}
+		& .d-year-picker,
+		& .d-month-picker {
+			background: var(--#{$prefix}light);
+			
+			&.d-show {
+				height: rem(36px);
+			}
+			& > div {
+				color: var(--#{$prefix}component-color);
+				line-height: rem(36px);
+				
+				&:hover,
+				&:focus {
+					background: rgba(var(--#{$prefix}component-color-rgb), .15);
+				}
+				&.current {
+					background: var(--#{$prefix}app-theme);
+					color: var(--#{$prefix}app-theme-color);
+				}
+			}
+		}
+		& .d-weekdays {
+			& .d-week {
+				display: flex;
+				background: none;
+				font-weight: $font-weight-bolder;
+				font-size: $font-size-sm;
+				color: var(--#{$prefix}component-color);
+			
+				& > div p {
+					margin: $spacer * .5 0 $spacer * .35 $spacer * .25;
+					text-transform: uppercase;
+				}
+			}
+		}
+		& .d-tables {
+			& .d-table {
+				display: flex !important;
+				
+				& input + label {
+					background: none !important;
+					
+					& text {
+						width: rem(36px);
+						height: rem(36px);
+						border-radius: rem(36px);
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						font-weight: $font-weight-bold;
+					}
+					& .d-tooltip {
+						background: $tooltip-bg;
+						font-size: $font-size-sm;
+						white-space: nowrap;
+						border-radius: $border-radius;
+						padding: $tooltip-padding-y $tooltip-padding-x;
+						font-weight: $font-weight-bold;
+						
+						&:before {
+							border-bottom-color: $tooltip-bg;
+						}
+					}
+					&.today {
+						& text {
+							background: var(--#{$prefix}light);
+							
+							&:before {
+								background: none;
+							}
+						}
+					}
+					&.prev,
+					&.next {
+						color: var(--#{$prefix}component-disabled-color);
+					}
+					& [data-tooltip] {
+						&:after {
+							content: '';
+							background: var(--#{$prefix}danger);
+							left: 50%;
+							width: rem(4px);
+							height: rem(4px);
+							bottom: rem(5px);
+							top: auto;
+							margin-left: rem(-2px);
+						}
+					}
+					&:hover {
+						background: none;
+						
+						& text {
+							background: var(--#{$prefix}light);
+							color: var(--#{$prefix}component-color);
+						}
+					}
+					&:before {
+						background-color: var(--#{$prefix}light);
+					}
+				}
+				& input + label:before {
+					top: 0;
+					height: 100%;
+					width: 100%;
+					left: 0;
+					border-radius: 0;
+				}
+				& input:checked + label:before {
+					background-color: var(--#{$prefix}light);
+					color: var(--#{$prefix}component-color);
+				}
+			}
+			&.range:not(.before) input:not(.single):checked + label, 
+			&.range:not(.before) input:not(.single):checked + label ~ label:not(.hidden) {
+				color: var(--#{$prefix}component-color) !important;
+			}
+			&.range:not(.before) input:not(.single):checked + label,
+			&.range:not(.before) input:not(.single):checked ~ input:checked + label,
+			&.range:not(.before) input:not(.single):checked + label~label:not(.hidden):before {
+				background-color: var(--#{$prefix}light);
+				color: var(--#{$prefix}component-color) !important;
+			}
+		}
+	}
+}

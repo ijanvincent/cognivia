@@ -1,0 +1,4 @@
+import 'flag-icon-css/css/flag-icons.min.css';
+
+<!-- html -->
+<div className="fi fi-ad" title="ad"></div>

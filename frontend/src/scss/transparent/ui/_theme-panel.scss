@@ -1,0 +1,207 @@
+$theme-panel-width: rem(260px);
+
+.theme-panel {
+	position: fixed;
+	width: $theme-panel-width;
+	right: -$theme-panel-width;
+	top: 0;
+	bottom: 0;
+	z-index: $app-theme-panel-zindex;
+	transition: right .2s linear;
+	border-radius: $border-radius 0 0 $border-radius;
+	
+	@if $enable-rtl {
+		right: auto;
+		left: -$theme-panel-width;
+		transition: left .2s linear;
+	}
+	
+	& .theme-list {
+		margin-bottom: rem(-4px);
+		margin-right: rem(-4px);
+		display: flex;
+		flex-wrap: wrap;
+		
+		& .theme-list-item {
+			margin-bottom: rem(4px);
+			
+			@if $enable-rtl {
+				margin-left: rem(4px);
+			} @else {
+				margin-right: rem(4px);
+			}
+			
+			& .theme-list-link {
+				width: rem(28px);
+				height: rem(28px);
+				display: block;
+				text-decoration: none;
+				position: relative;
+				border-radius: 30px;
+				transition: all .2s linear;
+				
+				&:hover,
+				&:focus {
+					opacity: .6;
+				}
+			}
+			&.active {
+				& .theme-list-link {
+					&:before {
+						content: '\f00c';
+						position: absolute;
+						left: 0;
+						right: 0;
+						top: 0;
+						bottom: 0;
+						font-size: rem(14px);
+						line-height: 1;
+						color: $white;
+						opacity: .4;
+						text-align: center;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						
+						@include fontawesome();
+					}
+					&.bg-white {
+						&:before {
+							color: $dark;
+						}
+					}
+				}
+			}
+		}
+	}
+	& .theme-collapse-btn {
+		position: absolute;
+		left: rem(-30px);
+		top: 30%;
+		margin-top: rem(-15px);
+		width: rem(30px);
+		height: rem(30px);
+		line-height: rem(30px);
+		font-size: rem(18px);
+		color: var(--#{$prefix}component-color);
+		background: rgba(85, 92, 100, .95);
+		text-align: center;
+		border-radius: $border-radius 0 0 $border-radius;
+		box-shadow: 0 0 15px 0 rgba($black, .15);
+		
+		@if $enable-rtl {
+			left: auto;
+			right: rem(-30px);
+			border-radius: 0 $border-radius $border-radius 0;
+		}
+		@include media-breakpoint-down(sm) {
+			top: 35%;
+		}
+	}
+	& .theme-panel-content {
+		background: rgba(85, 92, 100, .95);
+		padding: rem(20px);
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		overflow: scroll;
+		margin: 0;
+		z-index: 10;
+	}
+	& .theme-panel-divider {
+		height: rem(1px);
+		margin: rem(15px) 0;
+		background-color: var(--#{$prefix}component-border-color);
+	}
+	& .theme-version {
+		margin: 0 0 rem(5px);
+		margin: -2.5px;
+		display: flex;
+		flex-wrap: wrap;
+		
+		& .theme-version-item {
+			width: 50%;
+			position: relative;
+			padding-top: rem(35%);
+			
+			& .theme-version-link {
+				display: block;
+				text-decoration: none;
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				margin: 2.5px;
+				
+				& .theme-version-cover {
+					font-size: rem(14px);
+					font-weight: bold;
+					margin: 0;
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					text-align: center;
+					background-size: cover;
+					background-repeat: no-repeat;
+					background-position: top left;
+				}
+				&.active,
+				&:hover {
+					&:before {
+						content: '';
+						position: absolute;
+						border: rem(12px) solid transparent;
+						border-left-color: lighten($dark, 45%);
+						border-top-color: lighten($dark, 45%);
+						left: 0;
+						top: 0;
+						z-index: 10;
+					}
+					&:after {
+						content: '\f00c';
+						position: absolute;
+						top: 0;
+						left: 0;
+						color: $white;
+						z-index: 10;
+						width: rem(16px);
+						height: rem(16px);
+						line-height: rem(16px);
+						font-size: rem(10px);
+						text-align: center;
+					
+						@include fontawesome();
+					}
+				}
+				&.active {
+					&:before {
+						border-left-color: #007aff;
+						border-top-color: #007aff;
+					}
+				}
+			}
+		}
+	}
+	&.active {
+		box-shadow: 0 5px 25px rgba($black, .3);
+		
+		@if $enable-rtl {
+			left: 0;
+		} @else {
+			right: 0;
+		}
+		
+		& .theme-collapse-btn {
+			& .fa {
+				&:before {
+					content: '\f00d';
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "FlashGenius",
+    "slug": "Group1",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/firstpage.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.group1.flashgenuis"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "eb224f7a-fa31-410a-832b-252bbfc926c2"
+      }
+    }
+  }
+}

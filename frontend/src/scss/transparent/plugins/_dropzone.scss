@@ -1,0 +1,119 @@
+.dropzone {
+	border: 2px dashed var(--#{$prefix}component-border-color) !important;
+	background: none !important;
+	
+	& .dz-message {
+		font-weight: $font-weight-light !important;
+		color: inherit !important;
+		font-size: $h1-font-size !important;
+		text-align: center !important;
+		margin: $spacer * 3 0 !important;
+		
+		& .dz-note {
+			font-size: $font-size-lg !important;
+			font-weight: normal !important;
+			display: block !important;
+			margin-top: $spacer;
+			color: rgba(var(--#{$prefix}component-color-rgb), .5);
+		}
+	}
+	
+	& .dz-preview {
+		& .dz-image {
+			border-radius: $border-radius-lg !important;
+		}
+		& .dz-error-message {
+			background: $danger !important;
+			
+			&:after {
+				border-bottom-color: $danger !important;
+			}
+		}
+		& .dz-details {
+			& .dz-size,
+			& .dz-filename {
+				& span {
+					background: none !important;
+				}
+			}
+		}
+		& .dz-error-mark {
+			z-index: 1020 !important;
+			
+			&:before {
+				content: '\f00d';
+				width: rem(54px);
+				height: rem(54px);
+				background: lighten($dark, 60%);
+				font-size: rem(28px);
+				color: lighten($dark, 30%);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: $border-radius * 10;
+				
+				@include fontawesome();
+			}
+			&:hover,
+			&:focus {
+				&:before {
+					background: lighten($dark, 45%);
+					color: lighten($dark, 15%);
+				}
+			}
+			& svg {
+				display: none !important;
+			}
+		}
+		&.dz-file-preview {
+			& .dz-image {
+				background: $light !important;
+				border-radius: $border-radius !important;
+			}
+		}
+		&.dz-image-preview {
+			background: none !important;
+		}
+	}
+	&.dz-clickable {
+		&:hover,
+		&:focus {
+			background: var(--#{$prefix}light) !important;
+		}
+		
+		& .dz-message {
+			cursor: pointer;
+			
+			& * {
+				cursor: pointer;
+			}
+		}
+		
+		&.dz-started {
+			&:hover,
+			&:focus {
+				background: none !important;
+			}
+		}
+	}
+}
+
+.inverse-mode {
+	& .dropzone {
+		border-color: rgba($white, .25) !important;
+		
+		& .dz-clickable {
+			&:hover,
+			&:focus {
+				background: rgba($white, .15) !important;
+			}
+		}
+		& .dz-message {
+			color: inherit !important;
+			
+			& .dz-note {
+				color: rgba($white, .75) !important;
+			}
+		}
+	}
+}

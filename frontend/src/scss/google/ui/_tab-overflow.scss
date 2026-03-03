@@ -1,0 +1,136 @@
+.tab-overflow {
+	position: relative;
+	overflow: hidden;
+	border-radius: $border-radius-sm $border-radius-sm 0 0;
+	flex: 1;
+	
+	& .nav {
+		&.nav-tabs {
+			white-space: nowrap;
+			display: table;
+			margin: 0;
+			border-radius: $border-radius $border-radius 0 0;
+			
+			& .nav-item {
+				display: table-cell;
+				float: none;
+				
+				& .nav-link {
+					background: none;
+					border-color: transparent;
+					margin-left: rem(-1px);
+					
+					@if $enable-rtl {
+						margin-left: 0;
+						margin-right: rem(-1px);
+					}
+				}
+			}
+			& .prev-button {
+				position: absolute;
+				left: 0;
+				top: 0;
+				z-index: 10;
+				display: none !important;
+				opacity: 0;
+				box-shadow: 0 0 15px rgba($dark, .25);
+				transition: all .2s linear;
+		
+				@if $enable-rtl {
+					left: auto;
+					right: 0;
+				}
+				
+				& .nav-link {
+					margin: 0;
+					background: $white;
+					border-color: var(--#{$prefix}component-border-color-transparent);
+					border-radius: $border-radius 0 0;
+				}
+			}
+			& .next-button {
+				position: absolute;
+				right: 0;
+				top: 0;
+				z-index: 10;
+				display: none !important;
+				opacity: 0;
+				box-shadow: 0 0 15px rgba($dark, .25);
+				transition: all .2s linear;
+				border-top-left-radius: 0;
+		
+				@if $enable-rtl {
+					right: auto;
+					left: 0;
+				}
+				
+				& .nav-link {
+					margin: 0;
+					background: $white;
+					border-color: var(--#{$prefix}component-border-color-transparent);
+					border-radius: 0 $border-radius 0 0;
+				}
+			}
+			
+			&.nav-tabs-inverse {
+				& .nav-item {
+					& .nav-link {
+						color: rgba($white, .75);
+						border-color: transparent;
+						
+						&:hover,
+						&:focus {
+							color: $white;
+						}
+						&.active {
+							color: var(--#{$prefix}component-active-bg);
+						}
+					}
+				}
+				& .next-button, 
+				& .prev-button {
+					background: $gray-900;
+					box-shadow: 0 0 15px $black;
+					
+					& + li {
+						& > a {
+							&.active {
+								border-radius: 0 $border-radius 0 0;
+							}
+						}
+					}
+					& > a {
+						background: $dark-darker;
+					}
+				}
+			}
+		}
+	}
+	
+	&.overflow-right {
+		& .nav {
+			&.nav-tabs{
+				& .next-button {
+					display: block !important;
+					opacity: 1;
+					background: none;
+				}
+			}
+		}
+	}
+	&.overflow-left {
+		& .nav {
+			&.nav-tabs{
+				& .prev-button {
+					display: block !important;
+					opacity: 1;
+					background: none;
+				}
+			}
+		}
+	}
+}
+.flat-black .tab-overflow .next-button a,
+.flat-black .tab-overflow .prev-button a {
+	background: #d2d2d2;
+}

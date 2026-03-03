@@ -1,0 +1,14 @@
+&lt;!-- required files --&gt;
+&lt;script src="/assets/plugins/ionicons/dist/ionicons/ionicons.js"&gt;&lt;/script&gt;
+
+&lt;!-- outline --&gt;
+&lt;ion-icon name="analytics-outline"&gt;&lt;/ion-icon&gt;
+
+&lt;!-- filled --&gt;
+&lt;ion-icon name="analytics"&gt;&lt;/ion-icon&gt;
+
+&lt;!-- sharp --&gt;
+&lt;ion-icon name="analytics-sharp"&gt;&lt;/ion-icon&gt;
+
+&lt;!-- logo --&gt;
+&lt;ion-icon name="logo-youtube"&gt;&lt;/ion-icon&gt;

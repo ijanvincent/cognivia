@@ -1,0 +1,4 @@
+<button className="btn btn-primary btn-lg">Large Button</button>
+<button className="btn btn-primary">Default Button</button>
+<button className="btn btn-primary btn-sm">Small Button</button>
+<button className="btn btn-primary btn-xs">Extra Small</button>

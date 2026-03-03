@@ -1,0 +1,87 @@
+// ANIMATION - fade out
+@keyframes appLoaderFadeOut { from { opacity: 1.0; } to { opacity: 0; } }
+
+.app-loader {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background: var(--#{$prefix}body-bg);
+	z-index: $app-loader-zindex;
+	height: 100vh;
+	opacity: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	&.fading {
+		opacity: 0;
+		animation: appLoaderFadeOut .2s ease;
+	}
+	&.loaded {
+		display: none;
+		
+		& .spinner,
+		& .material-loader .path {
+			animation: none;
+		}
+	}
+}
+
+@keyframes rotate {
+	100%{
+		transform: rotate(360deg);
+	}
+}
+@keyframes dash {
+	0%{
+		stroke-dasharray: 1,200;
+		stroke-dashoffset: 0;
+	}
+	50%{
+		stroke-dasharray: 89,200;
+		stroke-dashoffset: -35;
+	}
+	100%{
+		stroke-dasharray: 89,200;
+		stroke-dashoffset: -124;
+	}
+}
+@keyframes color {
+	100%, 0%{
+		stroke: $black;
+	}
+}
+.material-loader {
+	position: fixed;
+	width: rem(200px);
+	height: rem(200px);
+	left: 50%;
+	top: 50%;
+	margin: rem(-50px) 0 0 rem(-100px);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	
+	& .message {
+		text-align: center;
+	}
+	& .circular {
+		height: rem(36px);
+		width: rem(36px);
+		display: block;
+		animation: rotate 2s linear infinite;
+		
+		& + .message {
+			margin-top: rem(5px);
+		}
+	}
+	& .path {
+		stroke-dasharray: 1,200;
+		stroke-dashoffset: 0;
+		stroke-linecap: round;
+		animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+	}
+}

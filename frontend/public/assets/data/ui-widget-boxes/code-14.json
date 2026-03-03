@@ -1,0 +1,4 @@
+<Panel>
+  <PanelHeader className="bg-red-700 text-white">...</PanelHeader>
+  ...
+</Panel>

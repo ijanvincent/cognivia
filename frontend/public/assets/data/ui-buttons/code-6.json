@@ -1,0 +1,6 @@
+<div className="btn-group">
+  <button className="btn btn-white"><i className="fa fa-align-left"></i></button>
+  <button className="btn btn-white active"><i className="fa fa-align-center"></i></button>
+  <button className="btn btn-white"><i className="fa fa-align-right"></i></button>
+  <button className="btn btn-white"><i className="fa fa-align-justify"></i></button>
+</div>

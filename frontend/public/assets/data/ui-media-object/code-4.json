@@ -1,0 +1,13 @@
+<div className="d-flex">
+  <div className="flex-1 pe-3 text-end">
+    <h5 className="mb-1">Nested media heading</h5>
+    <p className="mb-2">...</p>
+    <p className="mb-0">
+      <Link to="/ui/media-object" className="btn btn-sm btn-warning me-5px">Edit</Link>
+      <Link to="/ui/media-object" className="btn btn-sm btn-default">Cancel</Link>
+    </p>
+  </div>
+  <Link to="/ui/media-object" className="w-60px">
+    <img src="/assets/img/user/user-7.jpg" alt="" className="mw-100 rounded-pill" />
+  </Link>
+</div>

@@ -1,0 +1,34 @@
+.parsley-error {
+	background-color: transparent !important;
+	border-color: $danger !important;
+	color: $input-color !important;
+	
+	&:focus {
+		border-color: $form-feedback-invalid-color !important;
+		outline: 0;
+		box-shadow: 0 0 0 $form-select-focus-width rgba($form-feedback-invalid-color, .3) !important;
+	}
+}
+.parsley-success {
+	background-color: transparent !important;
+	border-color: $form-feedback-valid-color !important;
+	color: $input-color !important;
+	
+	&:focus {
+		border-color: $form-feedback-valid-color !important;
+		outline: 0;
+		box-shadow: 0 0 0 $form-select-focus-width rgba($form-feedback-valid-color, .3) !important;
+	}
+}
+.parsley-errors-list {
+	padding: 0 !important;
+	list-style-type: none !important;
+	margin: 0 !important;
+	color: $form-feedback-invalid-color;
+	font-size: $font-size-base !important;
+	line-height: inherit !important;
+	
+	&.filled {
+		margin-top: $spacer * .5 !important;
+	}
+}

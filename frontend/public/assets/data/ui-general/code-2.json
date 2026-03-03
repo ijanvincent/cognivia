@@ -1,0 +1,14 @@
+<div className="alert alert-primary fade show">...</div>
+<div className="alert alert-secondary fade show">...</div>
+<div className="alert alert-success fade show">...</div>
+<div className="alert alert-danger fade show">...</div>
+<div className="alert alert-warning fade show">...</div>
+<div className="alert alert-yellow fade show">...</div>
+<div className="alert alert-info fade show">...</div>
+<div className="alert alert-lime fade show">...</div>
+<div className="alert alert-purple fade show">...</div>
+<div className="alert alert-light fade show">...</div>
+<div className="alert alert-dark fade show">...</div>
+<div className="alert alert-indigo fade show">...</div>
+<div className="alert alert-pink fade show">...</div>
+<div className="alert alert-green fade show">...</div>

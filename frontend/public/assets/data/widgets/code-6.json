@@ -1,0 +1,7 @@
+<div className="widget-icon rounded bg-indigo me-5px mb-5px text-white">
+  <i className="fab fa-digital-ocean"></i>
+</div>
+
+<div className="widget-icon widget-icon-xl user rounded float-start me-5px mb-5px bg-gray-500 text-white">
+  <i className="fa fa-user"></i>
+</div>

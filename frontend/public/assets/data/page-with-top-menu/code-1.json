@@ -1,0 +1,25 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithTopMenu() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppTopMenu(true);
+    context.handleSetAppSidebarNone(true);
+    
+    return () => {
+      context.handleSetAppTopMenu(false);
+      context.handleSetAppSidebarNone(false);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithTopMenu;

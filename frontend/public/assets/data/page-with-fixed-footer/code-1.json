@@ -1,0 +1,33 @@
+import React, { useEffect, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+import PerfectScrollbar from 'react-perfect-scrollbar';
+
+function PageWithFooter() {
+  const context = React.useContext(AppSettings);
+  const [code1, setCode1] = useState();
+
+  useEffect(() => {
+    context.handleSetAppContentFullHeight(true);
+    context.handleSetAppContentClass('p-0 d-flex flex-column');
+    
+    return () => {
+      context.handleSetAppContentFullHeight(false);
+      context.handleSetAppContentClass('');
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div className="h-100 d-flex flex-column">
+      <PerfectScrollbar className="app-content-padding flex-grow-1 overflow-hidden" options={{ suppressScrollX: true }}>
+        ...
+      </PerfectScrollbar>
+
+      <div id="footer" className="app-footer m-0">
+        &copy; 2023 Color Admin Responsive Admin Template - Sean Ngu All Rights Reserved
+      </div>
+    </div>
+  );
+}
+
+export default PageWithFooter;

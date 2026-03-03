@@ -1,0 +1,4 @@
+import { Icon } from '@iconify/react';
+
+<!-- html -->
+<Icon class="iconify" icon="solar:4k-bold-duotone" />

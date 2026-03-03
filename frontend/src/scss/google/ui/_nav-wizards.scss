@@ -1,0 +1,347 @@
+.nav-wizards-container {
+	@include media-breakpoint-down(md) {
+		overflow: scroll;
+		
+		& .nav.nav-wizards-1,
+		& .nav.nav-wizards-2,
+		& .nav.nav-wizards-3 {
+			min-width: rem(600px);
+		}
+	}
+}
+
+.nav {
+	&.nav-wizards-1 {
+		flex-wrap: nowrap;
+		
+		& .nav-item {
+			padding: 0;
+			
+			& .nav-link {
+				position: relative;
+				color: rgba(var(--#{$prefix}component-color-rgb), .75);
+				
+				& .nav-no {
+					width: rem(40px);
+					height: rem(40px);
+					margin: 0 auto;
+					font-weight: $font-weight-semibold;
+					background: none;
+					border: 2px solid var(--#{$prefix}component-border-color);
+					position: relative;
+					z-index: 10;
+					font-size: $font-size-lg;
+					border-radius: 40px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					transition: all .2s linear;
+				}
+				& .nav-text {
+					text-align: center;
+					margin-top: $spacer * .5;
+					font-weight: $font-weight-semibold;
+					font-size: $font-size-base;
+				}
+				&.active,
+				&.completed {
+					color: $component-active-bg;
+					
+					& .nav-no {
+						border-color: $component-active-bg;
+						color: $component-active-bg;
+					}
+					&:before,
+					&:after {
+						background: $component-active-bg;
+					}
+					&:after {
+						width: calc(50% - 20px);
+					}
+				}
+				&.active {
+					& .nav-no {
+						box-shadow: 0 0 0 5px rgba($component-active-bg, .2);
+					}
+				}
+				&.disabled {
+					color: rgba(var(--#{$prefix}component-color-rgb), .25);
+				}
+				&:before,
+				&:after {
+					content: '';
+					position: absolute;
+					top: $nav-link-padding-y + rem-default(19px);
+					height: rem(2px);
+					background: var(--#{$prefix}component-border-color);
+					
+					@if $enable-rtl {
+						right: 0;
+						left: calc(50% + 20px);
+					} @else {
+						left: 0;
+						right: calc(50% + 20px);
+					}
+				}
+				&:after {
+					transition: all .2s linear;
+					
+					@if $enable-rtl {
+						left: 0;
+						right: calc(50% + 20px);
+					} @else {
+						left: calc(50% + 20px);
+						right: 0;
+					}
+				}
+			}
+			&:first-child {
+				& .nav-link {
+					&:before,
+					&:after {
+						@if $enable-rtl {
+							right: calc(50% + 20px);
+						} @else {
+							left: calc(50% + 20px);
+						}
+					}
+				}
+			}
+			&:last-child {
+				& .nav-link {
+					&:before {
+						@if $enable-rtl {
+							left: calc(50% + 20px);
+						} @else {
+							right: calc(50% + 20px);
+						}
+					}
+					&.active,
+					&.completed {
+						&:before {
+							background: $component-active-bg;
+						}
+					}
+					&:after {
+						display: none;
+					}
+				}
+			}
+		}
+	}
+	&.nav-wizards-2 {
+		flex-wrap: nowrap;
+		
+		& .nav-item {
+			padding: 0 $nav-link-padding-x;
+			
+			& .nav-link {
+				position: relative;
+				color: var(--#{$prefix}component-color);
+				background: var(--#{$prefix}component-disabled-bg);
+				border-radius: 60px;
+				
+				& .nav-text {
+					text-align: center;
+					font-weight: $font-weight-semibold;
+					font-size: $font-size-base;
+					position: relative;
+					z-index: 10;
+					background: inherit;
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+				}
+				&:before,
+				&:after {
+					content: '';
+					position: absolute;
+					left: $nav-link-padding-x * -1;
+					right: $nav-link-padding-x * -1;
+					height: rem(2px);
+					top: 50%;
+					margin-top: rem(-1px);
+					background-color: var(--#{$prefix}component-disabled-bg);
+					transition: all .2s linear;
+				}
+				&:after {
+					width: 0%;
+					background: $component-active-bg;
+				}
+				&.disabled {
+					color: rgba(var(--#{$prefix}component-color-rgb), .25);
+				}
+				&.active,
+				&.completed {
+					background: $component-active-bg;
+					color: $component-active-color;
+					
+					&:after {
+						width: calc(100% + #{$nav-link-padding-x * 2});
+					}
+				}
+				&.active {
+					box-shadow: 0 0 0 4px rgba($component-active-bg, .2);
+				}
+			}
+			&:first-child {
+				& .nav-link {
+					&:before,
+					&:after {
+						@if $enable-rtl {
+							right: 50%;
+						} @else {
+							left: 50%;
+						}
+					}
+				}
+			}
+			&:last-child {
+				& .nav-link {
+					&:before {
+						@if $enable-rtl {
+							left: 50%;
+						} @else {
+							right: 50%;
+						}
+					}
+					&.active,
+					&.completed {
+						&:before {
+							background: $component-active-bg;
+						}
+					}
+					&:after {
+						display: none;
+					}
+				}
+			}
+		}
+	}
+	&.nav-wizards-3 {
+		flex-wrap: nowrap;
+		
+		& .nav-item {
+			padding: 0;
+			
+			& .nav-link {
+				position: relative;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				
+				& .nav-dot {
+					width: rem(16px);
+					height: rem(16px);
+					margin: 0 auto;
+					font-weight: 500;
+					border: 3px solid var(--#{$prefix}component-disabled-bg);
+					position: relative;
+					z-index: 10;
+					border-radius: 10px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					transition: all .2s linear;
+				}
+				& .nav-title {
+					margin-top: $spacer * .5;
+					font-weight: $font-weight-semibold;
+					text-align: center;
+					font-size: $font-size-lg;
+				}
+				& .nav-text {
+					text-align: center;
+					font-size: $font-size-base;
+					color: rgba(var(--#{$prefix}component-color-rgb), .65);
+					font-weight: $font-weight-semibold;
+				}
+				&.active,
+				&.completed {
+					color: var(--#{$prefix}component-color);
+					
+					& .nav-dot {
+						border-color: $component-active-bg;
+						color: $component-active-bg;
+					}
+					&:before,
+					&:after {
+						background: $component-active-bg;
+					}
+					&:after {
+						width: calc(50% - 8px);
+					}
+				}
+				&.active {
+					& .nav-dot {
+						box-shadow: 0 0 0 5px rgba($component-active-bg, .2);
+					}
+				}
+				&.disabled {
+					color: rgba(var(--#{$prefix}component-color-rgb), .25);
+					
+					& .nav-text {
+						color: inherit;
+					}
+				}
+				&:before,
+				&:after {
+					content: '';
+					position: absolute;
+					top: $nav-link-padding-y + rem-default(6px);
+					height: rem(3px);
+					background: var(--#{$prefix}component-disabled-bg);
+					
+					@if $enable-rtl {
+						right: 0;
+						left: calc(50% + 8px);
+					} @else {
+						left: 0;
+						right: calc(50% + 8px);
+					}
+				}
+				&:after {
+					transition: all .2s linear;
+					
+					@if $enable-rtl {
+						left: 0;
+						right: calc(50% + 8px);
+					} @else {
+						left: calc(50% + 8px);
+						right: 0;
+					}
+				}
+			}
+			&:first-child {
+				& .nav-link {
+					&:before,
+					&:after {
+						@if $enable-rtl {
+							right: calc(50% + 8px);
+						} @else {
+							left: calc(50% + 8px);
+						}
+					}
+				}
+			}
+			&:last-child {
+				& .nav-link {
+					&:before {
+						@if $enable-rtl {
+							left: calc(50% + 8px);
+						} @else {
+							right: calc(50% + 8px);
+						}
+					}
+					&.active,
+					&.completed {
+						&:before {
+							background: $component-active-bg;
+						}
+					}
+					&:after {
+						display: none;
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,11 @@
+<div className="btn-group me-1 mb-1">
+  <a href="#/" className="btn btn-default">Dropdown</a>
+  <a href="#/" data-bs-toggle="dropdown" className="btn btn-default dropdown-toggle"><i className="fa fa-caret-down"></i></a>
+  <div className="dropdown-menu dropdown-menu-end">
+    <a href="#/" className="dropdown-item">Action 1</a>
+    <a href="#/" className="dropdown-item">Action 2</a>
+    <a href="#/" className="dropdown-item">Action 3</a>
+    <div className="dropdown-divider"></div>
+    <a href="#/" className="dropdown-item">Action 4</a>
+  </div>
+</div>

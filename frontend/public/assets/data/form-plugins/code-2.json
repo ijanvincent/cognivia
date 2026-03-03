@@ -1,0 +1,10 @@
+import Select from 'react-select';
+
+selectOptions = [
+  { value: 'chocolate', label: 'Chocolate' },
+  { value: 'strawberry', label: 'Strawberry' },
+  { value: 'vanilla', label: 'Vanilla' }
+];
+
+<!-- html -->
+<Select options={selectOptions} classNamePrefix="react-select" />

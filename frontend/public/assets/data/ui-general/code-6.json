@@ -1,0 +1,20 @@
+<!-- default -->
+<div className="progress mb-2">
+  <div className="progress-bar fs-10px fw-bold" style={{width: '80%'}}>Basic</div>
+</div>
+<!-- striped -->
+<div className="progress">
+  <div className="progress-bar bg-warning progress-bar-striped fs-10px fw-bold" style={{width: '80%'}}>Striped</div>
+</div>
+
+<!-- animated -->
+<div className="progress rounded-pill mb-2">
+  <div className="progress-bar bg-indigo progress-bar-striped progress-bar-animated rounded-pill fs-10px fw-bold" style={{width: '80%'}}>Animated</div>
+</div>
+
+<!-- stacked -->
+<div className="progress rounded-pill">
+  <div className="progress-bar bg-dark fs-10px fw-bold" style={{width: '25%'}}>Stacked</div>
+  <div className="progress-bar bg-grey fs-10px fw-bold" style={{width: '25%'}}>Stacked</div>
+  <div className="progress-bar bg-lime fs-10px fw-bold" style={{width: '25%'}}>Stacked</div>
+</div>

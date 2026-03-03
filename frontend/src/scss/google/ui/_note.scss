@@ -1,0 +1,46 @@
+.note {
+	margin-bottom: rem(20px);
+	position: relative;
+	border-radius: $border-radius;
+	display: flex;
+	flex: 1;
+	background: var(--#{$prefix}alert-bg);
+	color: var(--#{$prefix}alert-color);
+	border-color: var(--#{$prefix}alert-border-color);
+	
+	@if $enable-rtl {
+		border-right: rem(3px) solid;
+	} @else {
+		border-left: rem(3px) solid;
+	}
+	
+	& .note-icon {
+		width: rem(80px);
+		font-size: rem(56px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	& .note-content {
+		padding: rem(15px);
+		flex: 1;
+		
+		& h1, 
+		& h2, 
+		& h3, 
+		& h4, 
+		& h5, 
+		& h6 {
+			color: inherit;
+		}
+	}
+	&.note-with-end-icon {
+		@if $enable-rtl {
+			border-right: none;
+			border-left: rem(3px) solid;
+		} @else {
+			border-left: none;
+			border-right: rem(3px) solid;
+		}
+	}
+}

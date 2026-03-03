@@ -1,0 +1,6 @@
+<Panel>
+  <PanelHeader>Panel (Default)</PanelHeader>
+  <PanelBody>
+    <p>Panel Content Here</p>
+  </PanelBody>
+</Panel>

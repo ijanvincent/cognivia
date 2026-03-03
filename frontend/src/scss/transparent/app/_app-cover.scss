@@ -1,0 +1,24 @@
+.app-cover {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: $app-page-cover;
+	background-size: cover;
+	background-repeat: no-repeat;
+	z-index: $app-cover-zindex;
+	
+	&:before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: lighten($black, 20%);
+		background: $black;
+		background: #181d26;
+		opacity: .66;
+	}
+}

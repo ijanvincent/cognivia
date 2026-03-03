@@ -1,0 +1,25 @@
+import { ReactNotifications, Store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+
+function UIModalNotification() {
+  function addNotification(notificationType, notificationTitle, notificationMessage, notificationPosition, notificationContent) {
+    store.addNotification({
+      title: notificationTitle,
+      message: notificationMessage,
+      type: notificationType,
+      insert: "top",
+      container: notificationPosition,
+      animationIn: ["animated", "fadeIn"],
+      animationOut: ["animated", "fadeOut"],
+      dismiss: { duration: 2000 },
+      dismissable: { click: true },
+      content: notificationContent
+    });
+  }
+  
+  return (
+    <div>
+      <button onClick={() => this.addNotification('success', 'Success', 'All your data has been successfully updated', 'bottom-left')} className="btn btn-sm btn-dark">Demo</button>
+    </div>
+  )
+}

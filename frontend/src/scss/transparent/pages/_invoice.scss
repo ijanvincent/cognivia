@@ -1,0 +1,154 @@
+.invoice {
+	background: var(--#{$prefix}component-bg);
+	padding: rem(20px);
+	
+	& > div {
+		&:not(.invoice-footer) {
+			margin-bottom: rem(20px);
+		}
+	}
+	& .invoice-company {
+		font-size: rem(20px);
+		font-weight: $font-weight-bold;
+	}
+	& .invoice-header {
+		margin: 0 rem(-20px);
+		background: var(--#{$prefix}light);
+		display: flex;
+		
+		@include media-breakpoint-down(md) {
+			display: block;
+			
+			& > div {
+				& + div {
+					border-top: 1px solid var(--#{$prefix}component-border-color);
+				}
+			}
+		}
+	}
+	& .invoice-from {
+		padding: rem(20px);
+		flex: 1;
+		
+		& strong {
+			font-size: rem(16px);
+			font-weight: $font-weight-bold;
+		}
+	}
+	& .invoice-to {
+		padding: rem(20px);
+		flex: 1;
+		
+		& strong {
+			font-size: rem(16px);
+			font-weight: $font-weight-bold;
+		}
+	}
+	& .invoice-date {
+		text-align: right;
+		padding: rem(20px);
+		flex: 1;
+		
+		@include media-breakpoint-down(md) {
+			text-align: left;
+		}
+		
+		& .date {
+			font-size: rem(16px);
+			font-weight: $font-weight-bold;
+		}
+	}
+	& .invoice-price {
+		background: var(--#{$prefix}component-bg);
+		width: 100%;
+		display: flex;
+		
+		@include media-breakpoint-down(sm) {
+			display: block;
+		}
+		
+		& small {
+			font-size: rem(12px);
+			font-weight: normal;
+			display: block;
+		}
+		& .invoice-price-right {
+			margin-left: auto;
+			padding: rem(20px);
+			font-size: rem(28px);
+			font-weight: 300;
+			position: relative;
+			vertical-align: bottom;
+			text-align: right;
+			color: var(--#{$prefix}component-color);
+			background: var(--#{$prefix}component-bg);
+			min-width: 25%;
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			
+			& small {
+				display: block;
+				opacity: 0.6;
+				position: absolute;
+				top: rem(15px);
+				left: rem(20px);
+				font-size: rem(12px);
+			}
+		}
+		& .invoice-price-left {
+			padding: rem(20px);
+			font-size: rem(20px);
+			font-weight: $font-weight-bold;
+			position: relative;
+			vertical-align: middle;
+			flex: 1;
+			
+			& .invoice-price-row {
+				display: flex;
+				align-items: center;
+				
+				@include media-breakpoint-down(sm) {
+					display: block;
+					text-align: center;
+				}
+				
+				& .sub-price {
+					padding: 0 rem(20px);
+				
+					@include media-breakpoint-down(md) {
+						padding: 0;
+					
+						& + .sub-price {
+							padding-left: rem(20px);
+						}
+					}
+					@include media-breakpoint-down(sm) {
+						& + .sub-price {
+							padding-left: 0;
+						}
+					}
+				}
+			}
+		}
+	}
+	& .invoice-footer {
+		border-top: 1px solid var(--#{$prefix}component-border-color);
+		padding-top: rem(15px);
+		font-size: rem(11px);
+		color: rgba(var(--#{$prefix}component-color-rgb), .5);
+	}
+	& .invoice-note {
+		color: rgba(var(--#{$prefix}component-color-rgb), .5);
+		margin-top: rem(80px);
+		font-size: rem(11px);
+		line-height: 1.75;
+	}
+	& .table-invoice {
+		font-size: rem(13px);
+		
+		@include media-breakpoint-down(md) {
+			white-space: nowrap;
+		}
+	}
+}

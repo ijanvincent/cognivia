@@ -1,0 +1,13 @@
+<Panel>
+  <PanelHeader noButton={true}>
+    <div className="d-flex align-items-center">
+      Panel Header with Progress Bar
+      <div className="progress progress-sm ms-auto my-n1 w-150px h-10px bg-gray-700">
+        <div className="progress-bar progress-bar-striped bg-success progress-bar-animated">40%</div>
+      </div>
+    </div>
+  </PanelHeader>
+  <PanelBody>
+    <p>Panel Content Here</p>
+  </PanelBody>
+</Panel>

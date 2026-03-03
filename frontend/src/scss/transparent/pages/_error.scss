@@ -1,0 +1,52 @@
+.error {
+	margin: 0 auto;
+	text-align: center;
+	height: 100vh;
+	position: relative;
+	z-index: $app-content-zindex;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	
+	& .error-code,
+	& .error-content {
+		flex: 1;
+		transform: translateZ(0);
+	}
+	& .error-code {
+		color: var(--#{$prefix}component-color);
+		font-size: rem(200px);
+		line-height: 1;
+		text-shadow: 10px 10px 0px rgba(var(--#{$prefix}component-color-rgb), .2);
+		padding: $spacer * 2;
+		height: 50vh;
+		display: flex;
+		justify-content: center;
+		align-items: flex-end;
+		
+		@include media-breakpoint-down(md) {
+			font-size: rem(160px);
+		}
+		@include media-breakpoint-down(sm) {
+			font-size: rem(120px);
+		}
+	}
+	& .error-content {
+		bottom: 0;
+		padding: $spacer * 2;
+		background: var(--#{$prefix}component-bg);
+		background-image: $app-error-page-bg-cover;
+	}
+	& .error-message {
+		color: $white;
+		font-size: $h2-font-size;
+		line-height: $headings-line-height;
+		letter-spacing: 0.5px;
+		margin-bottom: $spacer * .5;
+	}
+	& .error-desc {
+		font-size: $font-size-base;
+		color: rgba($white, .5);
+		letter-spacing: 0.5px;
+	}
+}

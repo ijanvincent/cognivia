@@ -1,0 +1,37 @@
+.modal {
+	& .modal-header {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		
+		& .close {
+			@if $enable-rtl {
+				margin-right: auto;
+				margin-left: rem(-15px);
+			}
+		}
+	}
+	
+	&.modal-message {
+		& .modal-dialog {
+			width: 100%;
+			max-width: 100%;
+			margin-left: 0;
+			margin-right: 0;
+		}
+		& .modal-content {
+			border-radius: 0;
+		}
+		& .modal-body,
+		& .modal-header,
+		& .modal-footer {
+			width: 60%;
+			border: none;
+			margin: 0 auto;
+			
+			@include media-breakpoint-down(sm) {
+				width: 90%;
+			}
+		}
+	}
+}

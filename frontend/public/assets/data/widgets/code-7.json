@@ -1,0 +1,11 @@
+<Link to="/widgets" className="widget-card rounded mb-20px">
+  <div className="widget-card-cover rounded" style={{ backgroundImage: 'url(/assets/img/gallery/gallery-portrait-11-thumb.jpg)'}}></div>
+  <div className="widget-card-content">
+    <b className="text-white">Download and get free trial.</b>
+  </div>
+  <div className="widget-card-content bottom">
+    <i className="fab fa-pushed fa-5x text-indigo"></i>
+    <h4 className="text-white mt-10px"><b>Apple Draw<br /> Photo Booth</b></h4>
+    <h5 className="fs-12px text-white text-opacity-75 mb-0"><b>EASILY DRAW ON PHOTOS</b></h5>
+  </div>
+</Link>

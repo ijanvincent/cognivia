@@ -1,0 +1,27 @@
+&lt;!-- toggler --&gt;
+&lt;button type="button" class="btn btn-primary" id="liveToastBtn"&gt;Show live toast&lt;/button&gt;
+
+&lt;!-- html --&gt;
+&lt;div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"&gt;
+  &lt;div class="toast-header"&gt;
+    &lt;div class="bg-blue rounded w-25px h-25px d-flex align-items-center justify-content-center text-white"&gt;
+      &lt;i class="fa fa-bell"&gt;&lt;/i&gt;
+    &lt;/div&gt;
+    &lt;strong class="me-auto ms-2"&gt;Bootstrap&lt;/strong&gt;
+    &lt;small&gt;11 mins ago&lt;/small&gt;
+    &lt;button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"&gt;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class="toast-body"&gt;
+    Hello, world! This is a toast message.
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  $(document).on('click','#liveToastBtn', function(e) {
+    e.preventDefault();
+    
+    $('#liveToast').toast('show');
+    
+    $(this).blur();
+  });
+&lt;/script&gt;

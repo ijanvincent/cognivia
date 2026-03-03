@@ -1,0 +1,164 @@
+.widget-stats,
+.widget.widget-stats {
+	position: relative;
+	color: var(--#{$prefix}component-color);
+	padding: $spacer;
+	border-radius: $border-radius;
+	
+	& .stats-info {
+		& h4 {
+			font-size: rem(12px);
+			margin: rem(5px) 0;
+			color: rgba($white, .7);
+		}
+		& p {
+			font-size: rem(24px);
+			font-weight: $font-weight-bold;
+			margin-bottom: 0;
+		}
+	}
+	& .stats-link {
+		& a {
+			display: block;
+			margin: rem(15px) rem(-15px) rem(-15px);
+			padding: rem(7px) rem(15px);
+			background: rgba($black, .4);
+			text-align: right;
+			color: rgba($white, .7);
+			text-decoration: none;
+			
+			@if $enable-rtl {
+				text-align: left;
+			}
+			
+			&:hover,
+			&:focus {
+				background: rgba($black, .6);
+				color: $white;
+			}
+		}
+	}
+	& .stats-icon {
+		font-size: rem(42px);
+		height: rem(56px);
+		width: rem(56px);
+		text-align: center;
+		line-height: rem(56px);
+		color: rgba($black, .15);
+		position: absolute;
+		top: $spacer;
+		margin-left: $spacer;
+		
+		@if $enable-rtl {
+			right: auto;
+			left: $spacer;
+		} @else {
+			right: $spacer;
+		}
+		
+		&.stats-icon-lg {
+			font-size: rem(128px);
+			top: rem(15px);
+			color: $white;
+			width: rem(128px);
+			height: rem(50px);
+			line-height: rem(50px);
+			text-shadow: rem(3px) rem(7px) rgba($black, .25);
+			opacity: .15;
+			
+			@if $enable-rtl {
+				left: 0;
+			} @else {
+				right: 0;
+			}
+			
+			& i {
+				position: relative;
+			}
+		}
+		&.stats-icon-square {
+			opacity: 1;
+			font-size: rem(42px);
+			top: rem(15px);
+			right: rem(15px);
+			height: rem(56px);
+			width: rem(56px);
+			text-align: center;
+			line-height: rem(56px);
+			margin-left: rem(15px);
+			
+			border-radius: $border-radius * 4;
+			@if $enable-rtl {
+				right: auto;
+				left: rem(15px);
+			}
+		}
+	}
+	& .stats-content {
+		position: relative;
+	}
+	& .stats-title {
+		position: relative;
+		margin: 0 0 $spacer * 0.75;
+		font-size: rem(14px);
+		font-weight: $font-weight-bold;
+	}
+	& .stats-desc {
+		margin: rem(-5px) 0 rem(-3px);
+		font-weight: $font-weight-bold;
+		color: $gray-700;
+	}
+	& .stats-number {
+		font-size: rem(24px);
+		margin-bottom: $spacer;
+		font-weight: $font-weight-bolder;
+		
+		& .increase {
+			font-size: rem(16px);
+			color: $success;
+		}
+		& .decrease {
+			font-size: rem(16px);
+			color: $danger;
+		}
+	}
+	& .stats-progress {
+		background: var(--#{$prefix}light);
+		height: rem(4px);
+		margin: 0 0 rem(15px);
+		border-radius: $border-radius;
+		
+		& .progress-bar {
+			background: var(--#{$prefix}component-active-bg);
+			border-radius: 0 $border-radius $border-radius 0;
+		}
+		&.stats-progress-light {
+			background: rgba($white, .3);
+		}
+	}
+	
+	&.text-inverse {
+		&.stats-desc {
+			letter-spacing: 0;
+			font-weight: 400;
+			color: rgba($black, .85);
+		}
+		&.stats-title {
+			font-weight: 700;
+			color: rgba($black, .85);
+		}
+		&.stats-number {
+			letter-spacing: 0;
+			font-weight: 400;
+		}
+	}
+	&.bg-white {
+		& .stats-progress {
+			background: rgba($black, .1);
+			
+			& .progress-bar {
+				background: $dark;
+			}
+		}
+	}
+}

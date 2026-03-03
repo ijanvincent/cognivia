@@ -1,0 +1,41 @@
+<div className="table-responsive">
+  <table className="table table-bordered widget-table rounded">
+    <thead>
+      <tr className="text-nowrap">
+        <th width="1%">Image</th>
+        <th>Product Info</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th>Total</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <img src="/assets/img/product/product-6.png" alt="" width="100" />
+        </td>
+        <td>
+          <h5 className="mb-1">Mavic Pro Combo</h5>
+          <p className="fs-11px fw-bold text-gray-600 mb-3">Portable yet powerful, the Mavic Pro is your personal drone, ready to go with you everywhere.</p>
+          <div className="progress h-10px rounded-pill mb-5px">
+            <div className="progress-bar progress-bar-striped progress-bar-animated bg-orange fs-10px fw-bold" style={{width: '30%'}}>30%</div>
+          </div>
+          <div className="clearfix fs-10px">
+            status: 
+            <b className="text-dark">Shipped</b>
+          </div>
+        </td>
+        <td className="text-nowrap">
+          <b className="text-dark">$999</b><br />
+          <small className="text-dark"><del>$1,202</del></small>
+        </td>
+        <td>1</td>
+        <td>999.00</td>
+        <td>
+          <Link to="/widgets" className="btn btn-sm w-80px rounded-pill btn-default">Edit</Link>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

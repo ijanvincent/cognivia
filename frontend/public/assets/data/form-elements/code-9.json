@@ -1,0 +1,15 @@
+<div className="input-group">
+  <span className="input-group-text">$</span>
+  <input type="text" className="form-control" />
+  <span className="input-group-text">.00</span>
+</div>
+
+<div className="input-group">
+  <input type="text" className="form-control">
+  <button type="button" className="btn btn-indigo" data-bs-toggle="dropdown">
+    <span className="caret"></span>
+  </button>
+  <ul className="dropdown-menu dropdown-menu-end">
+    ...
+  </ul>
+</div>

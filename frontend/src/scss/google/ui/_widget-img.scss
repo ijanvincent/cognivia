@@ -1,0 +1,30 @@
+.widget-img {
+	overflow: hidden;
+	width: rem(40px);
+	height: rem(40px);
+	line-height: rem(40px);
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
+	
+	&.widget-img-xl {
+		width: rem(80px);
+		height: rem(80px);
+		line-height: rem(80px);
+	}
+	&.widget-img-lg {
+		width: rem(60px);
+		height: rem(60px);
+		line-height: rem(60px);
+	}
+	&.widget-img-sm {
+		width: rem(30px);
+		height: rem(30px);
+		line-height: rem(30px);
+	}
+	&.widget-img-xs {
+		width: rem(20px);
+		height: rem(20px);
+		line-height: rem(20px);
+	}
+}

@@ -1,0 +1,4 @@
+<div className="mb-3">
+  <label className="form-label">...</label>
+  <input className="form-control" type="text" />
+</div>

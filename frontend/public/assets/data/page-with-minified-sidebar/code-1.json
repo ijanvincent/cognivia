@@ -1,0 +1,22 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithMinifiedSidebar() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppSidebarMinified(true);
+    
+    return () => {
+      context.handleSetAppSidebarMinified(false);
+    };
+  }, [context]);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithMinifiedSidebar;

@@ -1,0 +1,221 @@
+/*
+   Dark color mode variables
+   
+   1.0   GLOBAL - Color system
+   1.0   GLOBAL - Color system
+   2.0   GLOBAL - Body
+   3.0   GLOBAL - Border Color
+   4.0   GLOBAL - Font
+   5.0   GLOBAL - Link Color
+   6.0   GLOBAL - Component Color
+   7.0   App - Header
+   8.0   App - Top Menu
+   9.0   App - Sidebar
+   10.0  App - POS System
+   11.0  UI - Forms
+   12.0  UI - Accordion
+   13.0  UI - Code
+*/
+
+
+
+// 1.0  GLOBAL - Color system
+
+$primary-text-emphasis-dark:                         tint-color($primary, 40%) !default;
+$secondary-text-emphasis-dark:                       tint-color($secondary, 40%) !default;
+$success-text-emphasis-dark:                         tint-color($success, 40%) !default;
+$info-text-emphasis-dark:                            tint-color($info, 40%) !default;
+$warning-text-emphasis-dark:                         tint-color($warning, 40%) !default;
+$danger-text-emphasis-dark:                          tint-color($danger, 40%) !default;
+$light-text-emphasis-dark:                           $gray-100 !default;
+$dark-text-emphasis-dark:                            $gray-300 !default;
+
+$primary-bg-subtle-dark:                             shade-color($primary, 80%) !default;
+$secondary-bg-subtle-dark:                           shade-color($secondary, 80%) !default;
+$success-bg-subtle-dark:                             shade-color($success, 80%) !default;
+$info-bg-subtle-dark:                                shade-color($info, 80%) !default;
+$warning-bg-subtle-dark:                             shade-color($warning, 80%) !default;
+$danger-bg-subtle-dark:                              shade-color($danger, 80%) !default;
+$light-bg-subtle-dark:                               $gray-800 !default;
+$dark-bg-subtle-dark:                                mix($gray-800, $black) !default;
+
+$primary-border-subtle-dark:                         shade-color($primary, 40%) !default;
+$secondary-border-subtle-dark:                       shade-color($secondary, 40%) !default;
+$success-border-subtle-dark:                         shade-color($success, 40%) !default;
+$info-border-subtle-dark:                            shade-color($info, 40%) !default;
+$warning-border-subtle-dark:                         shade-color($warning, 40%) !default;
+$danger-border-subtle-dark:                          shade-color($danger, 40%) !default;
+$light-border-subtle-dark:                           $gray-700 !default;
+$dark-border-subtle-dark:                            $gray-800 !default;
+
+
+
+// 2.0  GLOBAL - Body
+
+$body-bg-dark:                                       shade-color($gray-900, 30%) !default;
+$body-color-dark:                                    $gray-100 !default;
+$body-secondary-color-dark:                          rgba($body-color-dark, .75) !default;
+$body-secondary-bg-dark:                             $gray-800 !default;
+$body-tertiary-color-dark:                           rgba($body-color-dark, .5) !default;
+$body-tertiary-bg-dark:                              mix($gray-800, $gray-900, 50%) !default;
+$body-emphasis-color-dark:                           $white !default;
+
+
+
+// 3.0  GLOBAL - Border Color
+
+$border-color-dark:                                  $gray-600 !default;
+$border-color-translucent-dark:                      rgba($white, .15) !default;
+
+
+
+// 4.0  GLOBAL - Font
+
+$headings-color-dark:                                inherit !default;
+
+
+
+// 5.0  GLOBAL - Link Color
+
+$link-color-dark:                                    tint-color($primary, 40%) !default;
+$link-hover-color-dark:                              shift-color($link-color-dark, -$link-shade-percentage) !default;
+
+
+
+// 6.0  GLOBAL - Component Color
+
+$component-bg-dark:                                  $gray-800 !default;
+$component-secondary-bg-dark:                        $gray-700 !default;
+$component-tertiary-bg-dark:                         $gray-600 !default;
+$component-color-dark:                               $white !default;
+$component-border-color-dark:                        $gray-700 !default;
+$component-hover-bg-dark:                            tint-color($gray-800, 15%) !default;
+$component-hover-color-dark:                         $white !default;
+$component-hover-border-color-dark:                  rgba($gray-300, .125) !default;
+$component-disabled-bg-dark:                         $gray-700 !default;
+$component-disabled-border-color-dark:               $gray-700 !default;
+$component-disabled-color-dark:                      $gray-600 !default;
+$component-dropdown-bg-dark:                         $gray-700 !default;
+$component-dropdown-hover-bg-dark:                   $gray-600 !default;
+$component-dropdown-border-color-dark:               $gray-600 !default;
+$component-modal-bg-dark:                            $gray-700 !default;
+$component-modal-border-color-dark:                  $gray-600 !default;
+$component-table-border-color-dark:                  $gray-700 !default;
+$component-table-separator-color-dark:               $gray-500 !default;
+
+
+
+// 7.0  App - Header
+
+$app-header-bg-dark:                                 shade-color($gray-800, 15%) !default;
+$app-header-color-dark:                              $white !default;
+$app-header-theme-bg-dark:                           var(--#{$prefix}app-theme) !default;
+$app-header-theme-color-dark:                        var(--#{$prefix}app-theme-color) !default;
+$app-header-input-bg-dark:                           shade-color($gray-900, 15%) !default;
+$app-header-input-border-dark:                       shade-color($gray-900, 15%) !default;
+$app-header-divider-bg-dark:                         $gray-700 !default;
+$app-header-mobile-divider-bg-dark:                  $gray-900 !default;
+
+
+
+// 8.0  App - Top Menu
+
+$app-top-menu-bg-dark:                               $gray-900 !default;
+$app-top-menu-menu-badge-color-dark:                 $gray-200 !default;	
+$app-top-menu-menu-badge-bg-dark:                    $gray-700 !default;	
+$app-top-menu-menu-badge-font-weight-dark:           $font-weight-bold !default;	
+$app-top-menu-link-color-dark:                       rgba($white, .6) !default;	
+$app-top-menu-link-hover-bg-dark:                    none !default;	
+$app-top-menu-link-hover-color-dark:                 $white !default;	
+$app-top-menu-link-active-bg-dark:                   none !default;	
+$app-top-menu-link-active-color-dark:                $white !default;	
+$app-top-menu-link-font-weight-dark:                 $font-weight-base !default;
+$app-top-menu-control-link-bg-dark:                  $gray-800 !default;	
+$app-top-menu-control-link-color-dark:               rgba($white, .6) !default;	
+$app-top-menu-control-link-hover-bg-dark:            darken($gray-800, 4%) !default;	
+$app-top-menu-control-link-hover-color-dark:         $white !default;	
+$app-top-menu-menu-submenu-bg-dark:                  $gray-800 !default;	
+$app-top-menu-menu-submenu-submenu-bg-dark:          rgba($black, .2) !default;
+$app-top-menu-menu-submenu-link-color-dark:          rgba($white, .6) !default;	
+$app-top-menu-menu-submenu-link-font-weight-dark:    $font-weight-base !default;	
+$app-top-menu-menu-submenu-link-hover-color-dark:    $white !default;	
+$app-top-menu-menu-submenu-link-active-bg-dark:      $gray-900 !default;	
+$app-top-menu-menu-submenu-link-active-color-dark:   $white !default;	
+
+
+
+// 9.0  App - Sidebar
+
+$app-sidebar-bg-dark:                                $gray-900 !default;
+$app-sidebar-bg-mobile-backdrop-dark:                rgba($gray-900, .5) !default;
+$app-sidebar-component-color-dark:                   $white !default;
+$app-sidebar-component-active-bg-dark:               $gray-900 !default;
+$app-sidebar-component-active-color-dark:            $white !default;
+$app-sidebar-profile-color-dark:                     $gray-300 !default;
+$app-sidebar-menu-header-color-dark:                 rgba($white, .45) !default;
+$app-sidebar-menu-divider-bg-dark:                   $gray-900 !default;
+$app-sidebar-menu-icon-color-dark:                   inherit !default;
+$app-sidebar-menu-badge-bg-dark:                     $gray-900 !default;
+$app-sidebar-menu-badge-color-dark:                  $white !default;
+$app-sidebar-menu-badge-font-weight-dark:            $font-weight-base !default;
+$app-sidebar-menu-link-color-dark:                   rgba($white, .6) !default;
+$app-sidebar-menu-link-hover-color-dark:             $white !default;
+$app-sidebar-menu-link-hover-bg-dark:                $gray-800 !default;
+$app-sidebar-menu-link-font-weight-dark:             $font-weight-bold !default;
+$app-sidebar-menu-submenu-bg-dark:                   none !default;
+$app-sidebar-menu-submenu-link-color-dark:           rgba($white, .45) !default;
+$app-sidebar-menu-submenu-link-font-weight-dark:     $font-weight-bold !default;
+$app-sidebar-menu-submenu-link-hover-color-dark:     $white !default;
+$app-sidebar-menu-grid-bg-dark:                      $gray-900 !default;
+$app-sidebar-menu-grid-border-width-dark:            1px !default;
+$app-sidebar-menu-grid-border-color-dark:            rgba($white, .6) !default;
+$app-sidebar-grid-border-color-dark:                 lighten($dark, 7.5%) !default;
+$app-sidebar-minify-btn-bg-dark:                     darken($dark, 4%) !default;
+$app-sidebar-minify-btn-hover-bg-dark:               $gray-900 !default;
+$app-sidebar-float-submenu-bg-dark:                  $gray-900 !default;
+$app-sidebar-float-submenu-grid-border-color-dark:   $gray-800 !default;
+
+
+
+// 10.0  App - POS System
+
+$pos-sidebar-bg-dark:                                $gray-800 !default;
+$pos-sidebar-header-bg-dark:                         $gray-700 !default;
+$pos-sidebar-header-color-dark:                      $white !default;
+$pos-sidebar-header-back-btn-bg-dark:                $gray-700 !default;
+$pos-sidebar-header-nav-link-bg-dark:                $gray-900 !default;
+$pos-sidebar-header-nav-link-color-dark:             $gray-600 !default;
+$pos-sidebar-header-nav-link-active-bg-dark:         $gray-800 !default;
+$pos-sidebar-header-nav-link-active-color-dark:      $white !default;
+$pos-sidebar-footer-bg-dark:                         $gray-700 !default;
+$pos-sidebar-footer-color-dark:                      $white !default;
+$pos-sidebar-product-border-color-dark:              $gray-600 !default;
+$pos-sidebar-product-confirmation-bg-dark:           rgba($gray-800, .95) !default;
+
+
+
+// 11.0  UI - Forms
+
+$form-select-indicator-color-dark:                   $body-color-dark !default;
+$form-select-indicator-dark:                         url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='#{$form-select-indicator-color-dark}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/></svg>") !default;
+$form-switch-color-dark:                             rgba($white, .25) !default;
+$form-switch-bg-image-dark:                          url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-color-dark}'/></svg>") !default;
+$form-valid-color-dark:                              $green-300 !default;
+$form-valid-border-color-dark:                       $green-300 !default;
+$form-invalid-color-dark:                            $red-300 !default;
+$form-invalid-border-color-dark:                     $red-300 !default;
+
+
+
+// 12.0  UI - Accordion
+
+$accordion-icon-color-dark:                          $primary-text-emphasis-dark !default;
+$accordion-icon-active-color-dark:                   $primary-text-emphasis-dark !default;
+$accordion-button-icon-dark:                         url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='#{$accordion-icon-color-dark}'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>") !default;
+$accordion-button-active-icon-dark:                  url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='#{$accordion-icon-active-color-dark}'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>") !default;
+
+
+
+// 13.0  UI - Code
+
+$code-color-dark:                                    tint-color($code-color, 40%) !default;

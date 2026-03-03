@@ -1,0 +1,22 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithMegaMenu() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppHeaderMegaMenu(true);
+    
+    return () => {
+      context.handleSetAppHeaderMegaMenu(false);
+    };
+  }, [context]);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithMegaMenu;

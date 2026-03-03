@@ -1,0 +1,7 @@
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+<!-- html -->
+<div className="pb-2px">
+  <ReactQuill value={text} onChange={handleChange} className="h-200px mb-40px" />
+</div>

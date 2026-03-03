@@ -1,0 +1,17 @@
+import { SketchPicker, ChromePicker } from 'react-color';
+import { UncontrolledDropdown, DropdownMenu, DropdownToggle } from 'reactstrap';
+
+<!-- html -->
+<UncontrolledDropdown>
+  <div className="input-group">
+    <input type="text" className="form-control bg-white" readOnly value={sketchBackgroundColor} />
+    <span className="input-group-text">
+      <DropdownToggle className="p-0 border-0">
+        <i style={{width: '16px', height: '16px', display: 'block', background: sketchBackgroundColor}}></i>
+      </DropdownToggle>
+    </span>
+  </div>
+  <DropdownMenu>
+    <SketchPicker color={ sketchBackgroundColor } onChangeComplete={ handleSketchChangeComplete } />
+  </DropdownMenu>
+</UncontrolledDropdown>

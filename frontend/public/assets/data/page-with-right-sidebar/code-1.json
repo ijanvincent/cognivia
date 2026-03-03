@@ -1,0 +1,24 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithRightSidebar() {
+  const context = useContext(AppSettings);
+  const [code1, setCode1] = useState();
+
+  useEffect(() => {
+    context.handleSetAppSidebarEnd(true);
+    
+    return () => {
+      context.handleSetAppSidebarEnd(false);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithRightSidebar;

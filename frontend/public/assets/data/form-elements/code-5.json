@@ -1,0 +1,11 @@
+<!-- large size -->
+<input className="form-control form-control-lg" type="text" />
+<select className="form-select form-select-lg">...</select>
+
+<!-- default -->
+<input className="form-control" type="text" />
+<select className="form-select">...</select>
+
+<!-- small size -->
+<input className="form-control form-control-sm" type="text" />
+<select className="form-select form-select-sm">...</select>

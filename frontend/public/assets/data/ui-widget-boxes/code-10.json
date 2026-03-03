@@ -1,0 +1,21 @@
+<Panel theme="default" className="panel-with-tabs">
+  <PanelHeader noButton={true} className="pb-0">
+    <div className="d-flex align-items-end">
+      <div className="flex-1 pb-3">Panel with Tabs</div>
+      <ul className="nav nav-tabs">
+        <li className="nav-item"><a href="#home" data-bs-toggle="tab" className="nav-link active"><i className="fa fa-home"></i> <span className="d-none d-md-inline">Home</span></a></li>
+        <li className="nav-item"><a href="#profile" data-bs-toggle="tab" className="nav-link"><i className="fa fa-user"></i> <span className="d-none d-md-inline">Profile</span></a></li>
+      </ul>
+    </div>
+  </PanelHeader>
+  <PanelBody>
+    <div className="tab-content">
+      <div className="tab-pane fade show active" id="home">
+        <p>...</p>
+      </div>
+      <div className="tab-pane fade" id="profile">
+        <p>...</p>
+      </div>
+    </div>
+  </PanelBody>
+</Panel>

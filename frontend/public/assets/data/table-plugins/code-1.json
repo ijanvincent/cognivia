@@ -1,0 +1,27 @@
+import DataTable from react-data-table-component;
+
+const columns = [
+  {name: 'Name', selector: row => row.name, sortable: true},
+  {name: 'Email', selector: row => row.email, sortable: true},
+  {name: 'Address', selector: row => row.address, sortable: true}
+];
+
+const data = [
+  {id: 1, name: 'Anne Nader', email: 'Rahul.Dare@hotmail.com', address: '4512 Nolan Brooks'},
+  {id: 2, name: 'Amber Leffler', email: 'Mia58@gmail.com', address: '405 Emmy Radial'},
+  ...
+]
+
+const rowDisabledCriteria = row => row.isOutOfStock;
+const rowPreDisabled = row => row.disabled;
+const ExpandedComponent = ({ data }) => <pre>{JSON.stringify(data, null, 2)}</pre>;
+
+<DataTable title="React DataTable Component" 
+  columns={columns} 
+  data={data} 
+  selectableRows
+  selectableRowDisabled={rowDisabledCriteria}
+  expandableRows
+  expandableRowDisabled={rowPreDisabled}
+  expandableRowsComponent={ExpandedComponent}
+  pagination />

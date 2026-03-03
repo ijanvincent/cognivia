@@ -1,0 +1,10 @@
+<div className="d-flex">
+  <Link to="/ui/media-object" className="w-60px">
+    <img src="/assets/img/user/user-10.jpg" alt="" className="mw-100 rounded" />
+  </Link>
+  <div className="ps-3 flex-1">
+    <h5 className="mb-1">Media heading</h5>
+    <p className="mb-0">...</p>
+  </div>
+</div>
+<hr className="bg-gray-500" />

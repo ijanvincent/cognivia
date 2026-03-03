@@ -1,0 +1,17 @@
+<!-- default -->
+<div className="note alert-primary">
+  <div className="note-icon"><i className="fab fa-facebook-f"></i></div>
+  <div className="note-content">
+    <h4><b>Note with icon!</b></h4>
+    <p> ... </p>
+  </div>
+</div>
+
+<!-- with right icon -->
+<div className="note alert-warning note-with-end-icon">
+  <div className="note-icon"><i className="fa fa-lightbulb"></i></div>
+  <div className="note-content text-end">
+    <h4><b>Note with right icon!</b></h4>
+    <p> ... </p>
+  </div>
+</div>

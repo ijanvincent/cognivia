@@ -1,0 +1,168 @@
+.app-with-light-sidebar {
+	& .app-sidebar {
+		background: $white;
+		
+		& .menu {
+			& .menu-header {
+				color: $gray-500;
+			}
+			& .menu-divider {
+				background: $gray-300;
+			}
+			& .menu-search {
+				& .form-control {
+					background: none;
+					border: none;
+					padding-left: 0;
+					padding-right: 0;
+					border-bottom: 1px solid $border-color;
+					color: $dark;
+					border-radius: 0;
+				
+					&:focus {
+						border-color: darken($border-color, 15%);
+						box-shadow: none;
+					}
+				}
+			}
+			& .menu-item {
+				& > .menu-link {
+					color: $gray-700;
+					font-weight: $font-weight-bold;
+					
+					& .menu-badge {
+						background: $gray-300;
+						color: $gray-800;
+						font-weight: $font-weight-bold;
+					}
+					&:hover,
+					&:focus {
+						color: $dark;
+						background: $gray-200;
+					}
+				}
+				&.expand,
+				&.expanding {
+					& > .menu-link {
+						background: $gray-200;
+					}
+				}
+				&.active {
+					& > .menu-link {
+						background: var(--#{$prefix}app-theme);
+						color: var(--#{$prefix}app-theme-color);
+					}
+				}
+				
+				& .menu-submenu {
+					& > .menu-item {
+						& > .menu-link {
+							color: $gray-600;
+							font-weight: $font-weight-bold;
+					
+							&:hover,
+							&:focus {
+								color: $gray-900;
+								background: none;
+							}
+							&:after {
+								background: $gray-300;
+							}
+						}
+						&:before {
+							background: $gray-300;
+						}
+						&:after {
+							border-width: 2px;
+							border-color: $gray-300;
+							background: $white;
+						}
+						&.active {
+							& > .menu-link {
+								color: $gray-900;
+							}
+							&:after {
+								border-color: var(--#{$prefix}app-theme);
+							}
+						}
+						&.has-sub {
+							& > .menu-link {
+								&:before {
+									background: $gray-300;
+								}
+							}
+						}
+					}
+				}
+			}
+			& .app-sidebar-minify-btn {
+				background: $gray-200;
+				color: $gray-500;
+			
+				& i {
+					color: $gray-500;
+				}
+			
+				&:hover,
+				&:focus {
+					background: $gray-400;
+					color: $gray-700;
+					
+					& i {
+						color: $gray-700;
+					}
+				}
+			}
+		}
+	}
+	& .app-sidebar-bg {
+		background: $white;
+	}
+	& .slimScrollDiv {
+		& .slimScrollBar {
+			background: $black !important;
+		}
+	}
+	& .app-sidebar-float-submenu-container {
+		background: $gray-100;
+		
+		& .app-sidebar-float-submenu-arrow,
+		& .app-sidebar-float-submenu-line {
+			background: $gray-300;
+		}
+		& .app-sidebar-float-submenu {
+			& .menu-item {
+				& > .menu-link {
+					color: $gray-600;
+					font-weight: $font-weight-bold;
+					
+					&:hover,
+					&:focus {
+						color: $gray-900;
+					}
+					&:after {
+						background: $gray-300;
+					}
+				}
+				&:before {
+					background: $gray-300;
+				}
+				&:after {
+					background: $gray-100;
+					border-color: $gray-300;
+					border-width: 2px;
+				}
+				&.active,
+				&.expand,
+				&.expanding {
+					& > .menu-link {
+						color: $gray-900;
+					}
+					&:after {
+						border-color: var(--#{$prefix}app-theme);
+					}
+				}
+			}
+		}
+	}
+}

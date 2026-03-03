@@ -1,0 +1,40 @@
+<div className="widget-chat rounded mb-4">
+  <div className="widget-chat-header">
+    <div className="widget-chat-header-icon">
+      <i className="fab fa-earlybirds w-30px h-30px fs-20px bg-yellow text-dark d-flex align-items-center justify-content-center rounded"></i>
+    </div>
+    <div className="widget-chat-header-content">
+      <h4 className="widget-chat-header-title">Company Discussion Group</h4>
+      <p className="widget-chat-header-desc">55 members, 4 online</p>
+    </div>
+  </div>
+  <PerfectScrollbar className="widget-chat-body" style={{height: '235px'}} options={{suppressScrollX: true}}>
+    <div className="text-center text-gray-500 m-2 fw-bold">Today</div>
+    <div className="widget-chat-item with-media start">
+      <div className="widget-chat-media">
+        <img alt="" src="/assets/img/user/user-1.jpg" />
+      </div>
+      <div className="widget-chat-info">
+        <div className="widget-chat-info-container">
+          <div className="widget-chat-name text-indigo">Hudson Mendes</div>
+          <div className="widget-chat-message">Should we plan for a company trip this year?</div>
+          <div className="widget-chat-time">6:00PM</div>
+        </div>
+      </div>
+    </div>
+    ...
+  </PerfectScrollbar>
+  <div className="widget-input">
+    <form action="" method="POST" name="">
+      <div className="widget-input-container">
+        <div className="widget-input-icon"><Link to="/widgets" className="text-gray-500"><i className="fa fa-camera"></i></Link></div>
+        <div className="widget-input-box">
+          <input type="text" className="form-control" placeholder="Write a message..." />
+        </div>
+        <div className="widget-input-icon"><Link to="/widgets" className="text-gray-500"><i className="fa fa-smile"></i></Link></div>
+        <div className="widget-input-divider"></div>
+        <div className="widget-input-icon"><Link to="/widgets" className="text-gray-500"><i className="fa fa-microphone"></i></Link></div>
+      </div>
+    </form>
+  </div>
+</div>

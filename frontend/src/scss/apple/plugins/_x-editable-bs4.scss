@@ -1,0 +1,354 @@
+.editable-container {
+	display: flex;
+	flex: 1;
+	
+	& .editableform {
+		display: block;
+		
+		& .form-group {
+			& > div {
+				margin-bottom: rem(-5px);
+				display: flex;
+				flex: 1;
+				flex-flow: row wrap;
+				
+				& .editable-input {
+					margin-bottom: $spacer * .5;
+					
+					@if $enable-rtl {
+						margin-left: $spacer * .5;
+					} @else {
+						margin-right: $spacer * .5;
+					}
+					& .combodate {
+						margin-bottom: rem(-3px);
+						display: flex;
+						align-items: center;
+						flex-wrap: wrap;
+						
+						& select {
+							margin-bottom: rem(3px);
+							min-width: rem(90px);
+						}
+					}
+					& .form-control {
+						@if $enable-rtl { 
+							padding-right: rem(12px) !important;
+							padding-left: rem(24px);
+						}
+					}
+					& .editable-clear-x {
+						right: rem(12px);
+						
+						@if $enable-rtl {
+							right: auto;
+							left: rem(12px);
+						}
+					}
+					& .editable-checklist {
+						& > div {
+							& > label {
+								justify-content: flex-start;
+							}
+						}
+					}
+					& .input-append {
+						&.date {
+							position: relative;
+							
+							& .form-control {
+								margin-top: rem(-1px);
+								display: inline-flex;
+								
+								@if $enable-rtl {
+									border-radius: 0 $border-radius $border-radius 0;
+								} @else {
+									border-radius: $border-radius 0 0 $border-radius;
+								}
+							}
+							& .add-on {
+								background: var(--#{$prefix}component-border-color);
+								padding: rem(5px) rem(10px);
+								min-height: rem(34px);
+								display: inline-flex;
+								align-items: center;
+								
+								@if $enable-rtl {
+									border-radius: $border-radius 0 0 $border-radius;
+								} @else {
+									border-radius: 0 $border-radius $border-radius 0;
+								}
+								
+								& i {
+									width: auto;
+									height: auto;
+									margin: 0;
+									
+									@include fontawesome();
+									
+									&:before {
+										content: '\f133';
+									}
+								}
+							}
+							& .datetimepicker {
+								width: rem(300px);
+								color: var(--#{$prefix}component-color);
+								border-radius: $border-radius * 2;
+		
+								& table {
+									width: 100%;
+			
+									& tfoot {
+										& .today {
+											&:hover,
+											&:focus {
+												background: lighten($dark, 75%);
+											}
+										}
+									}
+								}
+								& .datetimepicker-hours,
+								& .datetimepicker-days,
+								& .datetimepicker-months,
+								& .datetimepicker-years,
+								& .datetimepicker-decades,
+								& .datetimepicker-centuries {
+									& table {
+										& thead {
+											& tr {
+												& th {
+													border: none;
+													
+													&.prev,
+													&.next,
+													&.switch {
+														line-height: 20px;
+														padding: rem(5px);
+														border-radius: $border-radius;
+								
+														&:hover,
+														&:focus {
+															background: lighten($dark, 75%);
+									
+															&:before {
+																color: $dark;
+															}
+														}
+													}
+													&.prev,
+													&.next {
+														color: transparent;
+														width: 14.28%;
+								
+														@include fontawesome();
+								
+														&:before {
+															color: lighten($dark, 30%);
+															position: absolute;
+															font-size: rem(14px);
+														}
+													}
+													&.prev {
+														&:before {
+															content: '\f104';
+														}
+													}
+													&.next {
+														&:before {
+															content: '\f105';
+														}
+													}
+													&.switch {
+														width: auto;
+														font-weight: bold;
+													}
+													&.dow {
+														padding: rem(5px) 0;
+														border: none;
+														font-weight: bold;
+													}
+												}
+											}
+										}
+										& tbody {
+											& tr {
+												& td {
+													padding: rem(5px);
+							
+													& span {
+														&.hour,
+														&.decade,
+														&.year,
+														&.month,
+														&.century {
+															font-weight: 600;
+															color: lighten($dark, 30%);
+															text-shadow: none;
+															border-radius: $border-radius;
+									
+															&:hover,
+															&:focus {
+																background: lighten($dark, 75%);
+															}
+															&.focused {
+																background: lighten($dark, 70%);
+																color: $dark;
+															}
+															&.active {
+																background: $component-active-bg !important;
+																color: $white;
+															}
+														}
+													}
+													&.day {
+														font-weight: 600;
+														color: lighten($dark, 15%);
+														padding: rem(5px);
+														border-radius: $border-radius;
+								
+														&:hover,
+														&:focus {
+															background: lighten($dark, 75%);
+														}
+														&.today {
+															background: lighten($dark, 70%) !important;
+															color: $dark;
+														}
+														&.active {
+															background: $component-active-bg !important;
+															color: $white;
+															text-shadow: none !important;
+														}
+														&.old {
+															color: lighten($dark, 60%);
+														}
+														&.new {
+															color: lighten($dark, 45%);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					& .editable-address {
+						& input {
+							border: 1px solid var(--#{$prefix}component-border-color);
+							color: var(--#{$prefix}component-color);
+							padding: rem(6px) rem(10px);
+							background-color: transparent;
+							border-radius: $border-radius;
+							
+							&:focus {
+								outline: none;
+								border-color: $input-focus-border-color;
+								transition: all .2s linear;
+								box-shadow: $input-focus-box-shadow;
+							}
+						}
+					}
+					& .twitter-typeahead {
+						& .tt-hint {
+							border: none;
+							height: $input-height;
+							padding: $input-padding-y $input-padding-x;
+							line-height: $input-line-height;
+							margin-left: rem(1px);
+							margin-top: -1px;
+							opacity: 0.6;
+						}
+						& .tt-dropdown-menu {
+							border: none;
+							box-shadow: $dropdown-box-shadow;
+							
+							& .tt-suggestion {
+								padding: rem(5px) rem(12px);
+								
+								&.tt-is-under-cursor {
+									background: $component-active-bg;
+									color: $white;
+								}
+							}
+						}
+					}
+					& .wysihtml5-toolbar {
+						background: none;
+						padding: 0 !important;
+						border: none;
+					}
+					& .wysihtml5-sandbox {
+						border: 1px solid var(--#{$prefix}component-border-color) !important;
+					}
+				}
+				& .editable-buttons {
+					margin-left: rem(0);
+					margin-bottom: rem(5px);
+					display: flex;
+				
+					& .btn {
+						width: rem(34px);
+						height: rem(34px);
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					
+						& + .btn {
+							margin-left: rem(5px);
+							
+							@if $enable-rtl {
+								margin-left: 0;
+								margin-right: rem(5px);
+							}
+						}
+						& .glyphicon-ok {
+							@include fontawesome();
+				
+							&:before {
+								content: '\f00c';
+							}
+						}
+						& .glyphicon-remove {
+							@include fontawesome();
+				
+							&:before {
+								content: '\f00d';
+							}
+						}
+					}
+					&.editable-buttons-bottom {
+						display: block;
+						
+						& .btn {
+							display: inline-flex;
+						}
+					}
+				}
+			}
+			&.has-error {
+				& .form-control {
+					border-color: mix($black, $danger, 7.5%);
+					background: mix($white, $danger, 90%);
+				}
+				& .editable-error-block {
+					margin: 0 0 0 rem(10px);
+					white-space: nowrap;
+					color: mix($black, $danger, 15%);
+					
+					@if $enable-rtl {
+						margin-left: 0;
+						margin-right: rem(10px);
+					}
+				}
+			}
+		}
+	}
+}
+.editable-click, 
+a.editable-click, 
+a.editable-click:hover {
+	border-color: currentColor;
+}

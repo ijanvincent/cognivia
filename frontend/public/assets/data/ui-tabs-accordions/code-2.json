@@ -1,0 +1,11 @@
+<ul className="nav nav-pills">
+  <li className="nav-item">
+    <a href="#default-tab-1" data-bs-toggle="tab" className="nav-link active">Tab 1</a>
+  </li>
+</ul>
+
+<div className="tab-content panel p-3 rounded">
+  <div className="tab-pane fade active show" id="default-tab-1">
+    ...
+  </div>
+</div>

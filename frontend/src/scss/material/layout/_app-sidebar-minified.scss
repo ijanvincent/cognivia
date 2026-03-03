@@ -1,0 +1,100 @@
+.app-sidebar-minified:not(.app-without-sidebar) {
+	& .app-sidebar:not(.app-sidebar-end) {
+		width: $app-sidebar-width-minified;
+		
+		& .menu {
+			& > .menu-item {
+				& > .menu-link {
+					padding: rem(10px) rem(16px);
+					align-items: center;
+					
+					& .menu-text,
+					& .menu-label,
+					& .menu-badge {
+						display: none;
+					}
+					& .menu-icon {
+						margin: 0;
+					}
+					& .menu-icon-img {
+						margin: 0;
+					}
+					&:hover {
+						& .menu-icon {
+							color: $white;
+						}
+					}
+				}
+				&.active {
+					& > .menu-link {
+						& .menu-icon {
+							color: var(--#{$prefix}app-theme-color);
+						}
+					}
+				}
+				&.has-sub > .menu-submenu {
+					display: none !important;
+				}
+			}
+		}
+		& .menu-profile,
+		& .menu-header,
+		& .menu-search {
+			display: none !important;
+		}
+		& .menu-caret {
+			@if $enable-rtl {
+				margin-right: rem(3px);
+			} @else {
+				margin-left: rem(3px);
+			}
+			
+			&:before {
+				transform: rotate(0deg) !important;
+			}
+		}
+		& .slimScrollDiv {
+			& .slimScrollBar,
+			& .slimScrollRail {
+				display: none !important;
+			}
+		}
+		& .ps__rail-x,
+		& .ps__rail-y {
+			display: none !important;
+		}
+	}
+	& .app-sidebar-bg:not(.app-sidebar-end) {
+		width: $app-sidebar-width-minified;
+	}
+	& .app-sidebar-minify-btn {
+		& i {
+			&:before {
+				content: '\f101';
+			}
+		}
+	}
+	& .app-content {
+		@include media-breakpoint-up(md) {
+			@if $enable-rtl {
+				margin-right: $app-sidebar-width-minified;
+			} @else {
+				margin-left: $app-sidebar-width-minified;
+			}
+		}
+	}
+	
+	&.app-with-end-sidebar {
+		& .app-content {
+			@include media-breakpoint-up(md) {
+				@if $enable-rtl {
+					margin-left: $app-sidebar-width-minified;
+					margin-right: auto;
+				} @else {
+					margin-right: $app-sidebar-width-minified;
+					margin-left: auto;
+				}
+			}
+		}
+	}
+}

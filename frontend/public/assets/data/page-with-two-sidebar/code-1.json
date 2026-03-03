@@ -1,0 +1,23 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithTwoSidebar() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppSidebarTwo(true);
+    
+    return () => {
+      context.handleSetAppSidebarTwo(false);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithTwoSidebar;

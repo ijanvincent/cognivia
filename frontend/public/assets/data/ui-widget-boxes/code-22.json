@@ -1,0 +1,6 @@
+<Panel className="bg-red text-white">
+  <PanelHeader className="bg-red-700 text-white">Full Color Panel</PanelHeader>
+  <PanelBody>
+    ...
+  </PanelBody>
+</Panel>

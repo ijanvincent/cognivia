@@ -1,0 +1,5 @@
+<i className="fas fa-home fa-fw"></i> Home
+<i className="fas fa-info fa-fw"></i> Info
+<i className="fas fa-book fa-fw"></i> Library
+<i className="fas fa-pencil-alt fa-fw"></i> Applications
+<i className="fas fa-cog fa-fw"></i> Settings

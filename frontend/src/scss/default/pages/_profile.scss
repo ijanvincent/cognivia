@@ -1,0 +1,207 @@
+.profile-header {
+	position: relative;
+	overflow: hidden;
+	
+	& .profile-header-cover {
+		background-image: $app-profile-bg-cover;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		
+		&:before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: linear-gradient(to bottom,rgba($gray-900, 0.25) 0%,rgba($gray-900, 1) 100%);
+		}
+	}
+	& .profile-header-content {
+		color: $white;
+		padding: $app-content-padding-x;
+		position: relative;
+		
+		@include media-breakpoint-down(md) {
+			padding: $app-content-padding-x-sm;
+			display: flex;
+			align-items: center;
+		}
+	}
+	& .profile-header-img {
+		float: left;
+		width: rem(120px);
+		height: rem(120px);
+		overflow: hidden;
+		position: relative;
+		z-index: 10;
+		margin: rem(-10px) 0 rem(-20px) 0;
+		padding: rem(3px);
+		background: var(--#{$prefix}component-bg);
+		border-radius: $border-radius;
+		
+		@if $enable-rtl {
+			float: right;
+		}
+		@include media-breakpoint-down(md) {
+			margin: 0;
+			width: rem(80px);
+			height: rem(80px);
+		}
+		
+		& + .profile-header-info {
+			margin-left: (rem(120px) + $app-content-padding-x) - rem(10px);
+			
+			@if $enable-rtl {
+				margin-left: 0;
+				margin-right: (rem(120px) + $app-content-padding-x) - rem(10px);
+			}
+			@include media-breakpoint-down(md) {
+				margin-left: rem(20px);
+				
+				@if $enable-rtl {
+					margin-left: 0;
+					margin-right: rem(20px);
+				}
+			}
+		}
+		& img {
+			max-width: 100%;
+		}
+	}
+	& .profile-header-info {
+		& h4 {
+			font-weight: 600;
+			color: $white;
+		}
+	}
+	& .profile-header-tab {
+		position: relative;
+		background: var(--#{$prefix}component-bg);
+		list-style-type: none;
+		margin: rem(-10px) 0 0;
+		padding: 0 0 0 (rem(120px) + $app-content-padding-x);
+		border-radius: 0;
+		
+		@if $enable-rtl {
+			padding-right: rem(120px) + $app-content-padding-x;
+			padding-left: 0;
+		}
+		@include media-breakpoint-down(md) {
+			padding: 0;
+			margin: 0;
+			overflow: scroll;
+			display: flex;
+			flex-wrap: nowrap;
+			
+			@if $enable-rtl {
+				padding: 0;
+			}
+		}
+		
+		& .nav-item {
+			display: inline-block;
+			margin: 0;
+			
+			& .nav-link {
+				display: block;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				line-height: rem(20px);
+				padding: rem(10px) rem(20px);
+				text-decoration: none;
+				font-weight: bold;
+				font-size: rem(12px);
+				border: none;
+				border-radius: 0;
+				
+				&:hover,
+				&:focus {
+					background: none;
+					color: rgba(var(--#{$prefix}component-color-rgb), .75);
+				}
+				&.active {
+					color: var(--#{$prefix}component-color);
+					background: none;
+				}
+			}
+		}
+	}
+}
+.profile-content {
+	padding: rem(25px);
+	
+	@include clearfix();
+	
+	& .tab-content,
+	& .tab-pane {
+		background: none;
+	}
+	& .table {
+		&.table-profile {
+			& > thead {
+				& > tr {
+					& > th {
+						border: none;
+						border-bottom: none !important;
+						color: var(--#{$prefix}component-color);
+						background: none;
+						
+						& h4 {
+							font-size: rem(20px);
+							margin-top: 0;
+							
+							& small {
+								display: block;
+								font-size: rem(12px);
+								font-weight: normal;
+								margin-top: rem(5px);
+							}
+						}
+					}
+				}
+			}
+			& tbody {
+				& > tr {
+					& td {
+						border: none;
+						color: var(--#{$prefix}component-color);
+						background: none;
+						
+						&.field {
+							width: 20%;
+							font-weight: $font-weight-bold;
+							color: var(--#{$prefix}component-color);
+							
+							@if $enable-rtl {
+								text-align: left;
+							} @else {
+								text-align: right;
+							}
+							@include media-breakpoint-down(md) {
+								width: 35%;
+							}
+						}
+					}
+					&.highlight {
+						& > td {
+							border-top: 1px solid var(--#{$prefix}component-border-color);
+							border-bottom: 1px solid var(--#{$prefix}component-border-color);
+						}
+					}
+					&.divider {
+						& > td {
+							padding: 0 !important;
+							height: rem(10px);
+						}
+					}
+				}
+			}
+		}
+	}
+}

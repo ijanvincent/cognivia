@@ -1,0 +1,24 @@
+import { ReactTags } from 'react-tag-autocomplete';
+
+const [tags, setTags] = useState([
+  { value: 1, label: 'Apples' },
+  { value: 2, label: 'Pears' }
+]);
+const [suggestions] = useState([
+  { value: 1, label: 'Apples' },
+  { value: 2, label: 'Pears' },
+  { value: 3, label: 'Bananas' },
+  { value: 4, label: 'Mangos' },
+  { value: 5, label: 'Lemons' },
+  { value: 6, label: 'Apricots' }
+]);
+const handleDelete = (i) => {
+  setTags(tags.filter((tag) => tag.id !== i));
+};
+
+const handleAdd = (newTag) => {
+  setTags([...tags, newTag]);
+};
+
+<!-- html -->
+<ReactTags selected={tags} suggestions={suggestions} onDelete={handleDelete} onAdd={handleAdd} />

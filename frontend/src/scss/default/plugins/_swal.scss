@@ -1,0 +1,106 @@
+.swal-overlay {
+	& .swal-modal {
+		padding: $spacer * 4 $spacer;
+		background: var(--#{$prefix}component-bg);
+		border-radius: $border-radius-lg;
+		box-shadow: $box-shadow-lg;
+		
+		& .swal-icon {
+			margin-top: 0;
+			margin-bottom: $spacer * 1.5;
+		}
+		& .swal-title {
+			padding: 0 $spacer 0;
+			margin: 0;
+			color: var(--#{$prefix}component-color);
+			font-size: $h1-font-size;
+			font-weight: $headings-font-weight;
+			line-height: $headings-line-height;
+		}
+		& .swal-text {
+			color: #{rgba(var(--#{$prefix}component-color), .5)};
+			font-size: $font-size-lg;
+			display: block;
+			max-width: 100%;
+			text-align: center;
+			padding: 0 0 $spacer;
+			font-weight: $font-weight-bold;
+		}
+		& .swal-icon--success,
+		& .swal-icon--success__ring {
+			border-color: rgba($teal, .2);
+		}
+		& .swal-icon--success {
+			&:before,
+			&:after,
+			& .swal-icon--success__hide-corners {
+				background-color: var(--#{$prefix}component-bg);
+			}
+		}
+		& .swal-icon--success__line--long,
+		& .swal-icon--success__line--tip {
+			background-color: $teal;
+		}
+		& .swal-icon--info {
+			border-color: $info;
+		
+			&:before,
+			&:after {
+				background-color: $info;
+			}
+		}
+		& .swal-icon--warning {
+			border-color: $warning;
+			
+			& .swal-icon--warning__body,
+			& .swal-icon--warning__dot {
+				background-color: $warning;
+			}
+		}
+		& .swal-icon--error {
+			border-color: $danger;
+			
+			& .swal-icon--error__line {
+				background-color: $danger;
+			}
+		}
+		& .swal-footer {
+			padding: 0 $spacer;
+			display: flex;
+			justify-content: center;
+			
+			& .swal-button-container {
+				margin: 0 $spacer * .25;
+			}
+		}
+	}
+	& .btn {
+		min-width: rem(100px);
+		padding: $btn-padding-y-lg $btn-padding-x-lg;
+		font-size: $btn-font-size-lg;
+		
+		&.btn-success:hover {
+			border-color: shade-color($success, $btn-hover-border-shade-amount);
+			background-color: shade-color($success, $btn-hover-border-shade-amount);
+		}
+		&.btn-warning:hover {
+			border-color: shade-color($warning, $btn-hover-border-shade-amount);
+			background-color: shade-color($warning, $btn-hover-border-shade-amount);
+		}
+		&.btn-primary:hover {
+			border-color: shade-color($primary, $btn-hover-border-shade-amount);
+			background-color: shade-color($primary, $btn-hover-border-shade-amount);
+		}
+		&.btn-danger:hover {
+			border-color: shade-color($danger, $btn-hover-border-shade-amount);
+			background-color: shade-color($danger, $btn-hover-border-shade-amount);
+		}
+		&.btn-default:hover {
+			border-color: shade-color($default, $btn-hover-border-shade-amount);
+			background-color: shade-color($default, $btn-hover-border-shade-amount);
+		}
+		&:not(.btn-default) {
+			color: $white;
+		}
+	}
+}

@@ -1,0 +1,111 @@
+.table {
+	&.table-card,
+	&.table-panel {
+		& > thead,
+		& > tbody,
+		& > tfoot {
+			& > tr {
+				& > th,
+				& > td {
+					&:first-child {
+						padding-left: $spacer;
+						
+						@if $enable-rtl {
+							border-right: 0;
+						} @else {
+							border-left: 0;
+						}
+					}
+					&:last-child {
+						padding-right: $spacer;
+						
+						@if $enable-rtl {
+							border-left: 0;
+						} @else {
+							border-right: 0;
+						}
+					}
+				}
+			}
+		}
+	}
+	&.table-thead-sticky {
+		& thead {
+			position: sticky;
+			top: 0;
+			background: var(--#{$prefix}component-bg);
+			box-shadow: 0 0 0 1px var(--#{$prefix}component-table-border-color);
+		}
+	}
+	&.table-tfoot-sticky {
+		& tfoot {
+			position: sticky;
+			bottom: 0;
+			background: var(--#{$prefix}component-bg);
+			box-shadow: 0 0 0 1px var(--#{$prefix}component-table-border-color);
+		}
+	}
+	&.table-tbody-bordered {
+		& > tbody {
+			& > tr {
+				& > td {
+					& + td {
+						@if $enable-rtl {
+							border-right: 1px solid var(--#{$prefix}component-table-border-color);
+						} @else {
+							border-left: 1px solid var(--#{$prefix}component-table-border-color);
+						}
+					}
+				}
+			}
+		}
+	}
+	&.table-thead-bordered {
+		& > thead {
+			& > tr {
+				& > th {
+					& + th {
+						@if $enable-rtl {
+							border-right: 1px solid var(--#{$prefix}component-table-border-color);
+						} @else {
+							border-left: 1px solid var(--#{$prefix}component-table-border-color);
+						}
+					}
+				}
+			}
+		}
+	}
+	&.table-tfoot-bordered {
+		& > tfoot {
+			& > tr {
+				& > th {
+					& + th {
+						@if $enable-rtl {
+							border-right: 1px solid var(--#{$prefix}component-table-border-color);
+						} @else {
+							border-left: 1px solid var(--#{$prefix}component-table-border-color);
+						}
+					}
+				}
+			}
+		}
+	}
+	@for $i from 1 through 20 {
+		&.table-px-#{$i}px {
+			& td,
+			& th {
+				padding-left: #{$i}px !important;
+				padding-right: #{$i}px !important;
+			}
+		}
+	}
+	@for $i from 1 through 20 {
+		&.table-py-#{$i}px {
+			& td,
+			& th {
+				padding-top: #{$i}px !important;
+				padding-bottom: #{$i}px !important;
+			}
+		}
+	}
+}

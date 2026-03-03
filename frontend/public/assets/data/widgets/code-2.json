@@ -1,0 +1,31 @@
+<div className="widget-todolist rounded">
+  <div className="widget-todolist-header">
+    <div className="widget-todolist-header-title">Todolist</div>
+    <div className="widget-todolist-header-total"><span>0</span><small>Done</small></div>
+  </div>
+  <div className="widget-todolist-body">
+    <div className="widget-todolist-item">
+      <div className="widget-todolist-input">
+        <div className="form-check">
+          <input className="form-check-input" type="checkbox" id="widget_todolist_1" />
+        </div>
+      </div>
+      <div className="widget-todolist-content">
+        <h6 className="mb-2px">Borrow Tony's travel guide</h6>
+        <div className="text-gray-500 fw-bold fs-11px">Vacation in Rome</div>
+      </div>
+      <div className="widget-todolist-icon">
+        <Link to="/widgets"><i className="fa fa-question-circle"></i></Link>
+      </div>
+    </div>
+    ...
+    <div className="widget-todolist-item">
+      <div className="widget-todolist-input">
+        <i className="fa fa-plus text-gray-500 fa-fw"></i>
+      </div>
+      <div className="widget-todolist-content">
+        <input type="text" className="form-control border-0 shadow-none rounded-0 p-0 h-20px bg-none" placeholder="Write your task here..." />
+      </div>
+    </div>
+  </div>
+</div>

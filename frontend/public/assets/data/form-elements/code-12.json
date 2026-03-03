@@ -1,0 +1,6 @@
+<div className="row mb-3">
+  <label className="form-label col-form-label col-md-3">...</label>
+  <div className="col-md-7">
+    <input type="text" className="form-control" placeholder="" />
+  </div>
+</div>

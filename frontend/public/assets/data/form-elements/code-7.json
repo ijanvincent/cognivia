@@ -1,0 +1,25 @@
+<!-- default -->
+<div className="form-check">
+  <input className="form-check-input" type="checkbox" id="checkbox1" checked />
+  <label className="form-check-label" for="checkbox1">Checkbox</label>
+</div>
+
+<!-- inline -->
+<div className="form-check form-check-inline">
+  ...
+</div>
+
+<!-- switches -->
+<div className="form-check form-switch">
+  ...
+</div>
+
+<!-- valid -->
+<div className="form-check">
+  <input className="form-check-input is-valid" />
+</div>
+
+<!-- invalid -->
+<div className="form-check">
+  <input className="form-check-input is-invalid" />
+</div>

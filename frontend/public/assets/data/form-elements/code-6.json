@@ -1,0 +1,19 @@
+<!-- valid -->
+<div className="row mb-3">
+  <label className="form-label col-form-label col-md-3">Valid Input</label>
+  <div className="col-md-9">
+    <input type="text" className="form-control is-valid" />
+    <div className="valid-feedback">Looks good!</div>
+    <div className="valid-tooltip">Looks good!</div>
+  </div>
+</div>
+
+<!-- invalid -->
+<div className="row mb-3">
+  <label className="form-label col-form-label col-md-3">...</label>
+  <div className="col-md-9">
+    <input type="text" className="form-control is-invalid" />
+    <div className="invalid-feedback">...</div>
+    <div className="invalid-tooltip">...</div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+.breadcrumb {
+	margin: 0;
+	font-weight: $breadcrumb-font-weight;
+	
+	& .breadcrumb-item {
+		line-height: $page-header-line-height * $page-header-font-size;
+		
+		& + .breadcrumb-item {
+			@if $enable-rtl {
+				padding-left: 0;
+				padding-right: .5rem;
+			}
+			&:before {
+				@if $enable-rtl {
+					padding-right: 0;
+					padding-left: .5rem;
+					float: right;
+				}
+			}
+		}
+		& a {
+			color: var(--#{$prefix}body-color);
+			text-decoration: none;
+			
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+}

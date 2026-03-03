@@ -1,0 +1,18 @@
+<ul className="fa-ul">
+  <li>
+    <span className="fa-li"><i className="fas fa-check-square"></i></span>
+    List icons can
+  </li>
+  <li>
+    <span className="fa-li"><i className="fas fa-check-square"></i></span>
+    be used to
+  </li>
+  <li>
+    <span className="fa-li"><i className="fas fa-spinner fa-pulse"></i></span>
+    replace bullets
+  </li>
+  <li>
+    <span className="fa-li"><i className="far fa-square"></i></span>
+    in lists
+  </li>
+</ul>

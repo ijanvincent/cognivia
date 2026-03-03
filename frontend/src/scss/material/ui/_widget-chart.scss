@@ -1,0 +1,140 @@
+.widget-chart {
+	position: relative;
+	overflow: hidden;
+	margin-bottom: rem(20px);
+	border-radius: $border-radius;
+	
+	@include media-breakpoint-up(sm) {
+		display: flex;
+	}
+	
+	& .chart-title {
+		font-size: rem(16px) !important;
+		line-height: rem(20px);
+		color: $white;
+		font-weight: 600 !important;
+		margin: rem(2px) rem(5px) rem(5px);
+
+		& small {
+			display: block;
+			margin-top: rem(3px);
+			font-size: rem(12px);
+			line-height: rem(16px);
+			color: lighten($dark, 45%);
+			font-weight: normal;
+		}
+	}
+	& .widget-chart-content {
+		padding: rem(15px);
+		flex: 1;
+		
+		& + .widget-chart-sidebar {
+			@include media-breakpoint-up(md) {
+				border-radius: 0 $border-radius $border-radius 0;
+			}
+			@include media-breakpoint-down(xs) {
+				border-radius: 0 0 $border-radius $border-radius;
+			}
+		}
+	}
+	& .widget-chart-full-width {
+		margin: 0 rem(-15px);
+	}
+	& .widget-chart-sidebar {
+		padding: rem(15px) rem(15px);
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		
+		@include media-breakpoint-up(md) {
+			width: rem(230px);
+		}
+		@include media-breakpoint-only(sm) {
+			width: rem(200px);
+		}
+		
+		& .chart-number {
+			font-size: rem(24px);
+			font-weight: 600;
+			line-height: rem(28px);
+			color: $white;
+			
+			& small {
+				font-size: rem(12px);
+				line-height: rem(16px);
+				margin-top: rem(3px);
+				color: lighten($dark, 45%);
+				display: block;
+				font-weight: normal;
+			}
+		}
+		& .chart-legend {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			font-size: rem(12px);
+			font-weight: 600;
+			
+			& > li {
+				color: $white;
+				
+				& span {
+					color: lighten($dark, 45%);
+					margin-left: rem(5px);
+					font-weight: normal;
+				}
+				& + li {
+					margin-top: rem(5px);
+				}
+			}
+		}
+	}
+}
+.widget-chart-info {
+	color: var(--#{$prefix}component-color);
+	
+	& .widget-chart-info-title {
+		margin: 0 0 rem(5px);
+		font-size: rem(14px);
+	}
+	& .widget-chart-info-desc {
+		font-size: rem(11px);
+		color: rgba(var(--#{$prefix}component-color-rgb), .5);
+		margin-bottom: rem(20px);
+	}
+	& .widget-chart-info-progress {
+		font-size: rem(11px);
+		margin-bottom: rem(5px);
+		
+		& .progress {
+			margin-bottom: 0;
+		}
+	}
+}
+.widget-chart-content {
+	padding: rem(10px);
+	background: var(--#{$prefix}light);
+}
+.dark-mode {
+	& .widget-chart-content {
+		background: darken($dark, 7.5%);
+	}
+	& .widget-chart-info {
+		color: lighten($dark, 60%);
+		
+		& .widget-chart-info-desc {
+			color: lighten($dark, 45%);
+		}
+	}
+	& .nvd3 {
+		text {
+			fill: rgba($white, .75);
+		}
+		& .nv-axis {
+			& line,
+			& path {
+				stroke: rgba($white, .15);
+			}
+		}
+	}
+}

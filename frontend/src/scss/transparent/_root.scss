@@ -1,0 +1,308 @@
+:root,
+[data-bs-theme="light"] {
+	--#{$prefix}app-theme:           #{$theme};
+	--#{$prefix}app-theme-rgb:       #{to-rgb($theme)};
+	--#{$prefix}app-theme-color:     #{$theme-color};
+	--#{$prefix}app-theme-color-rgb: #{to-rgb($theme-color)};
+	
+	--#{$prefix}app-theme-hover: #{shade-color($theme, 25%)};
+	--#{$prefix}app-theme-hover-border-color: #{shade-color($theme, 25%)};
+	--#{$prefix}app-theme-hover-color: #{color-contrast($theme)};
+	
+	--#{$prefix}app-theme-active: #{shade-color($theme, 25%)};
+	--#{$prefix}app-theme-active-border-color: #{shade-color($theme, 25%)};
+	--#{$prefix}app-theme-active-color: #{color-contrast($theme)};
+	
+	--#{$prefix}app-theme-disabled: #{tint-color($theme, 25%)};
+	--#{$prefix}app-theme-disabled-border-color: #{tint-color($theme, 25%)};
+	--#{$prefix}app-theme-disabled-color: #{color-contrast($theme)};
+	
+	--#{$prefix}border-color:     #{$border-color};
+	--#{$prefix}border-color-rgb: #{to-rgb($border-color)};
+	
+	--#{$prefix}app-header-bg:                #{$app-header-bg};
+	--#{$prefix}app-header-bg-rgb:            #{to-rgb($app-header-bg)};
+	--#{$prefix}app-header-color:             #{$app-header-color};
+	--#{$prefix}app-header-color-rgb:         #{to-rgb($app-header-color)};
+	--#{$prefix}app-header-input-bg:          #{$app-header-input-bg};
+	--#{$prefix}app-header-input-border:      #{$app-header-input-border};
+	--#{$prefix}app-header-mobile-divider-bg: #{$app-header-mobile-divider-bg};
+	--#{$prefix}app-header-divider-bg:        #{$app-header-divider-bg};
+	
+	--#{$prefix}app-sidebar-bg:                      #{$app-sidebar-bg};
+	--#{$prefix}app-sidebar-bg-rgb:                  #{to-rgb($app-sidebar-bg)};
+	--#{$prefix}app-sidebar-bg-transparent:          #{$app-sidebar-bg-transparent};
+	--#{$prefix}app-sidebar-component-color:         #{$app-sidebar-component-color};
+	--#{$prefix}app-sidebar-component-color-rgb:     #{to-rgb($app-sidebar-component-color)};
+	--#{$prefix}app-sidebar-component-active-bg:     #{$app-sidebar-component-active-bg};
+	--#{$prefix}app-sidebar-component-active-color:  #{$app-sidebar-component-active-color};
+	--#{$prefix}app-sidebar-profile-color:           #{$app-sidebar-profile-color};
+	--#{$prefix}app-sidebar-profile-color-rgb:       #{to-rgb($app-sidebar-profile-color)};
+	--#{$prefix}app-sidebar-menu-header-color:       #{$app-sidebar-menu-header-color};
+	--#{$prefix}app-sidebar-menu-divider-bg:         #{$app-sidebar-menu-divider-bg};
+	--#{$prefix}app-sidebar-menu-icon-color:         #{$app-sidebar-menu-icon-color};
+	--#{$prefix}app-sidebar-menu-badge-bg:           #{$app-sidebar-menu-badge-bg};
+	--#{$prefix}app-sidebar-menu-badge-color:        #{$app-sidebar-menu-badge-color};
+	--#{$prefix}app-sidebar-menu-badge-font-weight:  #{$app-sidebar-menu-badge-font-weight};
+	--#{$prefix}app-sidebar-menu-link-color:         #{$app-sidebar-menu-link-color};
+	--#{$prefix}app-sidebar-menu-link-hover-color:   #{$app-sidebar-menu-link-hover-color};
+	--#{$prefix}app-sidebar-menu-link-hover-bg:      #{$app-sidebar-menu-link-hover-bg};
+	--#{$prefix}app-sidebar-menu-link-font-weight:   #{$app-sidebar-menu-link-font-weight};
+	--#{$prefix}app-sidebar-menu-submenu-bg:         #{$app-sidebar-menu-submenu-bg};
+	--#{$prefix}app-sidebar-menu-submenu-link-color:         #{$app-sidebar-menu-submenu-link-color};
+	--#{$prefix}app-sidebar-menu-submenu-link-hover-color:   #{$app-sidebar-menu-submenu-link-hover-color};
+	--#{$prefix}app-sidebar-menu-submenu-link-font-weight:   #{$app-sidebar-menu-submenu-link-font-weight};
+	--#{$prefix}app-sidebar-menu-grid-bg:                    #{$app-sidebar-menu-grid-bg};
+	--#{$prefix}app-sidebar-menu-grid-border-width:          #{$app-sidebar-menu-grid-border-width};
+	--#{$prefix}app-sidebar-menu-grid-border-color:          #{$app-sidebar-menu-grid-border-color};
+	--#{$prefix}app-sidebar-grid-border-color:               #{$app-sidebar-grid-border-color};
+	--#{$prefix}app-sidebar-float-submenu-bg:                #{$app-sidebar-float-submenu-bg};
+	--#{$prefix}app-sidebar-float-submenu-grid-border-color: #{$app-sidebar-float-submenu-grid-border-color};
+	--#{$prefix}app-sidebar-minify-btn-bg:                   #{$app-sidebar-minify-btn-bg};
+	--#{$prefix}app-sidebar-minify-btn-hover-bg:             #{$app-sidebar-minify-btn-hover-bg};
+	
+	--#{$prefix}app-top-menu-bg:                       #{$app-top-menu-bg};	
+	--#{$prefix}app-top-menu-link-color:               #{$app-top-menu-link-color};
+	--#{$prefix}app-top-menu-link-font-weight:         #{$app-top-menu-link-font-weight};	
+	--#{$prefix}app-top-menu-link-hover-color:         #{$app-top-menu-link-hover-color};	
+	--#{$prefix}app-top-menu-link-hover-bg:            #{$app-top-menu-link-hover-bg};	
+	--#{$prefix}app-top-menu-link-active-color:        #{$app-top-menu-link-active-color};	
+	--#{$prefix}app-top-menu-link-active-bg:           #{$app-top-menu-link-active-bg};	
+	--#{$prefix}app-top-menu-menu-badge-bg:            #{$app-top-menu-menu-badge-bg};	
+	--#{$prefix}app-top-menu-menu-badge-color:         #{$app-top-menu-menu-badge-color};	
+	--#{$prefix}app-top-menu-menu-badge-font-weight:   #{$app-top-menu-menu-badge-font-weight};
+	--#{$prefix}app-top-menu-menu-submenu-bg:          #{$app-top-menu-menu-submenu-bg};	
+	--#{$prefix}app-top-menu-menu-submenu-submenu-bg:  #{$app-top-menu-menu-submenu-submenu-bg};	
+	--#{$prefix}app-top-menu-menu-submenu-link-color:        #{$app-top-menu-menu-submenu-link-color};
+	--#{$prefix}app-top-menu-menu-submenu-link-font-weight:  #{$app-top-menu-menu-submenu-link-font-weight};
+	--#{$prefix}app-top-menu-menu-submenu-link-hover-color:  #{$app-top-menu-menu-submenu-link-hover-color};	
+	--#{$prefix}app-top-menu-menu-submenu-link-active-bg:    #{$app-top-menu-menu-submenu-link-active-bg};	
+	--#{$prefix}app-top-menu-menu-submenu-link-active-color: #{$app-top-menu-menu-submenu-link-active-color};	
+	--#{$prefix}app-top-menu-control-link-bg:                #{$app-top-menu-control-link-bg};	
+	--#{$prefix}app-top-menu-control-link-color:             #{$app-top-menu-control-link-color};	
+	--#{$prefix}app-top-menu-control-link-hover-bg:          #{$app-top-menu-control-link-hover-bg};	
+	--#{$prefix}app-top-menu-control-link-hover-color:       #{$app-top-menu-control-link-hover-color};	
+	
+	--#{$prefix}app-login-bg-cover: #{$app-login-bg-cover};
+	
+	--#{$prefix}component-bg:                        #{$component-bg};
+	--#{$prefix}component-bg-rgb:                    #{to-rgb($component-bg)};
+	--#{$prefix}component-secondary-bg:              #{$component-secondary-bg};
+	--#{$prefix}component-secondary-bg-rgb:          #{to-rgb($component-secondary-bg)};
+	--#{$prefix}component-tertiary-bg:               #{$component-tertiary-bg};
+	--#{$prefix}component-tertiary-bg-rgb:           #{to-rgb($component-tertiary-bg)};
+	--#{$prefix}component-dropdown-bg:               #{$component-dropdown-bg};
+	--#{$prefix}component-dropdown-bg-rgb:           #{to-rgb($component-dropdown-bg)};
+	--#{$prefix}component-dropdown-hover-bg:         #{$component-dropdown-hover-bg};
+	--#{$prefix}component-dropdown-hover-bg-rgb:     #{to-rgb($component-dropdown-hover-bg)};
+	--#{$prefix}component-dropdown-border-color:     #{$component-dropdown-border-color};
+	--#{$prefix}component-dropdown-border-color-rgb: #{to-rgb($component-dropdown-border-color)};
+	--#{$prefix}component-modal-bg:                  #{$component-modal-bg};
+	--#{$prefix}component-modal-bg-rgb:              #{to-rgb($component-modal-bg)};
+	--#{$prefix}component-modal-border-color:        #{$component-modal-border-color};
+	--#{$prefix}component-modal-border-color-rgb:    #{to-rgb($component-modal-border-color)};
+	--#{$prefix}component-secondary-bg:              #{$component-secondary-bg};
+	--#{$prefix}component-color:                     #{$component-color};
+	--#{$prefix}component-color-rgb:                 #{to-rgb($component-color)};
+	--#{$prefix}component-border-color:              #{$component-border-color};
+	--#{$prefix}component-border-color-rgb:          #{to-rgb($component-border-color)};
+	--#{$prefix}component-active-bg:                 #{$component-active-bg};
+	--#{$prefix}component-active-bg-rgb:             #{to-rgb($component-active-bg)};
+	--#{$prefix}component-active-color:              #{$component-active-color};
+	--#{$prefix}component-active-color-rgb:          #{to-rgb($component-active-color)};
+	--#{$prefix}component-hover-bg:                  #{$component-hover-bg};
+	--#{$prefix}component-hover-color:               #{$component-hover-color};
+	--#{$prefix}component-hover-border-color:        #{$component-hover-border-color};
+	--#{$prefix}component-focus-border-color:        #{$component-focus-border-color};
+	--#{$prefix}component-disabled-bg:               #{$component-disabled-bg};
+	--#{$prefix}component-disabled-color:            #{$component-disabled-color};
+	--#{$prefix}component-disabled-border-color:     #{$component-disabled-border-color};
+	--#{$prefix}component-table-border-color:        #{$component-table-border-color};
+	--#{$prefix}component-table-separator-color:     #{$component-table-separator-color};
+	
+	@each $color, $value in $theme-colors {
+		--#{$prefix}#{$color}-bg-subtle:      #{tint-color($value, 70%)};
+		--#{$prefix}#{$color}-text-emphasis:  #{shade-color($value, 70%)};
+		--#{$prefix}#{$color}-border-subtle:  #{tint-color($value, 70%)};
+	}
+}
+
+@if $enable-dark-mode {
+  @include color-mode(dark, true) {
+		--#{$prefix}body-bg:    #{$body-bg-dark};
+		--#{$prefix}body-color: #{$body-color-dark};
+		--#{$prefix}dark:       #{rgba($white, .1)};
+		--#{$prefix}dark-rgb:   #{255,255,255};
+		--#{$prefix}light:      #{rgba($black, .1)};
+		--#{$prefix}light-rgb:  #{0,0,0};
+	
+		--#{$prefix}border-color:                 #{$border-color-dark};
+	
+		--#{$prefix}app-header-bg:                #{$app-header-bg-dark};
+		--#{$prefix}app-header-color:             #{$app-header-color-dark};
+		--#{$prefix}app-header-input-bg:          #{$app-header-input-bg-dark};
+		--#{$prefix}app-header-input-border:      #{$app-header-input-border-dark};
+		--#{$prefix}app-header-divider-bg:        #{$app-header-divider-bg-dark};
+		--#{$prefix}app-header-mobile-divider-bg: #{$app-header-mobile-divider-bg-dark};
+		
+		--#{$prefix}app-sidebar-bg:                      #{$app-sidebar-bg-dark};
+		--#{$prefix}app-sidebar-bg-rgb:                  #{to-rgb($app-sidebar-bg-dark)};
+		--#{$prefix}app-sidebar-component-color:         #{$app-sidebar-component-color-dark};
+	  --#{$prefix}app-sidebar-component-color-rgb:     #{to-rgb($app-sidebar-component-color-dark)};
+		--#{$prefix}app-sidebar-component-active-bg:     #{$app-sidebar-component-active-bg-dark};
+		--#{$prefix}app-sidebar-component-active-color:  #{$app-sidebar-component-active-color-dark};
+		--#{$prefix}app-sidebar-profile-color:           #{$app-sidebar-profile-color-dark};
+		--#{$prefix}app-sidebar-profile-color-rgb:       #{to-rgb($app-sidebar-profile-color-dark)};
+		--#{$prefix}app-sidebar-menu-header-color:       #{$app-sidebar-menu-header-color-dark};
+		--#{$prefix}app-sidebar-menu-divider-bg:         #{$app-sidebar-menu-divider-bg-dark};
+		--#{$prefix}app-sidebar-menu-icon-color:         #{$app-sidebar-menu-icon-color-dark};
+		--#{$prefix}app-sidebar-menu-badge-bg:           #{$app-sidebar-menu-badge-bg-dark};
+		--#{$prefix}app-sidebar-menu-badge-color:        #{$app-sidebar-menu-badge-color-dark};
+		--#{$prefix}app-sidebar-menu-badge-font-weight:  #{$app-sidebar-menu-badge-font-weight-dark};
+	  --#{$prefix}app-sidebar-menu-link-font-weight:   #{$app-sidebar-menu-link-font-weight-dark};
+	  --#{$prefix}app-sidebar-menu-link-color:         #{$app-sidebar-menu-link-color-dark};
+	  --#{$prefix}app-sidebar-menu-link-hover-color:   #{$app-sidebar-menu-link-hover-color-dark};
+	  --#{$prefix}app-sidebar-menu-link-hover-bg:      #{$app-sidebar-menu-link-hover-bg-dark};
+	  --#{$prefix}app-sidebar-menu-submenu-bg:         #{$app-sidebar-menu-submenu-bg-dark};
+	  --#{$prefix}app-sidebar-menu-submenu-link-color:         #{$app-sidebar-menu-submenu-link-color-dark};
+	  --#{$prefix}app-sidebar-menu-submenu-link-hover-color:   #{$app-sidebar-menu-submenu-link-hover-color-dark};
+		--#{$prefix}app-sidebar-menu-submenu-link-font-weight:   #{$app-sidebar-menu-submenu-link-font-weight-dark};
+		--#{$prefix}app-sidebar-menu-grid-bg:                    #{$app-sidebar-menu-grid-bg-dark};
+		--#{$prefix}app-sidebar-menu-grid-border-width:          #{$app-sidebar-menu-grid-border-width-dark};
+		--#{$prefix}app-sidebar-menu-grid-border-color:          #{$app-sidebar-menu-grid-border-color-dark};
+	  --#{$prefix}app-sidebar-grid-border-color:               #{$app-sidebar-grid-border-color-dark};
+	  --#{$prefix}app-sidebar-float-submenu-bg:                #{$app-sidebar-float-submenu-bg-dark};
+	  --#{$prefix}app-sidebar-float-submenu-grid-border-color: #{$app-sidebar-float-submenu-grid-border-color-dark};
+		--#{$prefix}app-sidebar-minify-btn-bg:                   #{$app-sidebar-minify-btn-bg-dark};
+		--#{$prefix}app-sidebar-minify-btn-hover-bg:             #{$app-sidebar-minify-btn-hover-bg-dark};
+	  
+		--#{$prefix}app-top-menu-bg:                       #{$app-top-menu-bg-dark};
+		--#{$prefix}app-top-menu-link-color:               #{$app-top-menu-link-color-dark};	
+		--#{$prefix}app-top-menu-link-font-weight:         #{$app-top-menu-link-font-weight-dark};	
+		--#{$prefix}app-top-menu-link-hover-color:         #{$app-top-menu-link-hover-color-dark};	
+		--#{$prefix}app-top-menu-link-hover-bg:            #{$app-top-menu-link-hover-bg-dark};	
+		--#{$prefix}app-top-menu-link-active-color:        #{$app-top-menu-link-active-color-dark};	
+		--#{$prefix}app-top-menu-link-active-bg:           #{$app-top-menu-link-active-bg-dark};	
+		--#{$prefix}app-top-menu-menu-badge-bg:            #{$app-top-menu-menu-badge-bg-dark};	
+		--#{$prefix}app-top-menu-menu-badge-color:         #{$app-top-menu-menu-badge-color-dark};	
+		--#{$prefix}app-top-menu-menu-badge-font-weight:   #{$app-top-menu-menu-badge-font-weight-dark};	
+		--#{$prefix}app-top-menu-menu-submenu-bg:          #{$app-top-menu-menu-submenu-bg-dark};	
+		--#{$prefix}app-top-menu-menu-submenu-submenu-bg:  #{$app-top-menu-menu-submenu-submenu-bg-dark};		
+		--#{$prefix}app-top-menu-menu-submenu-link-color:        #{$app-top-menu-menu-submenu-link-color-dark};
+		--#{$prefix}app-top-menu-menu-submenu-link-font-weight:  #{$app-top-menu-menu-submenu-link-font-weight-dark};
+		--#{$prefix}app-top-menu-menu-submenu-link-hover-color:  #{$app-top-menu-menu-submenu-link-hover-color-dark};	
+		--#{$prefix}app-top-menu-menu-submenu-link-active-bg:    #{$app-top-menu-menu-submenu-link-active-bg-dark};	
+		--#{$prefix}app-top-menu-menu-submenu-link-active-color: #{$app-top-menu-menu-submenu-link-active-color-dark};
+		--#{$prefix}app-top-menu-control-link-bg:                #{$app-top-menu-control-link-bg-dark};	
+		--#{$prefix}app-top-menu-control-link-color:             #{$app-top-menu-control-link-color-dark};	
+		--#{$prefix}app-top-menu-control-link-hover-bg:          #{$app-top-menu-control-link-hover-bg-dark};	
+		--#{$prefix}app-top-menu-control-link-hover-color:       #{$app-top-menu-control-link-hover-color-dark};		
+	
+		--#{$prefix}app-login-bg-cover: #{$app-login-bg-cover-dark};
+	
+		--#{$prefix}component-bg:                    #{$component-bg-dark};
+		--#{$prefix}component-bg-rgb:                #{to-rgb($component-bg-dark)};
+	  --#{$prefix}component-secondary-bg:          #{$component-secondary-bg-dark};
+	  --#{$prefix}component-secondary-bg-rgb:      #{to-rgb($component-secondary-bg-dark)};
+	  --#{$prefix}component-tertiary-bg:           #{$component-tertiary-bg-dark};
+	  --#{$prefix}component-tertiary-bg-rgb:       #{to-rgb($component-tertiary-bg-dark)};
+		--#{$prefix}component-color:                 #{$component-color-dark};
+		--#{$prefix}component-color-rgb:             #{to-rgb($component-color-dark)};
+		--#{$prefix}component-border-color:          #{$component-border-color-dark};
+		--#{$prefix}component-border-color-rgb:      #{to-rgb($component-border-color-dark)};
+		--#{$prefix}component-hover-bg:              #{$component-hover-bg-dark};
+		--#{$prefix}component-hover-color:           #{$component-hover-color-dark};
+		--#{$prefix}component-hover-border-color:    #{$component-hover-border-color-dark};
+		--#{$prefix}component-disabled-bg:           #{$component-disabled-bg-dark};
+		--#{$prefix}component-disabled-border-color: #{$component-disabled-border-color-dark};
+		--#{$prefix}component-disabled-color:        #{$component-disabled-color-dark};
+	
+		--#{$prefix}component-dropdown-bg:               #{$component-dropdown-bg-dark};
+		--#{$prefix}component-dropdown-bg-rgb:           #{to-rgb($component-dropdown-bg-dark)};
+		--#{$prefix}component-dropdown-hover-bg:         #{$component-dropdown-hover-bg-dark};
+		--#{$prefix}component-dropdown-hover-bg-rgb:     #{to-rgb($component-dropdown-hover-bg-dark)};
+		--#{$prefix}component-dropdown-border-color:     #{$component-dropdown-border-color-dark};
+		--#{$prefix}component-dropdown-border-color-rgb: #{to-rgb($component-dropdown-border-color-dark)};
+		--#{$prefix}component-modal-bg:                  #{$component-modal-bg-dark};
+		--#{$prefix}component-modal-bg-rgb:              #{to-rgb($component-modal-bg-dark)};
+		--#{$prefix}component-modal-border-color:        #{$component-modal-border-color-dark};
+		--#{$prefix}component-modal-border-color-rgb:    #{to-rgb($component-modal-border-color-dark)};
+		--#{$prefix}component-secondary-bg:              #{$component-secondary-bg-dark};
+		--#{$prefix}component-table-border-color:        #{$component-table-border-color-dark};
+		--#{$prefix}component-table-separator-color:     #{$component-table-separator-color-dark};
+		
+		@each $color, $value in $theme-colors {
+			--#{$prefix}#{$color}-bg-subtle:  #{shade-color($value, 80%)};
+			--#{$prefix}#{$color}-text-emphasis:  #{tint-color($value, 40%)};
+			--#{$prefix}#{$color}-border-subtle:  #{shade-color($value, 80%)};
+		}
+		
+		& .table {
+			--#{$prefix}table-striped-bg: #{rgba($gray-700, 0.7)};
+			--#{$prefix}table-active-color: var(--#{$prefix}component-color);
+			--#{$prefix}table-active-bg: $gray-700;
+			--#{$prefix}table-hover-color: var(--#{$prefix}component-color);
+			--#{$prefix}table-hover-bg: #{rgba($gray-700, 0.85)};
+		}
+	
+		& .bg-white,
+		& .bg-dark {
+			--#{$prefix}bg-opacity: .25;
+		}
+		& .text-dark {
+			--#{$prefix}text-opacity: .5;
+		
+			color: rgba(var(--#{$prefix}white-rgb),var(--#{$prefix}text-opacity))!important;
+		}
+		& .btn-white,
+		& .btn-dark {
+			border-color: transparent;
+			background-color: $gray-700;
+			color: $white;
+		
+			&:hover,
+			&:focus,
+			&.active {
+				background-color: $gray-600;
+				border-color: transparent;
+				color: $white;
+			}
+		}
+		& .btn-outline-inverse,
+		& .btn-outline-default {
+			color: $gray-600;
+			border-color: $gray-600;
+		
+			&:hover,
+			&:focus,
+			&.active {
+				background-color: $gray-600;
+				color: $white !important;
+			}
+		}
+		& .btn-default {
+			background: rgba(0,0,0,.25);
+			border-color: transparent;
+			color: $white;
+		
+			&:hover,
+			&:focus,
+			&.active {
+				background: rgba(0,0,0,.5);
+				border-color: transparent;
+				color: $white;
+			}
+		}
+		& .btn-group {
+			& > .btn-white {
+				& + .btn-white {
+					@if $enable-rtl {
+						border-right-color: $gray-600;
+					} @else {
+						border-left-color: $gray-600;
+					}
+				}
+			}
+		}
+	}
+}

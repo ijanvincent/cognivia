@@ -1,0 +1,29 @@
+.ui-sortable {
+	& .panel-heading {
+		cursor: move;
+	}
+	& .ui-sortable-placeholder {
+		border: 1px dashed lighten($dark, 45%) !important;
+		visibility: visible !important;
+		background: none !important;
+		margin: 0 !important;
+		
+		&.panel {
+			margin: rem(-1px) rem(-1px) rem(19px) !important;
+			box-shadow: none !important;
+		}
+	}
+	
+	&.ui-sortable-disabled {
+		& .panel-heading {
+			cursor: default;
+		}
+	}
+}
+.row {
+	& > [class^="col-"]	{
+		&.ui-sortable {
+			min-height: rem(50px);
+		}
+	}
+}

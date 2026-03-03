@@ -1,0 +1,15 @@
+<div className="accordion" id="accordion">
+  <div className="accordion-item border-0">
+    <div className="accordion-header" id="headingOne">
+      <button className="accordion-button bg-gray-900 text-white px-3 py-10px pointer-cursor" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+        <i className="fa fa-circle fa-fw text-blue me-2 fs-8px"></i> Collapsible Group Item #1
+      </button>
+    </div>
+    <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordion">
+      <div className="accordion-body bg-gray-800 text-white">
+        ...
+      </div>
+    </div>
+  </div>
+  ...
+</div>

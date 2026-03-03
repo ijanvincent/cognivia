@@ -1,0 +1,107 @@
+.simple-calendar {
+	& .calendar {
+		padding: $spacer 0;
+		color: var(--#{$prefix}component-color);
+		
+		& header {
+			position: relative;
+			min-height: rem(30px);
+			margin: rem(5px);
+			display: flex;
+			align-items: center;
+			
+			& .month {
+				font-size: $font-size-base * 1.5;
+				text-align: center;
+				position: relative;
+				flex: 1;
+				
+				& .year {
+					font-weight: $font-weight-bold;
+					font-size: $font-size-sm;
+					color: var(--#{$prefix}muted);
+					position: absolute;
+					top: rem(-14px);
+					left: 0;
+					right: 0;
+				}
+			}
+			& .simple-calendar-btn {
+				border: none;
+				color: rgba(var(--#{$prefix}component-color-rgb), .3);
+				transform: none;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				
+				@include fontawesome();
+				
+				&:before {
+					display: none;
+				}
+				&:after {
+					font-size: $font-size-lg;
+				}
+				&:hover,
+				&:focus,
+				&:active {
+					color: rgba(var(--#{$prefix}component-color-rgb), 1);
+					background: none;
+				}
+				&.btn-prev {
+					&:after {
+						content: '\f053';
+					}
+				}
+				&.btn-next {
+					&:after {
+						content: '\f054';
+					}
+				}
+			}
+		}
+		& table {
+			margin: $spacer * .75 0 0;
+			
+			& thead {
+				font-size: $font-size-base;
+				color: var(--#{$prefix}component-color);
+				font-weight: $font-weight-bold;
+				
+				& td {
+					padding-bottom: $spacer * .25;
+				}
+			}
+			& td {
+				padding: 0;
+			}
+		}
+		& .day {
+			font-weight: $font-weight-bold;
+			color: rgba(var(--#{$prefix}component-color-rgb), .75);
+			
+			&.today {
+				background-color: $component-active-bg;
+			}
+			&.has-event {
+				&:hover {
+					border-color: $component-active-bg;
+				}
+				&:after {
+					background-color: $component-active-bg;
+					margin-top: rem(1px);
+				}
+			}
+		}
+		& .event-container {
+			background: $gray-800;
+			
+			& .event {
+				background-color: $component-active-bg;
+			}
+		}
+		& .filler {
+			background-color: $gray-800;
+		}
+	}
+}

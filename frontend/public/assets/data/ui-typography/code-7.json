@@ -1,0 +1,13 @@
+<!-- list unstyled -->
+<ul className="list-unstyled">
+  <li>Lorem ipsum dolor sit amet</li>
+  <li>Consectetur adipiscing elit</li>
+  ...
+</ul>
+
+<!-- list inline -->
+<ul className="list-inline">
+  <li className="list-inline-item">Lorem ipsum dolor sit amet</li>
+  <li className="list-inline-item">Consectetur adipiscing elit</li>
+  ...
+</ul>

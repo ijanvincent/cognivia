@@ -1,0 +1,10 @@
+<Panel>
+  <PanelHeader>
+    Panel with Scrollbar
+  </PanelHeader>
+  <PanelBody>
+    <PerfectScrollbar className="height-sm" options={{suppressScrollX: true}}>
+      ...
+    </PerfectScrollbar>
+  </PanelBody>
+</Panel>

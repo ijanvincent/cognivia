@@ -1,0 +1,31 @@
+&lt;!-- required files --&gt;
+&lt;link href="/assets/plugins/jstree/dist/themes/default/style.min.css" rel="stylesheet" /&gt;
+&lt;script src="/assets/plugins/jstree/dist/jstree.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- html --&gt;
+&lt;div id="jstree-ajax"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  $("#jstree-ajax").jstree({
+    "plugins": ["dnd", "state", "types"],
+    "core": {
+      "themes": { "responsive": false },
+      "check_callback": true,
+      "data": {
+        "url": function(node) {
+          return node.id === "#" ? "/assets/js/demo/json/data_root.json" : "/assets/js/demo/json/" + node.original.file;
+        },
+        "data": function(node) {
+          return {
+            "id": node.id
+          };
+        },
+        "dataType": "json"
+      }
+    },
+    "types": {
+      "default": { "icon": "fa fa-folder text-warning fa-lg" },
+      "file": { "icon": "fa fa-file text-warning fa-lg" }
+    }
+  });
+&lt;/script&gt;

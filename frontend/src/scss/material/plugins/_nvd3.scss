@@ -1,0 +1,92 @@
+html {
+	& .nvd3-svg {
+		direction: ltr;
+	}
+	& .nvtooltip {
+		font-family: $font-family-base;
+		font-size: $font-size-base;
+		border: none;
+		padding: $spacer * .25 $spacer * .5;
+		background: #{rgba(var(--#{$prefix}component-dropdown-bg-rgb), .95)};
+		color: var(--#{$prefix}component-color);
+		box-shadow: $box-shadow;
+		border-radius: $border-radius * 2;
+		
+		& table {
+			& thead {
+				& tr {
+					& th {
+						& strong {
+							text-decoration: underline;
+						}
+					}
+				}
+			}
+			& tbody {
+				& td {
+					&.legend-color-guide {
+						& div {
+							border: none;
+							border-radius: $border-radius;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	& .nvd3 {
+		& line {
+			&.nv-guideline {
+				stroke: rgba(var(--#{$prefix}component-color-rgb), .5);
+			}
+		}
+		& .nv-bars {
+			& text {
+				fill: rgba(var(--#{$prefix}component-color-rgb), 1);
+			}
+		}
+		& .nv-axis {
+			& line,
+			& path {
+				fill: none;
+				stroke: rgba(var(--#{$prefix}component-color-rgb), .15);
+			}
+		}
+		& .nv-legend-text,
+		& .nv-x text,
+		& .nv-y text {
+			font-family: $font-family-base;
+			fill: rgba(var(--#{$prefix}component-color-rgb), 1);
+			font-size: $font-size-sm;
+			font-weight: $font-weight-bold;
+		}
+		& .nv-label {
+			& text {
+				fill: rgba(var(--#{$prefix}component-color-rgb), 1) !important;
+			}
+		}
+		& .nv-legend-symbol {
+			r: 3
+		}
+		& .nv-discretebar, 
+		& .nv-multibarHorizontal {
+			& .nv-groups text {
+				fill: var(--#{$prefix}component-color, 1);
+			}
+		}
+		& .nv-legend-symbol {
+			stroke-width: 0 !important;
+			transform: translate(-1px);
+		}
+		&.nv-pie {
+			& .nv-pie-title,
+			& .nv-label text {
+				fill: rgba(var(--#{$prefix}component-color-rgb), 1) !important;
+			}
+			& path {
+				stroke: rgba(var(--#{$prefix}component-bg-rgb), .2);
+			}
+		}
+	}
+}

@@ -1,0 +1,47 @@
+.app-sidebar-end-toggled {
+	& .app-sidebar-end {
+		&.app-sidebar,
+		&.app-sidebar-bg {
+			@include media-breakpoint-up(md) {
+				@if $enable-rtl {
+					left: 0;
+				} @else {
+					right: 0;
+				}
+			}
+		}
+	}
+	& .app-content {
+		@include media-breakpoint-up(md) {
+			@if $enable-rtl {
+				margin-left: $app-sidebar-width;
+			} @else {
+				margin-right: $app-sidebar-width;
+			}
+		}
+	}
+	
+	&.app-with-wide-sidebar {
+		& .app-sidebar-end {
+			&.app-sidebar,
+			&.app-sidebar-bg {
+				@include media-breakpoint-up(md) {
+					@if $enable-rtl {
+						left: 0;
+					} @else {
+						right: 0;
+					}
+				}
+			}
+		}
+		& .app-content {
+			@include media-breakpoint-up(md) {
+				@if $enable-rtl {
+					margin-left: $app-sidebar-width-wide;
+				} @else {
+					margin-right: $app-sidebar-width-wide;
+				}
+			}
+		}
+	}
+}

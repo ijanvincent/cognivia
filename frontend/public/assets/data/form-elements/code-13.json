@@ -1,0 +1,5 @@
+<form className="row row-cols-lg-auto g-3 align-items-center">
+  <div className="col-12">...</div>
+  <div className="col-12">...</div>
+  ...
+</form>

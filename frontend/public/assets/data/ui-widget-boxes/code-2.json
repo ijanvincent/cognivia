@@ -1,0 +1,21 @@
+<Panel>
+  <PanelHeader noButton={true}>
+    <div className="d-flex align-items-center">
+      <div className="flex-1">Panel Header with Dropdown</div>
+      <div className="btn-group my-n1">
+        <button type="button" className="btn btn-success btn-xs">Action</button>
+        <button type="button" className="btn btn-success btn-xs dropdown-toggle" data-bs-toggle="dropdown"><b className="caret"></b></button>
+        <div className="dropdown-menu dropdown-menu-end">
+          <a href="#/" className="dropdown-item">Action</a>
+          <a href="#/" className="dropdown-item">Another action</a>
+          <a href="#/" className="dropdown-item">Something else here</a>
+          <div className="dropdown-divider"></div>
+          <a href="#/" className="dropdown-item">Separated link</a>
+        </div>
+      </div>
+    </div>
+  </PanelHeader>
+  <PanelBody>
+    <p>Panel Content Here</p>
+  </PanelBody>
+</Panel>
