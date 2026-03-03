@@ -1,0 +1,23 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithoutSidebar() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppSidebarNone(true);
+		
+    return () => {
+      context.handleSetAppSidebarNone(false);
+    };
+		// eslint-disable-next-line
+	}, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithoutSidebar;

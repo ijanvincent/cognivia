@@ -1,0 +1,27 @@
+html {
+	height: 100%;
+}
+body {
+	height: 100%;
+	letter-spacing: $body-letter-spacing;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	
+	@if $enable-rtl {
+		direction: rtl;
+	}
+}
+b {
+	font-weight: bold;
+}
+
+h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {
+	font-size: 60%;
+	font-weight: normal;
+	color: lighten($dark, 30%)
+}
+a {
+	&:focus {
+		outline: none;
+	}
+}

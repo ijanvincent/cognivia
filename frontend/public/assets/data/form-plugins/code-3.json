@@ -1,0 +1,13 @@
+import DatePicker from 'react-datepicker';
+
+handleChange = (date) => {
+  setState({
+    startDate: date
+  });
+}
+state = {
+  startDate: new Date()
+}
+
+<!-- html -->
+<DatePicker selected={startDate} onChange={handleChange} className="form-control" />

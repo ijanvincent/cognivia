@@ -1,0 +1,23 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithMixedMenu() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppTopMenu(true);
+    
+    return () => {
+      context.handleSetAppTopMenu(false);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithMixedMenu;

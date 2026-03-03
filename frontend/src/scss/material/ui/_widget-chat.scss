@@ -1,0 +1,197 @@
+.widget-chat {
+	background: var(--#{$prefix}component-bg);
+	color: var(--#{$prefix}component-color);
+	
+	& .widget-chat-header {
+		padding: $spacer;
+		display: flex;
+		align-items: center;
+		
+		& .widget-chat-header-icon {
+			@if $enable-rtl {
+				padding-left: $spacer;
+			} @else {
+				padding-right: $spacer;
+			}
+		}
+		& .widget-chat-header-content {
+			flex: 1;
+		}
+		& .widget-chat-header-title {
+			font-size: $h6-font-size;
+			margin: 0;
+		}
+		& .widget-chat-header-desc {
+			margin: 0;
+			color: rgba(var(--#{$prefix}component-color-rgb), .65);
+		}
+	}
+	& .widget-chat-body {
+		padding: $spacer;
+		background: var(--#{$prefix}light);
+	}
+	& .widget-chat-item {
+		color: var(--#{$prefix}component-color);
+		position: relative;
+		min-height: rem(38px);
+		padding: $spacer * .333 0;
+	}
+	& .widget-chat-media {
+		width: rem(38px);
+		height: rem(38px);
+		position: absolute;
+		bottom: rem(3px);
+		overflow: hidden;
+		border-radius: $border-radius * 10;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		
+		@if $enable-rtl {
+			right: 0;
+		} @else {
+			left: 0;
+		}
+		
+		& img {
+			max-width: 100%;
+			max-height: 100%;
+			display: block;
+		}
+	}
+	& .widget-chat-info {
+		display: flex;
+		
+		@if $enable-rtl {
+			margin-right: rem(12px);
+		} @else {
+			margin-left: rem(12px);
+		}
+	}
+	& .widget-chat-info-container {
+		background: var(--#{$prefix}component-bg);
+		display: inline-flex;
+		align-items: flex-end;
+		flex-wrap: wrap;
+		padding: $spacer * .5 $spacer * 0.75;
+		position: relative;
+		color: var(--#{$prefix}component-color);
+		border-radius: $border-radius * 4;
+	}
+	& .widget-chat-message {
+		font-weight: $font-weight-bold;
+		color: var(--#{$prefix}component-color);
+		flex: 1;
+		
+		&:before {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			border: 0 solid transparent;
+			border-top-width: rem(15px);
+			border-radius: 50%;
+			width: rem(35px);
+			height: rem(35px);
+			
+			@if $enable-rtl {
+				right: rem(-24px);
+				border-left-width: rem(10px);
+				border-left-color: var(--#{$prefix}component-bg);
+				transform: rotate(-10deg);
+			} @else {
+				left: rem(-24px);
+				border-right-width: rem(10px);
+				border-right-color: var(--#{$prefix}component-bg);
+				transform: rotate(10deg);
+			}
+		}
+	}
+	& .widget-chat-name {
+		font-weight: $font-weight-bold;
+		width: 100%;
+	}
+	& .widget-chat-time {
+		font-style: italic;
+		color: $gray-500;
+		font-weight: $font-weight-bold;
+		font-size: $font-size-base * 0.9;
+		
+		@if $enable-rtl {
+			padding-right: rem(12px);
+		} @else {
+			padding-left: rem(12px);
+		}
+	}
+	& .with-media {
+		& .widget-chat-info {
+			min-width: 60%;
+			
+			@if $enable-rtl {
+				margin-right: rem(53px);
+			} @else {
+				margin-left: rem(53px);
+			}
+		}
+		& .end {
+			& .widget-chat-info {
+				@if $enable-rtl {
+					margin-left: rem(53px);
+				} @else {
+					margin-right: rem(53px);
+				}
+			}
+		}
+	}
+	& .end {
+		& .widget-chat-media {
+			@if $enable-rtl {
+				left: 0;
+				right: auto;
+			} @else {
+				left: auto;
+				right: 0;
+			}
+		}
+		& .widget-chat-info {
+			@if $enable-rtl {
+				margin-left: rem(12px);
+				margin-right: 0;
+				justify-content: flex-start;
+			} @else {
+				margin-right: rem(12px);
+				margin-left: 0;
+				justify-content: flex-end;
+			}
+		}
+		& .widget-chat-message {
+			&:before {
+				bottom: rem(-5px);
+				
+				@if $enable-rtl {
+					left: rem(-24px);
+					right: auto;
+					border-left-width: 0;
+					border-left-color: transparent;
+					border-right-width: rem(10px);
+					border-right-color: var(--#{$prefix}component-bg);
+				} @else {
+					left: auto;
+					right: rem(-24px);
+					border-right-width: 0;
+					border-right-color: transparent;
+					border-left-width: rem(10px);
+					border-left-color: var(--#{$prefix}component-bg);
+				}
+			}
+		}
+		&.with-media {
+			& .widget-chat-info {
+				@if $enable-rtl {
+					margin-left: rem(53px);
+				} @else {
+					margin-right: rem(53px);
+				}
+			}
+		}
+	}
+}

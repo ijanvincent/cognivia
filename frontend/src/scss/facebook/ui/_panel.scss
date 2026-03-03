@@ -1,0 +1,213 @@
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 0.9; }
+}
+.panel {
+	background-color: $panel-bg-color;
+	border: none;
+	margin-bottom: $panel-margin-bottom;
+	box-shadow: none;
+	border-radius: $border-radius;
+	display: flex;
+	flex-direction: column;
+	
+	& .panel-body,
+	& .panel-toolbar,
+	& .panel-footer {
+		flex: 1 1 auto;
+	}
+	& .panel-heading {
+		padding: $panel-heading-padding-y $panel-heading-padding-x;
+		border: none;
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+		border-top-left-radius: $border-radius;
+		border-top-right-radius: $border-radius;
+		
+		& .panel-title {
+			font-size: $font-size-base;
+			margin: 0;
+			line-height: $line-height-base * 0.9;
+			flex: 1;
+			
+			& > a {
+				color: inherit;
+				display: block;
+				
+				&:hover,
+				&:focus {
+					text-decoration: none;
+				}
+			}
+		}
+		& .panel-heading-btn {
+			display: flex;
+			align-items: center;
+			
+			& > a {
+				& + a {
+					margin-left: rem(5px);
+					
+					@if $enable-rtl {
+						margin-left: 0;
+						margin-right: rem(5px);
+					}
+				}
+			}
+			& .btn-icon {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+			}
+		}
+		& .tab-overflow {
+			flex: 1;
+		}
+	}
+	& .panel-body {
+		padding: $panel-body-padding-y $panel-body-padding-x;
+		
+		@include clearfix();
+	}
+	& .panel-toolbar {
+		padding: $panel-toolbar-padding-y $panel-toolbar-padding-x;
+	}
+	& .panel-footer {
+		border-top: 1px solid rgba(var(--#{$prefix}component-border-color-rgb), .75);
+		padding: $panel-footer-padding-y $panel-footer-padding-x;
+	}
+	& [class^="col-"] {
+		&.ui-sortable {
+			min-height: 0;
+		}
+	}
+	&.panel-default {
+		& > .panel-heading {
+			color: var(--#{$prefix}component-color);
+		}
+	}
+	&.panel-inverse {
+		& > .panel-heading {
+			background: var(--#{$prefix}gray-900);
+			color: var(--#{$prefix}white);
+			
+			.dark-mode & {
+				background: rgba($white, .1);
+			}
+		}
+	}
+	&.panel-loading {
+		& .panel-body {
+			position: relative;
+			z-index: 0;
+			overflow: hidden;
+			
+			& .panel-loader {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				background: var(--#{$prefix}component-bg);
+				opacity: 0.9;
+				z-index: $app-header-zindex + 10;
+				animation: fadeIn .2s;
+				border-radius: 0 0 $border-radius $border-radius;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+		}
+	}
+	&.panel-expand {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		margin: 0;
+		overflow: hidden;
+		z-index: $panel-expand-zindex;
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		border-radius: 0;
+		
+		& > .panel-body,
+		& > .panel-heading,
+		& > .panel-footer {
+			border-radius: 0;
+		}
+		& > .panel-body {
+			overflow-x: scroll;
+			flex: 1;
+			
+			& > .slimScrollDiv {
+				height: 100% !important;
+				
+				& > div:not(.slimScrollBar):not(.slimScrollRail) {
+					height: 100% !important;
+				}
+			}
+		}
+		& > .panel-heading {
+			flex: 0;
+			
+			& .fa-expand:before {
+				content: '\f066';
+			}
+		}
+		& > .hljs-wrapper {
+			max-height: 50%;
+			overflow: scroll;
+		}
+	}
+	&.panel-hover-icon {
+		& .panel-heading {
+			& .panel-heading-btn {
+				& .btn {
+					& i {
+						visibility: hidden;
+					}
+				}
+			}
+			
+			&:hover,
+			&:focus {
+				& .panel-heading-btn {
+					& .btn {
+						& i {
+							visibility: visible;
+						}
+					}
+				}
+			}
+		}
+	}
+	&.panel-with-tabs {
+		& .panel-heading {
+			& > .nav-tabs {
+				margin-top: -$panel-heading-padding-y * 0.5;
+				margin-bottom: -$panel-heading-padding-y;
+				border-bottom: none;
+				
+				& .nav-item {
+					& .nav-link {
+						border: none;
+						margin: 0;
+					}
+				}
+			}
+		}
+	}
+}
+.panel-expand {
+	& .app-content {
+		z-index: 9999;
+		
+		& .panel.panel-expand {
+			background: $panel-bg-color;
+		}
+	}
+}

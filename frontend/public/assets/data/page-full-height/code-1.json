@@ -1,0 +1,28 @@
+import React, { useEffect, useContext } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+import PerfectScrollbar from 'react-perfect-scrollbar';
+
+function PageFullHeight() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppContentFullHeight(true);
+    context.handleSetAppContentClass('p-0');
+		
+    return () => {
+      context.handleSetAppContentFullHeight(false);
+      context.handleSetAppContentClass('');
+    };
+		// eslint-disable-next-line
+	}, []);
+
+  return (
+    <div className="overflow-hidden h-100">
+      <PerfectScrollbar className="app-content-padding h-100">
+        ...
+      </PerfectScrollbar>
+    </div>
+  );
+}
+
+export default PageFullHeight;

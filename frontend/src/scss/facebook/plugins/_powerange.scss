@@ -1,0 +1,68 @@
+.powerange-wrapper {
+	padding: $spacer * 0.75 rem(30px);
+	
+	@if $enable-rtl {
+		direction: ltr;
+		text-align: left;
+	}
+	
+	& .range-bar {
+		background: var(--#{$prefix}component-border-color);
+		
+		& .range-min,
+		& .range-max {
+			color: var(--#{$prefix}component-color);
+		}
+		& .range-handle {
+			cursor: pointer;
+			box-shadow: 0 1px 3px rgba($black, .25);
+		}
+		& .range-quantity {
+			background: $component-active-bg;
+		}
+	}
+	
+	&.red {
+		& .range-bar {
+			& .range-quantity {
+				background: $red;
+			}
+		}
+	}
+	&.teal {
+		& .range-bar {
+			& .range-quantity {
+				background: $teal;
+			}
+		}
+	}
+	&.purple {
+		& .range-bar {
+			& .range-quantity {
+				background: $purple;
+			}
+		}
+	}
+	&.orange {
+		& .range-bar {
+			& .range-quantity {
+				background: $orange;
+			}
+		}
+	}
+	&.black {
+		& .range-bar {
+			& .range-quantity {
+				background: $dark;
+			}
+		}
+	}
+	&.powerange-without-range {
+		padding-left: 0;
+		padding-right: 0;
+	}
+	&.powerange-vertical {
+		padding-left: $spacer;
+		padding-right: $spacer;
+	}
+}

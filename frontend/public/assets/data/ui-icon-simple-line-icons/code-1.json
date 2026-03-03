@@ -1,0 +1,4 @@
+import 'simple-line-icons/css/simple-line-icons.css';
+
+<!-- icon -->
+<i className="icon-user"></i>

@@ -1,0 +1,11 @@
+<!-- btn-group -->
+<div className="btn-group">
+  <button className="btn btn-outline-inverse">Left</button>
+  <button className="btn btn-outline-inverse active">Middle</button>
+  <button className="btn btn-outline-inverse">Right</button>
+</div>
+
+<!-- vertical -->
+<div className="btn-group-vertical">
+  ...
+</div>

@@ -1,0 +1,23 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithTransparentSidebar() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppSidebarTransparent(true);
+    
+    return () => {
+      context.handleSetAppSidebarTransparent(false);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithTransparentSidebar;

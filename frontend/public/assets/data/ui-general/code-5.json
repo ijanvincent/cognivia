@@ -1,0 +1,15 @@
+<ul className="pagination mb-2">
+  <div className="page-item disabled"><Link to="/ui/general" className="page-link">«</Link></div>
+  <div className="page-item active"><Link to="/ui/general" className="page-link">1</Link></div>
+  <div className="page-item"><Link to="/ui/general" className="page-link">2</Link></div>
+  <div className="page-item"><Link to="/ui/general" className="page-link">3</Link></div>
+  <div className="page-item"><Link to="/ui/general" className="page-link">4</Link></div>
+  <div className="page-item"><Link to="/ui/general" className="page-link">5</Link></div>
+  <div className="page-item"><Link to="/ui/general" className="page-link">»</Link></div>
+</ul>
+
+<!-- pagination rounded -->
+<div className="pagination mb-2">
+  <div className="page-item ms-auto"><a href="javascript:;" className="page-link rounded-pill px-3">Previous</a></div>
+  <div className="page-item me-auto"><a href="javascript:;" className="page-link rounded-pill px-3">Next</a></div>
+</div>

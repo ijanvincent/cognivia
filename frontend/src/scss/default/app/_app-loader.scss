@@ -1,0 +1,29 @@
+// ANIMATION - fade out
+@keyframes appLoaderFadeOut { from { opacity: 1.0; } to { opacity: 0; } }
+
+.app-loader {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background-color: var(--#{$prefix}body-bg);
+	z-index: $app-loader-zindex;
+	height: 100vh;
+	opacity: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	&.fading {
+		opacity: 0;
+		animation: appLoaderFadeOut .2s ease;
+	}
+	&.loaded {
+		display: none;
+		
+		& .spinner {
+			animation: none;
+		}
+	}
+}

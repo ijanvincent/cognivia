@@ -1,0 +1,191 @@
+.jstree {
+	& .jstree-container-ul {
+		& .jstree-node {
+			position: relative;
+			background: none !important;
+			
+			&:before {
+				content: '';
+				position: absolute;
+				top: 0;
+				bottom: 1px;
+				left: $spacer * 0.75;
+				border-left: 1px dotted var(--#{$prefix}component-border-color);
+				
+				@if $enable-rtl {
+					left: auto;
+					border-left: 0;
+					right: $spacer * 0.75;
+					border-right: 1px dotted var(--#{$prefix}component-border-color);
+				}
+			}
+			&:last-child {
+				&:before {
+					bottom: rem(11px);
+				}	
+			}
+			& > .jstree-icon {
+				&.jstree-ocl {
+					position: relative;
+					background: none;
+				
+					&:before {
+						content: '';
+						position: absolute;
+						left: 50%;
+						right: 1px;
+						top: 50%;
+						border-top: 1px dotted var(--#{$prefix}component-border-color);
+						
+						@if $enable-rtl {
+							right: 50%;
+							left: 1px;
+						}
+					}
+					&:after {
+						content: '';
+						position: absolute;
+						top: 50%;
+						left: 50%;
+						margin-left: rem(-3px);
+						margin-top: rem(-3px);
+						border: 5px solid transparent;
+						transition: all .2s linear;
+						
+						@if $enable-rtl {
+							left: auto;
+							right: 50%;
+							margin-left: 0;
+							margin-right: rem(-3px);
+						}
+					}
+				}
+			}
+			
+			& .jstree-anchor {
+				color: rgba(var(--#{$prefix}component-color-rgb), .75);
+				font-weight: $font-weight-semibold;
+				
+				& .jstree-icon {
+					&.jstree-checkbox {
+						background: none;
+						
+						&:before {
+							content: '';
+							position: absolute;
+							left: rem(4px);
+							top: rem(4px);
+							right: rem(4px);
+							bottom: rem(4px);
+							border: 1px solid var(--#{$prefix}component-border-color);
+							display: block;
+							background: var(--#{$prefix}component-bg);
+							border-radius: $border-radius-sm;
+						}
+						&:after {
+							content: '';
+							position: absolute;
+							left: rem(7px);
+							top: rem(7px);
+							right: rem(7px);
+							bottom: rem(7px);
+							display: block;
+								
+							@include fontawesome();
+						}
+						
+						&.jstree-undetermined {
+							&:after {
+								background: var(--#{$prefix}component-border-color);
+							}
+						}
+					}
+				}
+				
+				&.jstree-clicked {
+					color: var(--#{$prefix}component-color);
+					
+					& .jstree-icon {
+						&.jstree-checkbox {
+							&:after {
+								content: '\f00c';
+								font-size: rem(10px);
+								line-height: rem(15px);
+								color: rgba(var(--#{$prefix}component-color-rgb), .75);
+								top: rem(5px);
+								left: rem(5px);
+								right: rem(5px);
+								bottom: rem(5px);
+							}
+						}
+					}
+				}
+				&.jstree-disabled {
+					color: rgba(var(--#{$prefix}component-color-rgb), .25);
+						
+					& > .jstree-icon {
+						opacity: 0.4;
+						filter: none;
+					}
+				}
+			}
+			& .jstree-hovered,
+			& .jstree-wholerow-hovered {
+				background: none;
+				color: rgba(var(--#{$prefix}component-color-rgb), 1);
+				box-shadow: none;
+			}
+			& .jstree-clicked,
+			& .jstree-wholerow-clicked {
+				background: var(--#{$prefix}light);
+				box-shadow: none;
+			}
+			
+			&.jstree-open {
+				& .jstree-anchor {
+					& > .fa-folder {
+						&:before {
+							content: '\f07c';
+							color: rgba(var(--#{$prefix}component-color-rgb), .35);
+						}
+					}
+					&.jstree-clicked {
+						& > .fa-folder {
+							&:before {
+								color: var(--#{$prefix}component-color);
+							}
+						}
+					}
+				}
+				
+				& > .jstree-ocl {
+					&:after {
+						border-left-color: rgba(var(--#{$prefix}component-color-rgb), .25);
+						transform: rotate(45deg);
+						
+						@if $enable-rtl {
+							border-left-color: transparent;
+							border-right-color: rgba(var(--#{$prefix}component-color-rgb), .25);
+							transform: rotate(-45deg);
+						}
+					}
+				}
+			}
+			&.jstree-closed {
+				& > .jstree-ocl {
+					&:after {
+						border-left-color: rgba(var(--#{$prefix}component-color-rgb), .25);
+						margin-top: rem(-5px);
+						transform: rotate(0deg);
+						
+						@if $enable-rtl {
+							border-left-color: transparent;
+							border-right-color: rgba(var(--#{$prefix}component-color-rgb), .25);
+							transform: rotate(0deg);
+						}
+					}
+				}
+			}
+		}
+	}
+}

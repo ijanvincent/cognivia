@@ -1,0 +1,148 @@
+.chats {
+	list-style-type: none;
+	margin: 0;
+	padding: $spacer;
+	
+	& .chats-item {
+		@include clearfix();
+		
+		& .name {
+			color: var(--#{$prefix}component-color);
+			display: block;
+			margin-bottom: $spacer * .333;
+			font-weight: $font-weight-bold;
+			text-decoration: none;
+		
+			& .badge {
+				font-size: rem(8px);
+				padding: rem(1px) rem(4px) rem(2px);
+				margin-left: rem(3px);
+				position: relative;
+				top: rem(-1px);
+			}
+		}
+		& .date-time {
+			font-size: rem(10px);
+			display: block;
+			color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			margin-top: rem(3px);
+			font-weight: $font-weight-bold;
+		
+			@if $enable-rtl {
+				float: left;
+			} @else {
+				float: right;
+			}
+		}
+		& .image {
+			float: left;
+			width: rem(60px);
+			height: rem(60px);
+			overflow: hidden;
+			border-radius: $border-radius;
+		
+			@if $enable-rtl {
+				float: right;
+			}
+		
+			& img {
+				max-width: 100%;
+			}
+			& + .message {
+				margin-left: rem(75px);
+			
+				@if $enable-rtl {
+					margin-left: 0;
+					margin-right: rem(75px);
+				}
+			}
+		}
+		& .message {
+			padding: rem(7px) rem(12px);
+			font-size: rem(12px);
+			position: relative;
+			background: var(--#{$prefix}component-bg);
+			border-radius: $border-radius * 3;
+		
+			&:before {
+				content: '';
+				position: absolute;
+				left: rem(-13px);
+				top: rem(15px);
+				border: 7px solid transparent;
+				border-right-color: var(--#{$prefix}component-bg);
+			
+				@if $enable-rtl {
+					left: auto;
+					right: rem(-13px);
+					border-right-color: transparent;
+					border-left-color: var(--#{$prefix}component-bg);
+				}
+			}
+		}
+		& + .chats-item {
+			margin-top: $spacer;
+		}
+	}
+	& .end {
+		& .name {
+			@if $enable-rtl {
+				text-align: left;
+			} @else {
+				text-align: right;
+			}
+		}
+		& .date-time {
+			@if $enable-rtl {
+				float: right;
+			} @else {
+				float: left;
+			}
+		}
+		& .image {
+			@if $enable-rtl {
+				float: left;
+			} @else {
+				float: right;
+			}
+			
+			& + .message {
+				@if $enable-rtl {
+					margin-right: 0;
+					margin-left: rem(75px);
+				} @else {
+					margin-left: 0;
+					margin-right: rem(75px);
+				}
+			}
+		}
+		& .message {
+			text-align: right;
+			
+			&:before {
+				@if $enable-rtl {
+					right: auto;
+					left: rem(-13px);
+					border-right-color: var(--#{$prefix}component-bg);
+					border-left-color: transparent;
+				} @else {
+					left: auto;
+					right: rem(-13px);
+					border-right-color: transparent;
+					border-left-color: var(--#{$prefix}component-bg);
+				}
+			}
+		}
+	}
+}
+.panel-body .chats {
+	padding: 0;
+}
+.slimScrollDiv .chats {
+	padding-right: rem(15px);
+	
+	@if $enable-rtl {
+		padding-right: 0;
+		padding-left: rem(15px);
+	}
+}

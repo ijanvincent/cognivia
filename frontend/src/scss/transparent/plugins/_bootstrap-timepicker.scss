@@ -1,0 +1,94 @@
+.bootstrap-timepicker {
+	& .input-group-addon {
+		& i	{
+			body & {
+				width: auto;
+				height: auto;
+				display: inline;
+			}
+		}
+	}
+}
+
+.bootstrap-timepicker-widget {
+	& table {
+		& tbody {
+			& tr {
+				& td {
+					& .bootstrap-timepicker-hour,
+					& .bootstrap-timepicker-minute,
+					& .bootstrap-timepicker-meridian {
+						width: rem(40px);
+						height: $input-height;
+						border: 1px solid var(--#{$prefix}component-dropdown-border-color);
+						padding: rem(6px);
+						background: transparent;
+						color: var(--#{$prefix}component-color);
+						font-weight: $input-font-weight;
+						box-shadow: none;
+						transition: all .2s linear;
+						border-radius: $input-border-radius;
+						
+						&:focus {
+							border-color: $input-focus-border-color;
+							outline: none;
+							box-shadow: $input-focus-box-shadow;
+						}
+					}
+					& .glyphicon {
+						@include fontawesome();
+						
+						&.glyphicon-chevron-up {
+							&:before {
+								content: '\f077';
+							}
+						}
+						&.glyphicon-chevron-down {
+							&:before {
+								content: '\f078';
+							}
+						}
+					}
+					& a {
+						border: none;
+						color: $gray-500;
+						padding: $spacer * .5;
+						text-decoration: none;
+						border-radius: $border-radius !important;
+						
+						&:hover,
+						&:focus {
+							background: var(--#{$prefix}component-dropdown-hover-bg);
+							color: var(--#{$prefix}component-hover-color);
+						}
+					}
+					
+					&.separator {
+						padding: 0 $spacer * .5;
+					}
+				}
+			}
+		}
+	}
+	&:before {
+		display: none !important;
+	}
+	&:after {
+		left: $spacer !important;
+		top: -$spacer * .5 !important;
+		border-width: $spacer * .5 !important;
+		border-bottom-color: var(--#{$prefix}component-dropdown-bg) !important;
+	}
+	&.dropdown-menu {
+		padding: $spacer * .5 !important;
+		border-radius: $border-radius-lg !important;
+		box-shadow: $box-shadow;
+	}
+	&.timepicker-orient-bottom {
+		&:after {
+			top: auto !important;
+			bottom: -$spacer * .5;
+			border-top-color: var(--#{$prefix}component-dropdown-bg) !important;
+		}
+	}
+}

@@ -1,0 +1,7 @@
+.app-footer {
+	padding: $spacer $app-content-padding-x;
+	margin: 0 ($app-content-padding-x) (-$app-content-padding-y);
+	border-top: 1px solid $app-footer-border;
+	font-weight: $font-weight-bold;
+	color: $app-footer-color;
+}

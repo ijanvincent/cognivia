@@ -1,0 +1,65 @@
+@mixin helper-color($color, $value) {
+	.bg-gradient-#{$color} {
+		background-color: $value !important;
+		background-image: linear-gradient(to bottom, lighten($value, 10%), darken($value, 5%)) !important;
+	}
+	.theme-#{$color} {
+		--#{$prefix}app-theme: #{$value};
+		--#{$prefix}app-theme-rgb: #{to-rgb($value)};
+		--#{$prefix}app-theme-color: #{color-contrast($value)};
+		--#{$prefix}app-theme-color-rgb: #{to-rgb(color-contrast($value))};
+		
+		--#{$prefix}app-theme-hover: #{shade-color($value, 25%)};
+		--#{$prefix}app-theme-hover-border-color: #{shade-color($value, 25%)};
+		--#{$prefix}app-theme-hover-color: #{color-contrast($value)};
+		
+		--#{$prefix}app-theme-active: #{shade-color($value, 25%)};
+		--#{$prefix}app-theme-active-border-color: #{shade-color($value, 25%)};
+		--#{$prefix}app-theme-active-color: #{color-contrast($value)};
+		
+		--#{$prefix}app-theme-disabled: #{tint-color($value, 25%)};
+		--#{$prefix}app-theme-disabled-border-color: #{tint-color($value, 25%)};
+		--#{$prefix}app-theme-disabled-color: #{color-contrast($value)};
+	
+		@if ($color == 'yellow') {
+			--#{$prefix}app-theme-color: #{$black};
+			--#{$prefix}app-theme-color-rgb: #{to-rgb($black)};
+		}
+	}
+	@if (
+		$color != 'gray' and
+		$color != 'gray-100' and
+		$color != 'gray-200' and
+		$color != 'gray-300' and
+		$color != 'gray-400' and
+		$color != 'gray-500' and
+		$color != 'gray-600' and
+		$color != 'gray-700' and
+		$color != 'gray-800' and
+		$color != 'gray-900') {
+		@for $i from 1 through 5 {
+			.bg-#{$color}-#{$i * 100} {
+				--#{$prefix}bg-opacity: 1;
+			
+				background-color: rgba(tint-color($value, ((5 - $i) * 20%)), var(--#{$prefix}bg-opacity)) !important;
+			}
+			.text-#{$color}-#{$i * 100} {
+				--#{$prefix}text-opacity: 1;
+			
+				color: rgba(tint-color($value, ((5 - $i) * 20%)), var(--#{$prefix}text-opacity)) !important;
+			}
+		}
+		@for $i from 6 through 9 {
+			.bg-#{$color}-#{$i * 100} {
+				--#{$prefix}bg-opacity: 1;
+			
+				background-color: rgba(shade-color($value, ($i - 5) * 20%), var(--#{$prefix}bg-opacity)) !important;
+			}
+			.text-#{$color}-#{$i * 100} {
+				--#{$prefix}text-opacity: 1;
+			
+				color: rgba(shade-color($value, ($i - 5) * 20%), var(--#{$prefix}text-opacity)) !important;
+			}
+		}
+	}
+}

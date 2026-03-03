@@ -1,0 +1,66 @@
+.boxed-layout {
+	height: 100%;
+	background-image: $app-boxed-layout-bg-cover;
+	
+	& .app-top-menu {
+		max-width: $app-boxed-layout-width;
+		width: 100%;
+		left: 50%;
+		margin-left: $app-boxed-layout-width * -.5;
+		
+		@include media-breakpoint-up(md) {
+			overflow: hidden;
+			
+			& .menu > .menu-item > .menu-submenu {
+				position: fixed;
+				top: auto;
+				left: auto;
+				right: auto;
+			}
+		}
+		@include media-breakpoint-down(sm) {
+			position: relative;
+			left: 0;
+			margin: 0;
+		}
+	}
+	& .pace {
+		& .pace-progress {
+			top: 0;
+		}
+		& .pace-activity {
+			top: rem(13px);
+		}
+	}
+	& .app {
+		max-width: $app-boxed-layout-width;
+		width: 100%;
+		margin: 0 auto;
+		min-height: 100%;
+		background: $body-bg;
+		position: relative;
+		overflow: hidden;
+		box-shadow: 0 0px 30px rgba($black, .5);
+	}
+	& .app-header {
+		max-width: $app-boxed-layout-width;
+		width: 100%;
+		right: auto;
+		left: auto;
+	}
+	& .app-sidebar,
+	& .app-sidebar-bg {
+		@include media-breakpoint-up(md) {
+			left: auto;
+			right: auto;
+		}
+	}
+}
+@media (max-width: $app-boxed-layout-width) {
+	.boxed-layout {
+		& .app-top-menu {
+			left: 0;
+			margin-left: 0;
+		}
+	}
+}

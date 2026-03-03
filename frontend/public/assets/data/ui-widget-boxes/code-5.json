@@ -1,0 +1,8 @@
+<Panel>
+  <PanelHeader noButton={true}>
+    Panel Header with Badge <span className="badge bg-success ms-2">NEW</span> 
+  </PanelHeader>
+  <PanelBody>
+    <p>Panel Content Here</p>
+  </PanelBody>
+</Panel>

@@ -1,0 +1,32 @@
+&lt;!-- required files --&gt;
+&lt;link href="/assets/plugins/jstree/dist/themes/default/style.min.css" rel="stylesheet" /&gt;
+&lt;script src="/assets/plugins/jstree/dist/jstree.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- html --&gt;
+&lt;div id="jstree-drag-and-drop"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  $("#jstree-drag-and-drop").jstree({
+    "plugins": ["contextmenu", "dnd", "state", "types"],
+    "core": {
+      "themes": { "responsive": false },
+      "check_callback": true,
+      "data": [{
+          "text": "Parent Node",
+          "children": [{
+            "text": "Initially selected",
+            "state": { "selected": true }
+          }, {
+            "text": "Folder 1"
+          }
+        },
+        "Another Node"
+      ]
+    },
+    "types": {
+      "default": { "icon": "fa fa-folder text-warning fa-lg" },
+      "file": { "icon": "fa fa-file text-warning fa-lg" }
+    },
+    "state": { "key": "demo2"  }
+  });
+&lt;/script&gt;

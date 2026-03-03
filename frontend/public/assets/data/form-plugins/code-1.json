@@ -1,0 +1,4 @@
+import DateTime from 'react-datetime';
+
+<!-- html -->
+<DateTime inputProps={{ placeholder: 'Datepicker' }} closeOnSelect={true} />

@@ -1,0 +1,143 @@
+.app-with-end-sidebar {
+	& .app-sidebar-float-submenu-container {
+		& .app-sidebar-float-submenu-line {
+			@if $enable-rtl {
+				left: rem(26px);
+				right: auto;
+			} @else {
+				left: auto;
+				right: rem(26px);
+			}
+		}
+		& .app-sidebar-float-submenu-arrow {
+			@if $enable-rtl {
+				left: 0;
+				right: auto;
+			} @else {
+				left: auto;
+				right: 0;
+			}
+		}
+		& .app-sidebar-float-submenu .menu-item:after {
+			@if $enable-rtl {
+				left: 0;
+				right: auto;
+			} @else {
+				left: auto;
+				right: 0;
+			}
+		}
+		& .app-sidebar-float-submenu {
+			@if $enable-rtl {
+				padding-left: rem(39px);
+				padding-right: 0;
+				text-align: left;
+			} @else {
+				padding-left: 0;
+				padding-right: rem(39px);
+				text-align: right;
+			}
+			
+			& .menu-item {
+				& > .menu-link {
+					flex-direction: row-reverse;
+					
+					@if $enable-rtl {
+						padding-left: rem(20px);
+						padding-right: rem(15px);
+					} @else {
+						padding-left: rem(15px);
+						padding-right: rem(20px);
+					}
+					
+					& .menu-caret {
+						&:before {
+							content: '\f053';
+						}
+					}
+					&:after {
+						@if $enable-rtl {
+							right: auto;
+							left: rem(-11px);
+						} @else {
+							right: rem(-11px);
+							left: auto;
+						}
+					}
+				}
+				&.active,
+				&.expanding,
+				&.expand {
+					& > .menu-link {
+						& .menu-caret {
+							&:before {
+								transform: rotate(-90deg);
+							}
+						}
+					}
+				}
+				&:before {
+					@if $enable-rtl {
+						right: auto;
+						left: rem(-13px);
+					} @else {
+						right: rem(-13px);
+						left: auto;
+					}
+				}
+			}
+			& .menu-submenu {
+				@if $enable-rtl {
+					padding-left: rem(15px);
+					padding-right: 0;
+				} @else {
+					padding-left: 0;
+					padding-right: rem(15px);
+				}
+			}
+		}
+	}
+	& .app-sidebar,
+	& .app-sidebar-bg {
+		left: auto;
+		right: 0;
+		
+		@if $enable-rtl {
+			left: 0;
+			right: auto;
+		}
+		@include media-breakpoint-down(md) {
+			right: $app-sidebar-width * -1;
+			
+			@if $enable-rtl {
+				right: auto;
+				left: $app-sidebar-width * -1;
+			}
+		}
+	}
+	& .app-content {
+		margin-left: 0;
+		margin-right: $app-sidebar-width;
+		
+		@if $enable-rtl {
+			margin-right: 0;
+			margin-left: $app-sidebar-width;
+		}
+		@include media-breakpoint-down(md) {
+			margin-right: 0;
+			
+			@if $enable-rtl {
+				margin-left: 0;
+			}
+		}
+	}
+	& .btn-scroll-to-top {
+		left: rem(25px);
+		right: auto;
+		
+		@if $enable-rtl {
+			left: auto;
+			right: rem(25px);
+		}
+	}
+}

@@ -1,0 +1,11 @@
+<div className="widget widget-stats bg-teal mb-7px">
+  <div className="stats-icon stats-icon-lg"><i className="fa fa-globe fa-fw"></i></div>
+  <div className="stats-content">
+    <div className="stats-title">TODAY'S VISITS</div>
+    <div className="stats-number">7,842,900</div>v
+    <div className="stats-progress progress">
+      <div className="progress-bar" style={{width: '70.1%'}}></div>
+    </div>
+    <div className="stats-desc">Better than last week (70.1%)</div>
+  </div>
+</div>

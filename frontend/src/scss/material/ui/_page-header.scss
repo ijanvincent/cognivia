@@ -1,0 +1,12 @@
+.page-header {
+	font-size: $page-header-font-size;
+	margin: 0 0 rem(15px);
+	padding: 0;
+	border: none;
+	line-height: $page-header-line-height;
+	font-weight: $page-header-font-weight;
+	
+	& small {
+		line-height: rem(20px);
+	}
+}

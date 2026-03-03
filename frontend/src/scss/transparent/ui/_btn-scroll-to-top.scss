@@ -1,0 +1,30 @@
+// ANIMATION - fade in
+@keyframes btnFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.btn-scroll-to-top {
+	position: fixed;
+	bottom: $app-content-padding-y;
+	z-index: $btn-scroll-to-top-zindex;
+	opacity: 0;
+	display: none;
+	
+	&.show {
+		opacity: 1.0;
+		display: block;
+		animation: btnFadeIn .2s ease;
+	}
+	@include media-breakpoint-up(md) {
+		@if $enable-rtl {
+			left: $app-content-padding-x * .5;
+		} @else {
+			right: $app-content-padding-x * .5;
+		}
+	}
+	@include media-breakpoint-down(md) {
+		@if $enable-rtl {
+			left: $app-content-mobile-padding-x * .5;
+		} @else {
+			right: $app-content-mobile-padding-x * .5;
+		}
+	}
+}

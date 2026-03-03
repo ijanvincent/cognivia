@@ -1,0 +1,36 @@
+.gallery-v2 {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 rem(-1px);
+	
+	& .gallery {
+		flex: 0 0 50%;
+		max-width: 50%;
+		margin: 0;
+		padding: rem(1px);
+		
+		@include media-breakpoint-up(sm) {
+			flex: 0 0 33.33%;
+			max-width: 33.33%;
+		}
+		@include media-breakpoint-up(md) {
+			flex: 0 0 25%;
+			max-width: 25%;
+		}
+		@include media-breakpoint-up(lg) {
+			flex: 0 0 12.5%;
+			max-width: 12.5%;
+		}
+		
+		
+		& a {
+			display: block;
+			transition-property: opacity;
+			transition-duration: 50ms;
+			
+			&:hover {
+				opacity: .75;
+			}
+		}
+	}
+}

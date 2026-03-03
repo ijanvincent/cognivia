@@ -1,0 +1,100 @@
+.gallery {
+	margin: $spacer * -.333;
+	
+	& .image {
+		width: 100%;
+		display: block;
+		overflow: hidden;
+		padding: $spacer * .333;
+		
+		@include media-breakpoint-up(md) {
+			width: 50%;
+		}
+		@include media-breakpoint-up(lg) {
+			width: 33.33%;
+		}
+		@include media-breakpoint-up(xl) {
+			width: 25%;
+		}
+		
+		& a {
+			transition: all .2s linear;
+			
+			&:hover,
+			&:focus {
+				opacity: .8;
+			}
+		}
+		& img,
+		& .img {
+			width: 100%;
+			height: rem(200px);
+			border-radius: $border-radius $border-radius 0 0;
+		}
+		& .img {
+			background-size: cover;
+			background-repeat: no-repeat;
+			background-position: center;
+		}
+		& .image-inner {
+			position: relative;
+			background: var(--#{$prefix}component-bg);
+			border-radius: $border-radius $border-radius 0 0;
+		}
+		& .image-caption {
+			position: absolute;
+			top: $spacer;
+			left: 0;
+			background: rgba($gray-900, .85);
+			color: $white;
+			font-weight: $font-weight-bold;
+			padding: $spacer * .333 $spacer;
+			margin: 0;
+		}
+		& .image-info {
+			background: var(--#{$prefix}component-bg);
+			padding: $spacer;
+			color: rgba(var(--#{$prefix}component-color-rgb), .75);
+			border-radius: 0 0 $border-radius $border-radius;
+			
+			& .title {
+				margin: 0 0 $spacer * .5;
+				line-height: $headings-line-height;
+				font-size: $h5-font-size;
+				font-weight: $font-weight-bold;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				color: var(--#{$prefix}component-color);
+			}
+			& .rating {
+				margin: 0;
+				display: flex;
+				
+				& span {
+					&.star {
+						margin-right: rem(1px);
+						
+						&:before {
+							content: '\f005';
+							color: rgba(var(--#{$prefix}component-color-rgb), .15);
+							
+							@include fontawesome();
+						}
+						&.active {
+							&:before {
+								color: $orange;
+							}
+						}
+					}
+				}
+			}
+			& .desc {
+				line-height: rem(17px);
+				font-size: rem(12px);
+				height: rem(51px);
+				overflow: hidden;
+			}
+		}
+	}
+}

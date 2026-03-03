@@ -1,0 +1,5 @@
+<dl className="row">
+  <dt className="col-md-3">Description Title</dt>
+  <dd className="col-md-9">A description list...</dd>
+  ...
+</dl>

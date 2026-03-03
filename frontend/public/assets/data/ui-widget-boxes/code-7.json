@@ -1,0 +1,8 @@
+<Panel className="panel-hover-icon">
+  <PanelHeader>
+    Hover View Icon
+  </PanelHeader>
+  <PanelBody>
+    <p>Panel Content Here</p>
+  </PanelBody>
+</Panel>

@@ -1,0 +1,13 @@
+node_modules/
+.expo/
+dist/
+build/
+.env
+google-service.json
+google-services.json
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+firebaseConfig.js

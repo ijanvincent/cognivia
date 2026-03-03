@@ -1,0 +1,13 @@
+.toast-container {
+	position: fixed;
+	top: $app-header-height;
+	margin-top: $spacer;
+	right: $spacer;
+	z-index: $app-content-zindex;
+}
+.toast {
+	& .toast-header {
+		border-bottom-width: $toast-header-border-width;
+		border-color: $toast-border-color;
+	}
+}

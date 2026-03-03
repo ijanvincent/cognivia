@@ -1,0 +1,512 @@
+.app-header {
+	position: relative;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: $app-header-zindex;
+	margin-bottom: 0;
+	padding: 0;
+	background: var(--#{$prefix}app-header-bg);
+	box-shadow: var(--#{$prefix}app-header-box-shadow);
+	transition: box-shadow .2s linear;
+	display: flex;
+	flex: 1;
+	
+	@include media-breakpoint-down(md) {
+		display: block;
+	}
+	
+	
+	& .navbar-mobile-toggler,
+	& .navbar-desktop-toggler {
+		position: relative;
+		padding: 0;
+		background-color: transparent;
+		background-image: none;
+		border: none;
+		outline: none;
+		width: $app-header-height;
+		min-width: $app-header-height;
+		height: $app-header-height;
+		display: block;
+		color: var(--#{$prefix}component-color);
+		border-radius: var(--#{$prefix}border-radius);
+		
+		@include media-breakpoint-down(md) {
+			height: $app-header-height-sm;
+		}
+		
+		& .icon-bar {
+			display: block;
+			width: rem(18px);
+			height: rem(2px);
+			background: var(--#{$prefix}app-header-color);
+			margin-left: auto;
+			margin-right: auto;
+			
+			& + .icon-bar {
+				margin-top: rem(3px);
+			}
+		}
+		&:hover {
+			background: none;
+			opacity: 0.75;
+		}
+	}
+	& .navbar-mobile-toggler {
+		min-width: auto;
+		padding: 0 rem(10px);
+		width: auto;
+		
+		@if $enable-rtl {
+			right: 0;
+		} @else {
+			left: 0;
+		}
+		@include media-breakpoint-up(md) {
+			display: none;
+		}
+		&.navbar-mobile-toggler-end {
+			@if $enable-rtl {
+				left: 0;
+				right: auto;
+			} @else {
+				left: auto;
+				right: 0;
+			}
+		}
+		& + .navbar-brand {
+			@if $enable-rtl {
+				padding-right: 0;
+			} @else {
+				padding-left: 0;
+			}
+		}
+	}
+	& .navbar-desktop-toggler {
+		@include media-breakpoint-up(md) {
+			& + .navbar-brand {
+				@if $enable-rtl {
+					padding-right: 0;
+				} @else {
+					padding-left: 0;
+				}
+			}
+		}
+		@include media-breakpoint-down(md) {
+			display: none;
+		}
+	}
+	& .navbar-header {
+		display: flex;
+		align-items: center;
+		
+		@include media-breakpoint-up(md) {
+			width: $app-sidebar-width;
+		}
+		@include media-breakpoint-down(md) {
+			padding: 0 rem(10px);
+		}
+	}
+	& .navbar-brand {
+		padding: (($app-header-height - rem(30px)) * .5) rem(20px);
+		height: $app-header-height;
+		font-weight: 300;
+		font-size: rem(20px);
+		line-height: rem(30px);
+		text-decoration: none;
+		margin: 0;
+		color: var(--#{$prefix}app-header-color);
+		align-items: center;
+		display: flex;
+		
+		@if $enable-rtl {
+			margin-left: auto;
+		} @else {
+			margin-right: auto;
+		}
+		@include media-breakpoint-down(md) {
+			padding: (($app-header-height-sm - rem(30px)) * .5) rem(10px);
+			height: $app-header-height-sm;
+		}
+		
+		& img {
+			max-width: 100%;
+			max-height: 100%;
+		}
+		& b {
+			font-weight: bold;
+		}
+		& .navbar-logo {
+			font-weight: 500;
+			font-size: rem(12px);
+			margin-top: rem(-34px);
+			margin-left: rem(-12px);
+			display: flex;
+			
+			@include media-breakpoint-down(sm) {
+				margin-top: rem(-28px);
+				margin-left: rem(-6px);
+				font-size: rem(9px);
+			}
+		}
+	}
+	& .navbar-nav {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: row;
+		flex: 1;
+		align-items: center;
+		
+		@include media-breakpoint-down(md) {
+			padding: 0 20px;
+		}
+		
+		& .navbar-item {
+			position: relative;
+			
+			& .navbar-link {
+				display: block;
+				text-decoration: none;
+				line-height: rem(20px);
+				padding: (($app-header-height - rem(20px)) * .5) rem(20px);
+				border: none;
+				color: var(--#{$prefix}app-header-color);
+				
+				@include media-breakpoint-down(md) {
+					padding: (($app-header-height-sm - rem(20px)) * .5) rem(15px);
+					height: $app-header-height-sm;
+				}
+				
+				& .badge {
+					position: absolute;
+					top: rem(12px);
+					display: block;
+					background: var(--#{$prefix}app-theme);
+					line-height: rem(14px);
+					height: rem(20px);
+					min-width: rem(20px);
+					font-weight: $font-weight-bold;
+					color: var(--#{$prefix}app-theme-color);
+					padding: rem(3px) rem(6px);
+					font-size: rem(12px);
+					border-radius: $border-radius-lg * 5;
+					
+					@if $enable-rtl {
+						left: rem(12px);
+					} @else {
+						right: rem(12px);
+					}
+					@include media-breakpoint-down(md) {
+						top: rem(6px);
+						
+						@if $enable-rtl {
+							left: rem(6px);
+						} @else {
+							right: rem(6px);
+						}
+					}
+				}
+				& i {
+					position: relative;
+					font-size: rem(20px);
+				}
+				&:hover,
+				&:focus {
+					opacity: .75;
+				}
+				&.icon {
+					& i {
+						font-size: rem(20px);
+						height: rem(20px);
+						margin: 0;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					}
+				}
+				
+				&.show
+				&.show:hover,
+				&.show:focus {
+					color: var(--#{$prefix}app-header-color);
+					opacity: 1;
+				}
+			}
+			
+			&:last-child {
+				& .navbar-link {
+					@include media-breakpoint-down(md) {
+						padding-right: 0;
+					
+						@if $enable-rtl {
+							padding-right: 20px;
+							padding-left: 0;
+						}
+					}
+				}
+			}
+			&.active {
+				& > a {
+					background: var(--#{$prefix}app-header-hover-bg);
+					opacity: 1;
+				}
+			}
+			&.dropdown {
+				& .dropdown-menu {
+					top: $dropdown-spacer !important;
+				}
+				
+				&.dropdown-lg {
+					position: static;
+					
+					& .dropdown-menu {
+						left: rem(20px) !important;
+						right: rem(20px) !important;
+						padding: rem(20px);
+						transform: none !important;
+						
+						@include media-breakpoint-up(md) {
+							top: calc(100% + #{$dropdown-spacer}) !important;
+						}
+						@include media-breakpoint-down(sm) {
+							overflow: scroll;
+							top: $app-header-height-sm * 2 + rem(1px) !important;
+							max-height: calc(100vh - #{$app-header-height-sm * 2 + rem(1px)});
+						}
+						
+						&.dropdown-menu-lg {
+							& .nav {
+								& > li {
+									& > a {
+										padding: 0;
+										background: none;
+										line-height: rem(24px);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		& .navbar-divider {
+			height: rem(34px);
+			background: var(--#{$prefix}app-header-divider-bg);
+			width: 1px;
+		}
+		&.navbar-end {
+			margin-left: auto;
+			
+			@if $enable-rtl {
+				margin-left: 0;
+				margin-right: auto;
+			}
+		}
+	}
+	& .navbar-form {
+		padding: 0 rem(36px);
+		margin: rem(8px) 0;
+		max-width: rem(800px);
+		width: 100%;
+		
+		@if $enable-rtl {
+			margin-left: auto;
+		} @else {
+			margin-right: auto;
+		}
+		@include media-breakpoint-down(md) {
+			padding: 0;
+			margin: rem(5px) 0;
+			flex: 1;
+			
+			& + .navbar-item {
+				@if $enable-rtl {
+					padding-right: rem(10px);
+				} @else {
+					padding-left: rem(10px);
+				}
+			}
+		}
+		
+		& .form-group {
+			margin: 0;
+			position: relative;
+		}
+		& .form-control {
+			padding: (($app-header-height - rem(48px)) * .5) rem(15px);
+			height: rem(48px);
+			background: var(--#{$prefix}app-header-input-bg);
+			border-color: var(--#{$prefix}app-header-input-border);
+			font-size: rem(15px);
+			border-radius: $border-radius-lg * 1.25;
+			
+			@if $enable-rtl {
+				padding-right: rem(55px);
+			} @else {
+				padding-left: rem(55px);
+			}
+			@include media-breakpoint-down(md) {
+				width: 100%;
+				height: rem(40px);
+				font-size: rem(14px);
+				border-radius: $border-radius-lg;
+				
+				@if $enable-rtl {
+					padding-right: rem(35px);
+				} @else {
+					padding-left: rem(35px);
+				}
+			}
+			
+			&:focus {
+				border-color: var(--#{$prefix}light);
+				box-shadow: none;
+			}
+		}
+		& .btn-search {
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			border: none;
+			background: none;
+			width: rem(60px);
+			color: var(--#{$prefix}component-color);
+			border-radius: 0 $border-radius-lg * 5 $border-radius-lg * 5 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			
+			@if $enable-rtl {
+				right: 0;
+				left: auto;
+			}
+			@include media-breakpoint-down(md) {
+				width: rem(40px);
+			}
+			
+			& > i {
+				font-size: rem(18px);
+				display: block;
+				
+				@include media-breakpoint-down(md) {
+					font-size: rem(14px);
+				}
+			}
+		}
+	}
+	& .navbar-user {
+		& img {
+			width: rem(34px);
+			height: rem(34px);
+			margin-top: rem(-7px);
+			margin-bottom: rem(-7px);
+			border-radius: $border-radius-lg * 5;
+			
+			@if $enable-rtl {
+				margin-left: rem(10px);
+			} @else {
+				margin-right: rem(10px);
+			}
+			@include media-breakpoint-down(md) {
+				@if $enable-rtl {
+					margin-left: rem(5px);
+				} @else {
+					margin-right: rem(5px);
+				}
+			}
+		}
+		& .image {
+			width: rem(30px);
+			height: rem(30px);
+			margin-top: rem(-5px);
+			margin-bottom: rem(-5px);
+			overflow: hidden;
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			border-radius: $border-radius-lg * 5;
+			
+			@if $enable-rtl {
+				margin-left: rem(10px);
+			} @else {
+				margin-right: rem(10px);
+			}
+			@include media-breakpoint-down(md) {
+				@if $enable-rtl {
+					margin-left: rem(5px);
+				} @else {
+					margin-right: rem(5px);
+				}
+			}
+			
+			&.image-icon {
+				font-size: rem(22px);
+				text-align: center;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				
+				& i {
+					float: none;
+					display: block;
+					font-size: rem(22px);
+					text-align: center;
+					width: auto;
+					margin: 0 auto rem(-8px);
+				}
+			}
+		}
+	}
+	& .navbar-language {
+		& .flag-icon {
+			font-size: rem(15px);
+			
+			@if $enable-rtl {
+				margin-left: rem(7px);
+			} @else {
+				margin-right: rem(7px);
+			}
+		}
+	}
+	& .navbar-collapse {
+		@include media-breakpoint-up(md) {
+			display: flex;
+		}
+		@include media-breakpoint-down(md) {
+			& .navbar-nav {
+				& > li {
+					flex: 1;
+					
+					& > a {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					}
+				}
+			}
+		}
+	}
+	&.navbar .navbar-collapse {
+		@include media-breakpoint-down(md) {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 100%;
+			background: var(--#{$prefix}app-header-bg);
+			
+			& .navbar-nav {
+				display: block;
+			}
+		}
+	}
+}
+.has-scroll,
+.app-header-shadow {
+	& .app-header {
+		box-shadow: $app-header-box-shadow-scroll;
+	}
+}

@@ -1,0 +1,52 @@
+// ANIMATION - sidebar slide in
+@keyframes appSidebarEndMobileSlideInLeft { from { left: -$app-sidebar-width; } to { left: 0; } }
+@keyframes appSidebarEndMobileSlideInRight { from { right: -$app-sidebar-width; } to { right: 0; } }
+
+// ANIMATION - wide sidebar slide in
+@keyframes appSidebarEndWideMobileSlideInLeft { from { left: -$app-sidebar-width-wide; } to { left: 0; } }
+@keyframes appSidebarEndWideMobileSlideInRight { from { right: -$app-sidebar-width-wide; } to { right: 0; } }
+
+// ANIMATION - mobile backdrop
+@keyframes appSidebarEndMobileBackdrop { from { background: transparent; } to { background: $app-sidebar-bg-mobile-backdrop; } }
+
+.app-sidebar-end-mobile-toggled {
+	@include media-breakpoint-down(md) {
+		& .app-sidebar-end {
+			&.app-sidebar,
+			&.app-sidebar-bg {
+				@if $enable-rtl {
+					left: 0;
+					right: auto;
+					animation: appSidebarEndMobileSlideInLeft .2s ease;
+				} @else {
+					right: 0;
+					left: auto;
+					animation: appSidebarEndMobileSlideInRight .2s ease;
+				}
+			}
+			&.app-sidebar-bg {
+				position: fixed;
+			}
+			&.app-sidebar-mobile-backdrop {
+				display: block;
+				background: $app-sidebar-bg-mobile-backdrop;
+				animation: appSidebarEndMobileBackdrop .2s ease;
+			}
+		}
+		
+		&.app-with-wide-sidebar .app-sidebar-end {
+			&.app-sidebar,
+			&.app-sidebar-bg {
+				@if $enable-rtl {
+					left: 0;
+					right: auto;
+					animation: appSidebarEndWideMobileSlideInLeft .2s ease;
+				} @else {
+					right: 0;
+					left: auto;
+					animation: appSidebarEndWideMobileSlideInRight .2s ease;
+				}
+			}
+		}
+	}
+}

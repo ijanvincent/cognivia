@@ -1,0 +1,39 @@
+.widget-input-container {
+	display: flex;
+	align-items: center;
+	
+	& .widget-input-icon {
+		padding: 0 $spacer * .333;
+		
+		& a {
+			display: block;
+			padding: $spacer * 0.66;
+			font-size: rem(18px);
+		}
+	}
+	& .widget-input-box {
+		padding: $spacer * .4 0;
+		flex: 1;
+		
+		& .form-control {
+			border-color: var(--#{$prefix}light);
+			background: var(--#{$prefix}light);
+			border-radius: $border-radius * 10;
+			
+			&:focus {
+				box-shadow: none;
+			}
+		}
+	}
+	& .widget-input-divider {
+		width: rem(1px);
+		
+		&:after {
+			content: '';
+			width: rem(1px);
+			height: rem(26px);
+			background: var(--#{$prefix}component-border-color);
+			display: block;
+		}
+	}
+}

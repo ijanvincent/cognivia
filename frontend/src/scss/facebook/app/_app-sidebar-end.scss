@@ -1,0 +1,22 @@
+.app-sidebar-end {
+	&.app-sidebar,
+	&.app-sidebar-bg {
+		@if $enable-rtl {
+			left: -$app-sidebar-width;
+		} @else {
+			right: -$app-sidebar-width;
+		}
+	}
+	&.app-with-wide-sidebar {
+		& .app-sidebar-end {
+			&.app-sidebar,
+			&.app-sidebar-bg {
+				@if $enable-rtl {
+					left: -$app-sidebar-width-wide;
+				} @else {
+					right: -$app-sidebar-width-wide;
+				}
+			}
+		}
+	}
+}

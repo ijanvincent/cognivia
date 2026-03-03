@@ -1,0 +1,26 @@
+.ui-widget {
+	font-family: inherit;
+	
+	&.ui-autocomplete {
+		padding: $spacer * .5 0;
+		border: none;
+		font-size: $font-size-base;
+		background-color: var(--#{$prefix}component-dropdown-bg);
+		box-shadow: $box-shadow;
+		border-radius: 0 0 $border-radius $border-radius;
+		
+		& .ui-menu-item-wrapper {
+			padding: $nav-link-padding-y $nav-link-padding-x;
+			font-weight: $font-weight-semibold;
+			color: $dropdown-link-color;
+			
+			&.ui-state-active {
+				background: var(--#{$prefix}component-dropdown-hover-bg);
+				border: none;
+				color: var(--#{$prefix}component-hover-color);
+				margin: 0;
+				border-radius: 0;
+			}
+		}
+	}
+}

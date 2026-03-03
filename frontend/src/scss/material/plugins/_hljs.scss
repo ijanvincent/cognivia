@@ -1,0 +1,94 @@
+.hljs-wrapper {
+	--#{$prefix}hljs-color: #{rgba($component-color, .5)};
+	--#{$prefix}hljs-tag-color: #{darken($blue, 15%)};
+	--#{$prefix}hljs-attr-color: #{lighten($blue, 5%)};
+	--#{$prefix}hljs-string-color: #{darken($red, 7.5%)};
+	--#{$prefix}hljs-comment-color: #{lighten($dark, 40%)};
+	
+	background: var(--#{$prefix}light);
+	position: relative;
+	border-radius: $border-radius;
+	
+	& pre {
+		border: none;
+		padding: 0;
+		background: none;
+		margin: 0;
+		border-radius: 0;
+		
+		& .hljs,
+		&.hljs {
+			padding: rem(15px);
+			display: block;
+			overflow-x: auto;
+			border: none;
+			font-size: rem(12px);
+			background: none;
+			color: var(--#{$prefix}hljs-color);
+			border-radius: 0;
+			
+			& .hljs-tag,
+			& .hljs-section,
+			& .hljs-name,
+			& .hljs-selector-tag,
+			& .hljs-deletion,
+			& .hljs-subst {
+				color: var(--#{$prefix}hljs-tag-color);
+			}
+			& .hljs-attr,
+			& .hljs-variable,
+			& .hljs-template-variable,
+			& .hljs-type,
+			& .hljs-selector-class,
+			& .hljs-selector-attr,
+			& .hljs-selector-pseudo,
+			& .hljs-number {
+				color: var(--#{$prefix}hljs-attr-color);
+			}
+			& .hljs-string,
+			& .hljs-regexp,
+			& .hljs-addition,
+			& .hljs-attribute,
+			& .hljs-meta-string {
+				color: var(--#{$prefix}hljs-string-color);
+			}
+			& .hljs-comment {
+				color: var(--#{$prefix}hljs-comment-color);
+			}
+		}
+	}
+	& .btn-clipboard {
+		position: absolute;
+		right: rem(10px);
+		top: rem(10px);
+		
+		@if $enable-rtl {
+			right: auto;
+			left: rem(10px);
+		}
+	}
+}
+
+@if $enable-dark-mode {
+  @include color-mode(dark, false) {
+  	.hljs-wrapper {
+			--#{$prefix}hljs-color: #{rgba($component-color-dark, .5)};
+			--#{$prefix}hljs-tag-color: #{rgba(lighten($blue, 25%), .5)};
+			--#{$prefix}hljs-attr-color: #{lighten($blue, 15%)};
+			--#{$prefix}hljs-string-color: #{tint-color($teal, 25%)};
+  	}
+  }
+}
+.panel-body + .hljs-wrapper {
+	border-radius: 0 0 $border-radius $border-radius;
+}
+.modal {
+	& .hljs-wrapper {
+		margin-top: rem(-1px);
+		border-radius: 0;
+		
+		& + .modal-footer {
+			border-top: none;
+		}
+	}
+}

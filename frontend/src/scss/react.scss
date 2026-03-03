@@ -1,0 +1,1329 @@
+@import 'default/styles';
+
+/* Mailbox */
+.mailbox {
+	& .mailbox-to {
+		& .react-tags {
+			border: 0;
+			flex: 1;
+			box-shadow: none !important;
+		}
+	}
+	& .mailbox-input {
+		& .quill {
+			& .ql-toolbar {
+				border: 0;
+				border-bottom: 1px solid var(--#{$prefix}component-border-color);
+			}
+			& .ql-container {
+				border: 0 !important;
+			}
+		}
+	}
+}
+
+
+/* react-quill */
+body {
+	& .ql-toolbar,
+	& .ql-container {
+		border-color: var(--#{$prefix}border-color) !important;
+		
+		& .ql-picker {
+			color: var(--#{$prefix}body-color);
+		}
+		& button,
+		& .ql-picker-label,
+		& .ql-picker-item {
+			&:hover,
+			&:focus {
+				background: rgba(var(--#{$prefix}body-color-rgb), .25) !important;
+				color: var(--#{$prefix}body-color) !important;
+				border-radius: $border-radius;
+			}
+			&.ql-active {
+				background: rgba(var(--#{$prefix}theme-rgb), .25) !important;
+				border-radius: $border-radius;
+				color: var(--#{$prefix}theme) !important;
+				border: none !important;
+				
+				& .ql-stroke {
+					stroke: var(--#{$prefix}theme) !important;
+				}
+				& .ql-fill {
+					fill: var(--#{$prefix}theme) !important;
+				}
+			}
+		}
+		& .ql-picker-options .ql-picker-item {
+			border-radius: 0 !important;
+			
+			&:hover,
+			&:focus {
+				background: rgba(var(--#{$prefix}body-color-rgb), .25) !important;
+				color: var(--#{$prefix}body-color);
+			}
+			&.ql-selected {
+				background: rgba(var(--#{$prefix}theme-rgb), .25) !important;
+				color: var(--#{$prefix}theme) !important;
+			}
+		}
+		& .ql-stroke {
+			fill: transparent !important;
+			stroke: var(--#{$prefix}body-color) !important;
+		}
+	}
+}
+.border-0 .ql-toolbar {
+	border-top: none !important;
+	border-left: none !important;
+	border-right: none !important;
+}
+.border-0 .ql-container {
+	border: none !important;
+}
+
+
+/* React Select */
+.react-select__control {
+	body & {
+  	--#{$prefix}form-select-bg-img: #{escape-svg($form-select-indicator)};
+  	
+		background-color: var(--#{$prefix}component-bg);
+		color: var(--#{$prefix}component-color);
+		border: 1px solid var(--#{$prefix}component-border-color);
+		border-radius: $input-border-radius;
+		display: flex;
+		height: $input-height;
+		min-height: $input-height;
+		padding: $form-select-padding-y $form-select-indicator-padding $form-select-padding-y $form-select-padding-x;
+  	background-color: $form-select-bg;
+		background-image: var(--#{$prefix}form-select-bg-img), var(--#{$prefix}form-select-bg-icon, none);
+		background-repeat: no-repeat;
+		background-position: $form-select-bg-position;
+		background-size: $form-select-bg-size;
+		border: $form-select-border-width solid $form-select-border-color;
+		font-weight: $input-font-weight;
+		
+		@include border-radius($form-select-border-radius, 0);
+		@include box-shadow($form-select-box-shadow);
+		@include transition($form-select-transition);
+		@include color-mode(dark) {
+			--#{$prefix}form-select-bg-img: #{escape-svg($form-select-indicator-dark)};
+		}
+		
+		&:hover {
+			border-color: var(--#{$prefix}component-border-color);
+		}
+		&.react-select__control--is-focused {
+			border-color: $form-select-focus-border-color;
+			outline: 0;
+			@if $enable-shadows {
+				@include box-shadow($form-select-box-shadow, $form-select-focus-box-shadow);
+			} @else {
+				// Avoid using mixin so we can pass custom focus shadow properly
+				box-shadow: $form-select-focus-box-shadow;
+			}
+		}
+		& .react-select__value-container {
+			padding: 0;
+			
+			& .react-select__placeholder,
+			& .react-select__single-value {
+				margin: 0;
+			}
+			& .react-select__input-container {
+				margin: 0;
+				padding: 0;
+			}
+		}
+		& .react-select__indicators {
+			& .react-select__indicator-separator {
+				display: none;
+			}
+			& .react-select__indicator {
+				padding: 0 $input-padding-x;
+				position: relative;
+				
+				& svg {
+					visibility: hidden;
+				}
+			}
+		}
+	}
+}
+.react-select__menu {
+	body & {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		background: var(--#{$prefix}component-dropdown-bg);
+		padding: 0;
+		min-width: rem(160px);
+		border-radius: $border-radius-lg;
+		box-shadow: 0 0.5rem 1rem rgba($black,.175);
+		z-index: 1020;
+		
+		& .react-select__menu-list {
+			padding: $dropdown-padding-y $dropdown-padding-x;
+			
+			& .react-select__option {
+				display: block;
+				padding: $dropdown-item-padding-y * 1.25 $dropdown-item-padding-x;
+				font-weight: $font-weight-bold;
+				
+				&:hover,
+				&:focus,
+				&.react-select__option--is-focused {
+					cursor: pointer;
+					background: var(--#{$prefix}component-dropdown-hover-bg);
+					color: var(--#{$prefix}component-dropdown-hover-color);
+				}
+				
+				&:not([aria-disabled='true']).react-select__option--is-selected {
+					background: $component-active-bg;
+					color: $component-active-color;
+				}
+				&[aria-disabled='true'] {
+					color: $component-active-bg;
+					cursor: not-allowed;
+					pointer-events: none;
+				}
+				&[aria-selected='true'] {
+					&::after {
+						content: '\f00c';
+						margin-left: 0.5rem;
+						
+						@include fontawesome();
+					}
+					&:not(.is-active)::after {
+						color: $component-active-bg;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+/* React Calendar */
+.react-calendar {
+	width: auto;
+	min-width: 300px;
+	border: none;
+	font-family: inherit;
+	background: none;
+	padding: 5px;
+	
+	& .react-calendar__navigation {
+		height: auto;
+		margin-bottom: 0;
+		min-height: 30px;
+		
+		& .react-calendar__navigation__label {
+			font-weight: $font-weight-bold;
+			font-size: 12px;
+			padding: 0;
+			color: var(--#{$prefix}component-color);
+			border-radius: $border-radius-lg;
+			
+			&:hover,
+			&:focus {
+				background: var(--#{$prefix}component-hover-bg);
+				outline: none;
+			}
+			&[disabled] {
+				background: none;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			}
+		}
+		& .react-calendar__navigation__arrow {
+			color: transparent;
+			position: relative;
+			padding: 0;
+			color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			border-radius: $border-radius-lg;
+			
+			@include fontawesome();
+			
+			&:hover,
+			&:focus {
+				background: var(--#{$prefix}component-hover-bg);
+				outline: none;
+			}
+			&:after {
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			&.react-calendar__navigation__prev2-button:after {
+				content: '\f100';
+			}
+			&.react-calendar__navigation__prev-button:after {
+				content: '\f104';
+			}
+			&.react-calendar__navigation__next2-button:after {
+				content: '\f101';
+			}
+			&.react-calendar__navigation__next-button:after {
+				content: '\f105';
+			}
+		}
+	}
+	& .react-calendar__month-view {
+		& .react-calendar__month-view__weekdays {
+			& .react-calendar__month-view__weekdays__weekday {
+				min-height: 30px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				
+				& abbr {
+					font-size: 12px;
+					text-decoration: initial;
+					font-weight: bold;
+					text-transform: initial;
+				}
+			}
+		}
+		& .react-calendar__month-view__days {
+			& .react-calendar__tile {
+				height: auto;
+				min-height: 30px;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				font-weight: $font-weight-bold;
+				border-radius: $border-radius-lg;
+			
+				&:hover,
+				&:focus {
+					background: var(--#{$prefix}component-hover-bg);
+					color: var(--#{$prefix}component-color);
+					outline: none;
+				}
+				&.react-calendar__tile--active {
+					background: var(--#{$prefix}component-active-bg);
+					color: var(--#{$prefix}component-active-color);
+				}
+			}
+		}
+	}
+	& .react-calendar__year-view,
+	& .react-calendar__decade-view,
+	& .react-calendar__century-view {
+		& .react-calendar__tile {
+			height: auto;
+			min-height: 50px;
+			color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			font-weight: $font-weight-bold;
+			padding: 0;
+			border-radius: $border-radius-lg;
+		
+			&:hover,
+			&:focus {
+				background: var(--#{$prefix}component-hover-bg);
+				color: var(--#{$prefix}component-color);
+				outline: none;
+			}
+			&.react-calendar__tile--active,
+			&.react-calendar__tile--hasActive {
+				background: var(--#{$prefix}component-active-bg);
+				color: var(--#{$prefix}component-active-color);
+			}
+		}
+	}
+}
+
+
+/* Countdown */
+.countdown-row {
+	clear: both;
+	width: 100%;
+	padding: 0px 2px;
+	text-align: center;
+}
+.countdown-section {
+	display: block;
+	float: left;
+	font-size: 75%;
+	text-align: center;
+	
+	& .countdown-period {
+		display: block;
+	}
+	& .countdown-descr {
+		display: block;
+		width: 100%;
+	}
+	.countdown-show1 & {
+		width: 98%;
+	}
+	.countdown-show2 & {
+		width: 48%;
+	}
+	.countdown-show3 & {
+		width: 32.5%;
+	}
+	.countdown-show4 & {
+		width: 24.5%;
+	}
+	.countdown-show5 & {
+		width: 19.5%;
+	}
+	.countdown-show6 & {
+		width: 16.25%;
+	}
+	.countdown-show7 & {
+		width: 14%;
+	}
+}
+
+
+/* Rdt Datepicker */
+.react-datepicker-wrapper {
+	display: block;
+}
+.rdt {
+	& .rdtPicker {
+		width: auto;
+		background: var(--#{$prefix}component-dropdown-bg);
+		border: none;
+		border-radius: $border-radius-lg;
+		box-shadow: 0 0.5rem 1rem rgba($black,.175);
+		
+		& table {
+			& thead {
+				& tr {
+					& th {
+						&.rdtPrev,
+						&.rdtNext,
+						&.rdtSwitch {
+							line-height: 20px;
+							padding: 5px;
+							height: auto;
+							min-height: 30px;
+							border: none;
+							border-radius: $border-radius;
+							
+							&:hover,
+							&:focus {
+								background: var(--#{$prefix}component-dropdown-hover-bg);
+								
+								& span:before {
+									color: var(--#{$prefix}component-color);
+								}
+							}
+						}
+						&.rdtPrev,
+						&.rdtNext {
+							color: transparent;
+							width: 14.28%;
+							position: relative;
+							
+							& span {
+								color: transparent;
+								position: relative;
+								display: block;
+								border-radius: $border-radius-lg;
+								
+								@include fontawesome();
+							
+								&:before {
+									color: rgba(var(--#{$prefix}component-color-rgb), .5);
+									position: absolute;
+									font-size: 14px;
+									top: 0;
+									left: 0;
+									right: 0;
+									bottom: 0;
+									line-height: 1;
+									display: flex;
+									align-items: center;
+									justify-content: center;
+								}
+								& i {
+									display: none;
+								}
+							}
+						}
+						&.rdtPrev {
+							& span:before {
+								content: '\f104';
+							}
+						}
+						&.rdtNext {
+							& span:before {
+								content: '\f105';
+							}
+						}
+						&.rdtSwitch {
+							width: auto;
+						}
+						&.dow {
+							padding: 5px 0;
+						}
+					}
+				}
+			}
+			& tfoot {
+				border: none;
+				
+				& tr {
+					& td {
+						&.rdtTimeToggle {
+							border: none;
+							font-weight: $font-weight-bold;
+							color: rgba(var(--#{$prefix}component-color-rgb), .5);
+							text-shadow: none;
+							border-radius: $border-radius-lg;
+				
+							&:hover,
+							&:focus {
+								background: var(--#{$prefix}component-dropdown-hover-bg);
+								text-shadow: none;
+							}
+						}
+					}	
+				}
+			}
+		}
+		& .rdtTime {
+			min-width: 180px;
+			
+			& .rdtCounters {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				
+				& > div {
+					float: none;
+				}
+				& .rdtCounter {
+					height: 110px;
+					width: 60px;
+					
+					& .rdtBtn {
+						height: 35%;
+						color: transparent;
+						position: relative;
+						border-radius: $border-radius-lg;
+						
+						@include fontawesome();
+						
+						&:before {
+							content: '\f106';
+							position: absolute;
+							top: 0;
+							left: 0;
+							right: 0;
+							bottom: 0;
+							color: rgba(var(--#{$prefix}component-color-rgb), .5);
+							font-size: 18px;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+						}
+						&:hover,
+						&:focus {
+							background: var(--#{$prefix}component-dropdown-hover-bg);
+						}
+					}
+					& .rdtCount {
+						height: 30%;
+						font-weight: $font-weight-bold;
+						color: rgba(var(--#{$prefix}component-color-rgb), .75);
+						font-size: 13px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						
+						& + .rdtBtn {
+							&:before {
+								content: '\f107';
+							}
+						}
+					}
+				}
+			}
+		}
+		& .rdtDays {
+			min-width: 290px;
+			
+			& .rdtDay {
+				font-weight: $font-weight-bold;
+				color: rgba(var(--#{$prefix}component-color-rgb), .75);
+				padding: 5px;
+				line-height: 20px;
+				border-radius: $border-radius-lg;
+				
+				&:hover,
+				&:focus,
+				&.rdtSelected,
+				&.rdtHighlighted,
+				&.rdtRange {
+					background: var(--#{$prefix}component-dropdown-hover-bg) !important;
+					text-shadow: none;
+				}
+				&.rdtToday {
+					background: var(--#{$prefix}light) !important;
+					color: var(--#{$prefix}component-color) !important;
+				}
+				&.rdtActive {
+					background: var(--#{$prefix}component-active-bg) !important;
+					color: var(--#{$prefix}component-active-color) !important;
+					text-shadow: none !important;
+				}
+				&.rdtOld {
+					color: rgba(var(--#{$prefix}component-color-rgb), .25);
+				}
+				&.rdtNew {
+					color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				}
+				&.disabled {
+					color: rgba(var(--#{$prefix}component-color-rgb), .25);
+					
+					&:hover,
+					&:focus {
+						background: none;
+					}
+				}
+			}
+		}	
+		& .rdtMonths,
+		& .rdtYears {
+			min-width: 290px;
+			
+			& .rdtMonth,
+			& .rdtYear {
+				font-weight: $font-weight-bold;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				text-shadow: none;
+				border-radius: $border-radius;
+				
+				&:hover,
+				&:focus {
+					background: var(--#{$prefix}component-dropdown-hover-bg);
+				}
+				&.rdtFocused {
+					background: var(--#{$prefix}component-dropdown-hover-bg);
+					color: var(--#{$prefix}component-color);
+				}
+				&.rdtActive {
+					background: var(--#{$prefix}component-active-bg) !important;
+					color: var(--#{$prefix}component-active-color);
+				}
+			}
+		}
+	}
+}
+
+
+/* React Datepicker */
+.react-datepicker {
+	border: none;
+	display: block;
+	font-family: inherit;
+	background: none;
+	
+	.react-datepicker-popper & {
+		padding: rem(5px);
+		min-width: rem(280px);
+		background: var(--#{$prefix}component-dropdown-bg);
+		z-index: 10;
+		border-radius: $border-radius-lg;
+		box-shadow: 0 0.5rem 1rem rgba($black,.175);
+	}
+	
+	& .react-datepicker__day-names {
+		margin-bottom: 0;
+	}
+	& .react-datepicker__navigation {
+		color: transparent;
+		padding: rem(5px);
+		line-height: rem(20px);
+		border: none;
+		width: rem(30px);
+		height: rem(30px);
+		top: 0;
+		text-indent: 0;
+		border-radius: $border-radius-lg;
+		margin-top: rem(5px);
+		
+		&:hover,
+		&:focus {
+			background: var(--#{$prefix}component-hover-bg);
+			outline: none;
+			
+			&:after {
+				color: var(--#{$prefix}component-hover-color);
+			}
+		}
+		&:after {
+			color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			position: absolute;
+			font-size: 14px;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			
+			@include fontawesome();
+		}
+		& .react-datepicker__navigation-icon {
+			display: none;
+		}
+		&.react-datepicker__navigation--previous {
+			&:after {
+				content: '\f104';
+			}
+		}
+		&.react-datepicker__navigation--next {
+			&:after {
+				content: '\f105';
+			}
+		}
+	}
+	& .react-datepicker__month-container {
+		float: none;
+		
+		& .react-datepicker__header {
+			background: none;
+			border: none;
+			padding: 0;
+			
+			& .react-datepicker__current-month {
+				font-size: 12px;
+				color: var(--#{$prefix}component-color);
+				font-weight: 700;
+				padding: 5px;
+				line-height: 20px;
+			}
+			& .react-datepicker__day-names {
+				display: flex;
+				
+				& .react-datepicker__day-name {
+					font-weight: $font-weight-bold;
+					color: rgba(var(--#{$prefix}component-color-rgb), .85);
+					font-size: rem(12px);
+					padding: rem(5px);
+					line-height: rem(20px);
+					margin: 0;
+					flex: 1;
+				}
+			}
+		}
+		
+		& .react-datepicker__month {
+			margin: 0;
+			
+			& .react-datepicker__week {
+				display: flex;
+				
+				& .react-datepicker__day {
+					padding: rem(5px);
+					margin: 0;
+					line-height: rem(20px);
+					font-size: $font-size-base;
+					font-weight: $font-weight-bold;
+					color: rgba(var(--#{$prefix}component-color-rgb), .65);
+					flex: 1;
+					border-radius: $border-radius-lg;
+					
+					&:hover,
+					&:focus,
+					&.react-datepicker__day--today {
+						background: var(--#{$prefix}component-hover-bg);
+						color: var(--#{$prefix}component-color);
+						outline: none;
+					}
+					&.react-datepicker__day--selected {
+						background: var(--#{$prefix}component-active-bg);
+						color: var(--#{$prefix}component-active-color);
+					}
+					&.react-datepicker__day--outside-month {
+						opacity: .25;
+					}
+				}
+			}
+		}
+	}
+}
+.react-datepicker__tab-loop {
+	& .react-datepicker__triangle {
+		display: none;
+	}
+}
+
+
+/* React Tag Autocomplete */
+.react-tags {
+	min-height: rem(34px);
+	border: 1px solid var(--#{$prefix}component-border-color);
+	padding: rem(5px) 0 0;
+	border-radius: $border-radius;
+	display: flex;
+	flex-wrap: wrap;
+	transition: all .2s linear;
+  cursor: text;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  position: relative;
+  
+  @if $enable-rtl {
+		padding-right: rem(8px);
+	} @else {
+		padding-left: rem(8px);
+	}
+	
+	.mailbox-to & {
+		padding-top: rem(6px);
+	}
+	&.is-focused {
+		border-color: var(--#{$prefix}component-focus-border-color);
+		box-shadow: 0 0 0 0.2rem rgba($blue,.25);
+	}
+	&.is-active {
+ 		border-color: $input-focus-border-color;
+	}
+	&.is-disabled {
+		background: $input-disabled-bg;
+		pointer-events: none;
+		cursor: not-allowed;
+	}
+	&.is-invalid {
+		border-color: $danger;
+		box-shadow: 0 0 0 2px rgba($danger, 0.25);
+	}
+	& .react-tags__tag {
+		background: var(--#{$prefix}component-active-bg);
+		color: var(--#{$prefix}component-active-color);
+		padding: rem(2px) 0;
+		border: none;
+		outline: none;
+		font-weight: $font-weight-bold;
+		font-size: $font-size-base;
+		line-height: $line-height-base;
+		margin: 0 0 rem(5px);
+		position: relative;
+		border-radius: $border-radius;
+		
+		@if $enable-rtl {
+			margin-left: rem(8px);
+			padding-right: rem(8px);
+			padding-left: rem(24px);
+		} @else {
+			margin-right: rem(8px);
+			padding-left: rem(8px);
+			padding-right: rem(24px);
+		}
+		
+		&:after {
+			content: '\f00d';
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			width: rem(24px);
+			font-size: $font-size-base;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			
+			@include fontawesome();
+			@if $enable-rtl {
+				left: 0;
+			} @else {
+				right: 0;
+			}
+		}
+	}
+	& .react-tags__combobox {
+		position: relative;
+		
+		& .react-tags__combobox-input {
+			border: none;
+			background: none;
+			height: rem(20px);
+			outline: none;
+			margin: rem(1px) 0;
+			font-weight: $font-weight-bold;
+			color: var(--#{$prefix}component-color);
+			min-width: rem(150px);
+			box-shadow: none;
+			margin-bottom: rem(6px);
+			
+			&::placeholder {
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			}
+		}
+		& .react-tags__listbox {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			background: var(--#{$prefix}component-dropdown-bg);
+			padding: $dropdown-padding-y $dropdown-padding-x;
+			min-width: rem(160px);
+			border-radius: $border-radius-lg;
+			box-shadow: 0 0.5rem 1rem rgba($black,.175);
+			z-index: 1020;
+			
+			& .react-tags__listbox-option {
+				display: block;
+				padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+				
+				&:hover,
+				&:focus {
+					cursor: pointer;
+					background: var(--#{$prefix}component-dropdown-hover-bg);
+				}
+				
+				&:not([aria-disabled='true']).is-active {
+					background: $component-active-bg;
+					color: $component-active-color;
+				}
+				&[aria-disabled='true'] {
+					color: $component-active-bg;
+					cursor: not-allowed;
+					pointer-events: none;
+				}
+				&[aria-selected='true'] {
+					&::after {
+						content: '\f00c';
+						margin-left: 0.5rem;
+						
+						@include fontawesome();
+					}
+					&:not(.is-active)::after {
+						color: $component-active-bg;
+					}
+				}
+				&.react-tags__listbox-option-highlight {
+					background-color: $component-active-bg;
+				}
+			}
+		}
+	}
+	& .react-tags__label {
+		position: absolute;
+		left: -10000px;
+		top: auto;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+	& .react-tags__list {
+		display: flex;
+		flex-wrap: wrap;
+		padding: 0;
+		margin: 0;
+		
+		& .react-tags__list-item {
+			display: block;
+			list-style: none;
+		}
+	}
+}
+
+
+/* React Color */
+.sketch-picker,
+.chrome-picker {
+	background: none !important;
+	border: none !important;
+	box-shadow: none !important;
+	
+	.dropdown-menu & {
+		margin: -8px 0;
+	}
+	
+	& label {
+		color: var(--#{$prefix}component-color) !important;
+	}
+	& input {
+		border: 1px solid var(--#{$prefix}component-border-color) !important;
+		background: var(--#{$prefix}component-bg) !important;
+		color: var(--#{$prefix}component-color) !important;
+		transition: all .2s linear;
+		box-shadow: none !important;
+		border-radius: $border-radius;
+		
+		&:focus {
+			border-color: var(--#{$prefix}component-focus-border-color) !important;
+			outline: none;
+			box-shadow: 0 0 0 0.2rem rgba($blue,.25) !important;
+		}
+	}
+	& .flexbox-fix {
+		border-color: var(--#{$prefix}component-border-color) !important;
+	}
+}
+
+
+/* React DataTable */
+body {
+	& .rdt_TableHeader {
+		padding: 0;
+		font-size: $font-size-base * 1.5;
+		margin-bottom: $spacer * .5;
+		min-height: auto;
+		background: none;
+		color: var(--#{$prefix}component-color);
+		
+		& > div + div {
+			background: var(--#{$prefix}light);
+			color: var(--#{$prefix}component-color);
+			font-size: $font-size-base;
+			
+			& > div {
+				font-weight: $font-weight-bold;
+			}
+		}
+	}
+	& .rdt_TableHead {
+		& .rdt_TableHeadRow {
+			border-color: var(--#{$prefix}component-border-color);
+		}
+	}
+	& .rdt_Table {
+		border: 1px solid var(--#{$prefix}component-border-color);
+		color: var(--#{$prefix}component-color);
+		background: none;
+		
+		& svg {
+			fill: var(--#{$prefix}component-color);
+		}
+		& .rdt_TableHeadRow {
+			min-height: auto;
+			font-weight: $font-weight-bold;
+			color: var(--#{$prefix}component-color);
+			background: none;
+		}
+		& .rdt_TableRow {
+			padding: 0;
+			min-height: auto;
+			color: var(--#{$prefix}component-color);
+			background: none;
+			
+			&:not(:last-child) {
+				border-bottom: 1px solid var(--#{$prefix}component-border-color);
+			}
+			&:last-child {
+				margin-bottom: -1px;
+			}
+			
+			& > div + div {
+				@if ($enable-rtl) {
+					border-right: 1px solid var(--#{$prefix}component-border-color);
+				} @else {
+					border-left: 1px solid var(--#{$prefix}component-border-color);
+				}
+			}
+		}
+		& .rdt_TableCol {
+			padding: $table-cell-padding-y $table-cell-padding-x;
+		}
+		& .rdt_TableCol_Sortable {
+			& > span {
+				color: transparent;
+				position: relative;
+				padding: 0;
+				
+				@if ($enable-rtl) {
+					margin-right: auto;
+				} @else {
+					margin-left: auto;
+				}
+				
+				&:before {
+					content: '\f0dd';
+					color: var(--#{$prefix}component-active-bg);
+					font-size: $font-size-lg;
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					
+					@include fontawesome();
+				}
+			}
+		}
+		& .rdt_TableCell {
+			padding: $table-cell-padding-y $table-cell-padding-x;
+		}
+		& input[type="checkbox"] {
+			width: $form-check-input-width;
+			height: $form-check-input-width;
+			margin-top: ($line-height-base - $form-check-input-width) * .5; // line-height minus check height
+			vertical-align: top;
+			background-color: $form-check-input-bg;
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: contain;
+			border: $form-check-input-border;
+			appearance: none;
+			font-size: $font-size-base !important;
+			print-color-adjust: exact; // Keep themed appearance for print
+			@include transition($form-check-transition);
+			@include border-radius($form-check-input-border-radius);
+
+			&:active {
+				filter: $form-check-input-active-filter;
+			}
+			&:focus {
+				border-color: $form-check-input-focus-border;
+				outline: 0;
+				box-shadow: $form-check-input-focus-box-shadow;
+			}
+			&:checked {
+				background-color: $form-check-input-checked-bg-color;
+				border-color: $form-check-input-checked-border-color;
+
+				&[type="checkbox"] {
+					@if $enable-gradients {
+						background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$prefix}gradient);
+					} @else {
+						background-image: escape-svg($form-check-input-checked-bg-image);
+					}
+				}
+			}
+
+			&[type="checkbox"]:indeterminate {
+				background-color: $form-check-input-indeterminate-bg-color;
+				border-color: $form-check-input-indeterminate-border-color;
+
+				@if $enable-gradients {
+					background-image: escape-svg($form-check-input-indeterminate-bg-image), var(--#{$prefix}gradient);
+				} @else {
+					background-image: escape-svg($form-check-input-indeterminate-bg-image);
+				}
+			}
+
+			&:disabled {
+				pointer-events: none;
+				filter: none;
+				opacity: $form-check-input-disabled-opacity;
+			}
+
+			// Use disabled attribute in addition of :disabled pseudo-class
+			// See: https://github.com/twbs/bootstrap/issues/28247
+			&[disabled],
+			&:disabled {
+				~ .form-check-label {
+					cursor: default;
+					opacity: $form-check-label-disabled-opacity;
+				}
+			}
+		}
+		& .rdt_ExpanderRow {
+			margin: 0;
+			padding: $spacer;
+			background: var(--#{$prefix}light);
+			border-bottom: 1px solid var(--#{$prefix}component-border-color);
+			
+			& pre {
+				margin: 0;
+				color: var(--#{$prefix}component-color);
+			}
+		}
+	}
+	& .rdt_Pagination {
+		border: none;
+		background: none;
+		color: var(--#{$prefix}component-color);
+		font-size: $font-size-base;
+		min-height: auto;
+		padding: $spacer * .5 0;
+		
+		& button {
+			width: auto;
+			height: auto;
+			color: var(--#{$prefix}component-color);
+			border-radius: $border-radius;
+			padding: $btn-padding-y-sm $btn-padding-x-sm * .5;
+			
+			& svg {
+				fill: var(--#{$prefix}component-color);
+			}
+			&:hover:not(:disabled) {
+				background: var(--#{$prefix}light);
+			}
+			&:disabled {
+				opacity: .25;
+			}
+			& + button {
+				@if ($enable-rtl) {
+					margin-right: $spacer * .25;
+				} @else {
+					margin-left: $spacer * .25;
+				}
+			}
+		}
+		& select {
+			display: block;
+			height: auto;
+			padding: $form-select-padding-y-sm $form-select-indicator-padding $form-select-padding-y-sm $form-select-padding-x;
+			-moz-padding-start: subtract($form-select-padding-x, 3px); // See https://github.com/twbs/bootstrap/issues/32636
+			font-family: $form-select-font-family;
+			@include font-size($form-select-font-size);
+			font-weight: $form-select-font-weight;
+			line-height: $form-select-line-height;
+			color: $form-select-color;
+			background-color: $form-select-bg;
+			background-image: escape-svg($form-select-indicator);
+			background-repeat: no-repeat;
+			background-position: $form-select-bg-position;
+			background-size: $form-select-bg-size;
+			border: $form-select-border-width solid var(--#{$prefix}component-border-color);;
+			@include border-radius($form-select-border-radius, 0);
+			@include box-shadow($form-select-box-shadow);
+			@include transition($form-select-transition);
+			appearance: none;
+
+			&:focus {
+				border-color: $form-select-focus-border-color;
+				outline: 0;
+				@if $enable-shadows {
+					@include box-shadow($form-select-box-shadow, $form-select-focus-box-shadow);
+				} @else {
+					box-shadow: $form-select-focus-box-shadow;
+				}
+			}
+			& + svg {
+				display: none;
+			}
+		}
+	}
+}
+
+
+/* Boxed Layout */
+.boxed-layout {
+	#root {
+		height: 100%;
+	}
+}
+
+
+/* React Notification */
+.rnc__base {
+	top: 0;
+	left: 0;
+}
+
+.scrollbar-container {
+	.app:not(.app-sidebar-fixed) & {
+		height: auto;
+	}
+}
+
+
+/* jsVectormap */
+.jvm-container {
+	& .jvm-zoomin, 
+	& .jvm-zoomout, 
+	& .jvm-goback {
+		width: rem(18px);
+		height: rem(18px);
+		padding: 0 0 rem(2px);
+		box-sizing: border-box;
+		font-size: rem(16px);
+		background: var(--#{$prefix}border-color);
+		color: var(--#{$prefix}body-color);
+		left: $card-spacer-x;
+		box-shadow: none;
+		border-radius: $border-radius;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+		
+		@if $enable-rtl {
+			right: $card-spacer-x;
+			left: auto;
+		} @else {
+			left: $card-spacer-x;
+		}
+		
+		&:hover {
+			color: var(--#{$prefix}app-theme-color);
+			background: var(--#{$prefix}app-theme);
+		}
+	}
+	& .jvm-zoomin {
+		top: $card-spacer-x;
+	}
+	& .jvm-zoomout {
+		top: $card-spacer-x + rem-default(25px);
+	}
+	&.jvectormap-without-padding {
+		& .jvm-zoomin {
+			top: 0;
+		}
+		& .jvm-zoomout {
+			top: rem(25px);
+		}
+		& .jvm-zoomin,
+		& .jvm-zoomout {
+			@if $enable-rtl {
+				right: 0;
+				left: auto;
+			} @else {
+				left: 0;
+			}
+		}
+	}
+	& .jvm-legend {
+		background: var(--#{$prefix}body-bg);
+		color: var(--#{$prefix}body-color);
+		box-shadow: $dropdown-box-shadow;
+		border-radius: 0;
+	}
+	& .jvm-legend-title {
+		font-size: $font-size-base - rem-default(3px);
+		padding: $spacer * .3 $spacer * .5;
+		background: rgba(var(--#{$prefix}inverse-rgb), .15);
+	}
+	& .jvm-legend-cnt-v {
+		& .jvm-legend {
+			padding: 0;
+			margin: $card-spacer-x $card-spacer-x 0 0;
+			
+			& .jvm-legend-inner {
+				padding: $spacer * .5;
+			}
+			& .jvm-legend-tick {
+				display: flex;
+				align-items: center;
+			}
+			& .jvm-legend-tick-sample {
+				width: rem(16px);
+				height: rem(16px);
+			}
+			& .jvm-legend-tick-text {
+				padding-left: $spacer * .5;
+			}
+		}
+	}
+}
+.jvm-tooltip {
+	background: rgba(var(--#{$prefix}component-color-rgb), .9) !important;
+	color: var(--#{$prefix}body-bg) !important;
+	font-weight: $font-weight-bold !important;
+	padding: rem(4px) rem(8px) !important;
+	border: none !important;
+	font-family: inherit !important;
+	font-size: $font-size-base * .9 !important;
+	z-index: 1000;
+	border-radius: $border-radius !important;
+}

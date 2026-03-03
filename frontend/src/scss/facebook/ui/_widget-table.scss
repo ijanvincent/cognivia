@@ -1,0 +1,38 @@
+.widget-table {
+	&.table {
+		background: var(--#{$prefix}component-bg);
+		
+		&.table-bordered {
+			& > tbody {
+				& > tr {
+					&:last-child {
+						border-bottom: none;
+					}
+					& td {
+						&:first-child {
+							border-left: none;
+						}
+						&:last-child {
+							border-right: none;
+						}
+					}
+				}
+			}
+			& > thead {
+				& > tr {
+					&:first-child {
+						border-top: none;
+					}
+					& th {
+						&:first-child {
+							border-left: none;
+						}
+						&:last-child {
+							border-right: none;
+						}
+					}
+				}
+			}
+		}
+	}
+}

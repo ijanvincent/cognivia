@@ -1,0 +1,39 @@
+.ps {
+	position: relative;
+	
+	& .ps__rail-x {
+		z-index: 10;
+
+		&:focus,
+		&:hover,
+		&.ps--clicking {
+			background: none;
+		}
+	}
+	& .ps__rail-y {
+		z-index: 10;
+		width: 6px !important;
+		background: none !important;
+
+		&:focus,
+		&:hover,
+		&.ps--clicking {
+			width: 6px !important;
+			background: none !important;
+
+			& .ps__thumb-y,
+			& > .ps__thumb-y {
+				width: 6px !important;
+			}
+		}
+	}
+	& .ps__thumb-y {
+		background-color: $gray-500;
+		
+		&:focus,
+		&:hover,
+		&.ps--clicking {
+			background-color: $gray-500;
+		}
+	}
+}

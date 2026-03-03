@@ -1,0 +1,67 @@
+.sp-original-input-container {
+	& .sp-add-on {
+		min-width: rem(35px);
+		
+		@if $enable-rtl {
+			body & {
+				border-radius: $border-radius !important;
+				border-top-left-radius: 0 !important;
+				border-bottom-left-radius: 0 !important;
+			}
+		}
+		
+		& .sp-colorize {
+			position: relative;
+			overflow: hidden;
+			border-radius: $border-radius-sm - 2 !important;
+			
+			@if $enable-rtl {
+				border-top-left-radius: 0 !important;
+				border-bottom-left-radius: 0 !important;
+			} @else {
+				border-top-right-radius: 0 !important;
+				border-bottom-right-radius: 0 !important;
+			}
+			
+			&:before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				border: 5px solid var(--#{$prefix}component-border-color);
+			}
+		}
+	}
+	& .spectrum.with-add-on {
+		@if $enable-rtl {
+			border-left: 1px solid var(--#{$prefix}component-border-color);
+			border-right: 0;
+			border-radius: $border-radius !important;
+			border-top-right-radius: 0 !important;
+			border-bottom-right-radius: 0 !important;
+		}
+	}
+}
+.sp-container {
+	body & {
+		background-color: var(--#{$prefix}component-dropdown-bg);
+		
+		& .sp-palette-container {
+			border-color: var(--#{$prefix}component-dropdown-border-color);
+		}
+		& .sp-input {
+			border-color: var(--#{$prefix}component-dropdown-border-color) !important;
+			color: var(--#{$prefix}component-color) !important;
+		}
+		& button {
+			&.sp-choose {
+				background-color: var(--#{$prefix}success);
+			}
+			&.sp-cancel {
+				background-color: var(--#{$prefix}default);
+			}
+		}
+	}
+}

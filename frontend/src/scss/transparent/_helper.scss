@@ -1,0 +1,114 @@
+/* Helper Row Space */
+@include helper-row-space(0, 15);
+
+/* Helper Margin */
+@include helper-spacing('', 'margin', 'm');
+@include helper-spacing('top', 'margin', 'mt');
+@include helper-spacing('right', 'margin', 'me');
+@include helper-spacing('bottom', 'margin', 'mb');
+@include helper-spacing('left', 'margin', 'ms');
+@include helper-spacing('mx', 'margin', 'mx');
+@include helper-spacing('my', 'margin', 'my');
+
+
+/* Helper Padding */
+@include helper-spacing('', 'padding', 'p');
+@include helper-spacing('top', 'padding', 'pt');
+@include helper-spacing('right', 'padding', 'pe');
+@include helper-spacing('bottom', 'padding', 'pb');
+@include helper-spacing('left', 'padding', 'ps');
+@include helper-spacing('px', 'padding', 'px');
+@include helper-spacing('py', 'padding', 'py');
+
+
+/* Helper Font */
+@include helper-font-size(1, 80);
+@include helper-font-weight(1, 8);
+
+
+/* Helper Border */
+.border-theme { border-color: var(--#{$prefix}app-theme) !important; }
+
+
+/* Helper Text */
+.text-theme {
+	--#{$prefix}text-opacity: 1;
+	color: #{rgba(var(--#{$prefix}app-theme-rgb), var(--#{$prefix}text-opacity))} !important;
+}
+.text-theme-color {
+	--#{$prefix}text-opacity: 1;
+	color: #{rgba(var(--#{$prefix}app-theme-color-rgb), var(--#{$prefix}text-opacity))} !important;
+}
+.text-ellipsis { white-space: nowrap !important; text-overflow: ellipsis; overflow: hidden; }
+.text-gradient { -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+@for $i from 10 through 20 {
+	.lh-#{$i} {
+		line-height: #{$i * .1} !important;
+	}
+}
+
+
+/* Helper Cursor */
+.cursor-pointer { cursor: pointer !important }
+.cursor-text { cursor: text !important }
+.cursor-default { cursor: default !important }
+.cursor-inherit { cursor: inherit !important }
+.cursor-move { cursor: move !important }
+.cursor-progress { cursor: progress !important }
+
+
+/* Flex */
+.flex-1 { flex: 1; }
+
+
+/* Helper Size */
+@include helper-size('w', 'width');
+@include helper-size('h', 'height');
+.mh-100vh { max-height: 100vh !important; }
+
+
+/* Helper Color */
+.bg-light,
+.bg-dark {
+	--#{$prefix}bg-opacity: 0.25;
+}
+.bg-component { 
+	--#{$prefix}bg-opacity: 1;
+	background-color: #{rgba(var(--#{$prefix}component-bg-rgb), var(--#{$prefix}bg-opacity))} !important;
+}
+.bg-secondary { background: rgba($white, .5) !important; }
+.bg-none { background: none !important; }
+.bg-position-center { background-position: center !important; }
+.bg-size-cover { background-size: cover !important; }
+.bg-no-repeat { background-repeat: no-repeat !important; }
+.bg-theme {
+	--#{$prefix}bg-opacity: 1;
+	background-color: #{rgba(var(--#{$prefix}app-theme-rgb), var(--#{$prefix}bg-opacity))} !important;
+}
+@each $color, $value in $theme-colors {
+	@include helper-color($color, $value);
+}
+@each $color, $value in $colors {
+	@include helper-color($color, $value);
+}
+@include background-gradient('bg-gradient-red-pink', $red, $pink);
+@include background-gradient('bg-gradient-orange-red', $orange, $red);
+@include background-gradient('bg-gradient-yellow-orange', $yellow, $orange);
+@include background-gradient('bg-gradient-yellow-red', $yellow, $red);
+@include background-gradient('bg-gradient-teal-green', $teal, $green);
+@include background-gradient('bg-gradient-yellow-green', $yellow, $green);
+@include background-gradient('bg-gradient-blue-purple', $blue, $purple);
+@include background-gradient('bg-gradient-cyan-blue', $cyan, $blue);
+@include background-gradient('bg-gradient-cyan-purple', $cyan, $purple);
+@include background-gradient('bg-gradient-cyan-indigo', $cyan, $indigo);
+@include background-gradient('bg-gradient-blue-indigo', $blue, $indigo);
+@include background-gradient('bg-gradient-purple-indigo', $purple, $indigo);
+@include background-gradient('bg-gradient-silver-black', $silver, $black);
+
+
+/* Helper Opacity */
+@include helper-opacity(0, 10);
+
+
+/* Helper Display */
+.hide { display: none !important; }

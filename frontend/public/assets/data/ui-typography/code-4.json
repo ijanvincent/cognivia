@@ -1,0 +1,5 @@
+<p className="text-muted">...</p>
+<p className="text-warning">...</p>
+<p className="text-danger">...</p>
+<p className="text-info">...</p>
+<p className="text-success">...</p>

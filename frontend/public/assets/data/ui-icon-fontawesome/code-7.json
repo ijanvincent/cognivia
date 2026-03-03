@@ -1,0 +1,20 @@
+<span className="fa-stack fa-2x text-primary">
+  <i className="far fa-square fa-stack-2x"></i>
+  <i className="fab fa-twitter fa-stack-1x"></i>
+</span>
+<span className="fa-stack fa-2x">
+  <i className="fa fa-circle fa-stack-2x"></i>
+  <i className="fa fa-flag fa-stack-1x fa-inverse"></i>
+</span>
+<span className="fa-stack fa-2x">
+  <i className="fa fa-square fa-stack-2x"></i>
+  <i className="fa fa-terminal fa-stack-1x fa-inverse"></i>
+</span>
+<span className="fa-stack fa-2x">
+  <i className="fa fa-camera fa-stack-1x"></i>
+  <i className="fa fa-ban fa-stack-2x"></i>
+</span>
+<span className="fa-stack fa-2x">
+  <i className="far fa-circle fa-stack-2x"></i>
+  <i className="fa fa-cog fa-stack-1x"></i>
+</span>

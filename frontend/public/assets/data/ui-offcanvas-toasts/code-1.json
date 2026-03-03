@@ -1,0 +1,25 @@
+&lt;!-- toggler --&gt;
+&lt;a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvasExample"&gt;
+  Toggle
+&lt;/a&gt;
+
+&lt;!-- html --&gt;
+&lt;div class="offcanvas offcanvas-start" id="offcanvasExample" data-bs-backdrop="false" data-bs-scroll="true"&gt;
+  &lt;div class="offcanvas-header"&gt;
+    &lt;h5 class="offcanvas-title" id="offcanvasLabel"&gt;Offcanvas&lt;/h5&gt;
+    &lt;button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"&gt;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class="offcanvas-body"&gt;
+    ...
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- placement end --&gt;
+&lt;div class="offcanvas offcanvas-end"&gt;
+  ...
+&lt;/div&gt;
+
+&lt;!-- placement bottom --&gt;
+&lt;div class="offcanvas offcanvas-bottom"&gt;
+  ...
+&lt;/div&gt;

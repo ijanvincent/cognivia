@@ -1,0 +1,8 @@
+<!-- input-group-lg -->
+<div className="input-group input-group-lg">...</div>
+
+<!-- default -->
+<div className="input-group">...</div>
+
+<!-- input-group-sm -->
+<div className="input-group input-group-sm">...</div>

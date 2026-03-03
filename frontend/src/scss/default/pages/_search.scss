@@ -1,0 +1,135 @@
+.result-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	
+	& .result-item {
+		background: var(--#{$prefix}component-bg);
+		overflow: hidden;
+		position: relative;
+		display: flex;
+		flex-wrap: wrap;
+		border-radius: $border-radius-lg;
+		
+		@include clearfix();
+		@include media-breakpoint-down(xl) {
+			padding-top: rem(160px);
+		}
+		@include media-breakpoint-down(md) {
+			display: block;
+		}
+		
+		& + .result-item {
+			margin-top: $spacer * .5;
+		}
+		& .result-image {
+			width: rem(240px);
+			padding: 0;
+			overflow: hidden;
+			background: $dark;
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			
+			@include media-breakpoint-down(xl) {
+				width: auto;
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: rem(160px);
+			}
+			
+			& a {
+				display: block;
+			}
+			&:hover,
+			&:focus {
+				opacity: 0.8;
+			}
+		}
+		& .result-info {
+			padding: $spacer * 1.25;
+			position: relative;
+			flex: 1;
+			
+			& .title {
+				margin: 0 0 $spacer * .25;
+				font-size: $h4-font-size;
+				line-height: $headings-line-height;
+			
+				& a {
+					color: var(--#{$prefix}component-color);
+					text-decoration: none;
+				}
+			}
+			& .location {
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+				margin-bottom: $spacer * .5;
+			}
+			& .desc {
+				margin-bottom: $spacer * 2;
+			}
+			& .btn-row {
+				display: flex;
+				flex-wrap: wrap;
+			
+				& a {
+					color: var(--#{$prefix}component-color);
+					background: rgba(var(--#{$prefix}component-color-rgb), .15);
+					font-size: $font-size-lg;
+					padding: $spacer * .333 $spacer * .5;
+					border-radius: $border-radius;
+				
+					& + a {
+						@if $enable-rtl {
+							margin-right: $spacer * .333;
+						} @else {
+							margin-left: $spacer * .333;
+						}
+					}
+					&:hover,
+					&:focus {
+						background: rgba(var(--#{$prefix}component-color-rgb), .3);
+					}
+				}
+			}
+		}
+		& .result-price {
+			width: rem(240px);
+			font-size: rem(28px);
+			text-align: center;
+			background: var(--#{$prefix}light);
+			color: var(--#{$prefix}component-color);
+			padding: $spacer * 1.25;
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			
+			@include media-breakpoint-down(lg) {
+				width: rem(180px);
+			}
+			@include media-breakpoint-down(md) {
+				width: auto;
+				padding: $spacer;
+			}
+			
+			& small {
+				display: block;
+				font-size: $font-size-sm;
+				font-weight: $font-weight-bold;
+				color: rgba(var(--#{$prefix}component-color-rgb), .5);
+			}
+			& .btn {
+				margin-top: $spacer * 2;
+				
+				@include media-breakpoint-down(xl) {
+					margin-top: $spacer;
+				}
+			}
+		}
+	}
+}

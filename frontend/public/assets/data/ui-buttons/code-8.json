@@ -1,0 +1,4 @@
+<button className="btn btn-default btn-icon btn-circle btn-lg"><i className="fa fa-expand"></i></button>
+<button className="btn btn-default btn-icon btn-circle"><i className="fa fa-expand"></i></button>
+<button className="btn btn-default btn-icon btn-circle btn-sm"><i className="fa fa-expand"></i></button>
+<button className="btn btn-default btn-icon btn-circle btn-xs"><i className="fa fa-expand"></i></button>

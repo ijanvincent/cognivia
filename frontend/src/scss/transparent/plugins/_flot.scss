@@ -1,0 +1,30 @@
+.legend {
+	background: rgba(var(--#{$prefix}component-color-rgb), .25);
+	border-color: transparent;
+	z-index: 1010;
+	
+	& .legendLayer {
+		& .background {
+			fill: none;
+		}
+		& text {
+			fill: var(--#{$prefix}component-color);
+		}
+	}
+}
+.flot-x-axis,
+.flot-y-axis {
+	fill: var(--#{$prefix}component-color);
+}
+.flot-tooltip {
+	position: absolute;
+	display: none;
+	border: 0;
+	padding: rem(6px) rem(10px);
+	color: rgba($white, .9);
+	font-weight: 600;
+	font-size: rem(11px);
+	background: rgba($dark-darker, .85);
+	z-index: 10000 !important;
+	border-radius: $border-radius;
+}

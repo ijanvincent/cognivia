@@ -1,0 +1,25 @@
+import React, { useEffect, useContext, useState } from 'react';
+import { AppSettings } from './../../config/app-settings.js';
+
+function PageWithLightSidebar() {
+  const context = useContext(AppSettings);
+
+  useEffect(() => {
+    context.handleSetAppSidebarLight(true);
+    context.handleSetAppHeaderInverse(true);
+    
+    return () => {
+      context.handleSetAppSidebarLight(false);
+      context.handleSetAppHeaderInverse(false);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div>
+      ...
+    </div>
+  );
+}
+
+export default PageWithLightSidebar;

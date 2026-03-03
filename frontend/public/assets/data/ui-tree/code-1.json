@@ -1,0 +1,29 @@
+&lt;!-- required files --&gt;
+&lt;link href="/assets/plugins/jstree/dist/themes/default/style.min.css" rel="stylesheet" /&gt;
+&lt;script src="/assets/plugins/jstree/dist/jstree.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- html --&gt;
+&lt;div id="jstree-default"&gt;
+  &lt;ul&gt;
+    &lt;li data-jstree='{"opened":true}' &gt;
+      Root node 1
+      &lt;ul&gt;
+        &lt;li data-jstree='{"opened":true, "selected":true }'&gt;Initially Selected&lt;/li&gt;
+        &lt;li&gt;Folder 1&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  $("#jstree-default").jstree({
+    "plugins": ["types"],
+    "core": {
+      "themes": { "responsive": false  }            
+      },
+    "types": {
+      "default": { "icon": "fa fa-folder text-warning fa-lg" },
+      "file": { "icon": "fa fa-file text-dark fa-lg" }
+    }
+  });
+&lt;/script&gt;

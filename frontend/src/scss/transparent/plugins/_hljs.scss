@@ -1,0 +1,78 @@
+.hljs-wrapper {
+	background: rgba(28, 35, 44, .25);
+	background: rgba($black, .5);
+	position: relative;
+	border-radius: $border-radius;
+	
+	& pre {
+		border: none;
+		padding: 0;
+		background: none;
+		margin: 0;
+		border-radius: 0;
+		
+		& .hljs,
+		&.hljs {
+			padding: rem(15px);
+			display: block;
+			overflow-x: auto;
+			border: none;
+			font-size: rem(12px);
+			background: none;
+			color: var(--#{$prefix}component-color);
+			border-radius: 0;
+			
+			& .hljs-tag,
+			& .hljs-section,
+			& .hljs-name,
+			& .hljs-selector-tag,
+			& .hljs-deletion,
+			& .hljs-subst {
+				color: rgba(lighten($blue, 25%), .5);
+			}
+			& .hljs-attr,
+			& .hljs-variable,
+			& .hljs-template-variable,
+			& .hljs-type,
+			& .hljs-selector-class,
+			& .hljs-selector-attr,
+			& .hljs-selector-pseudo,
+			& .hljs-number {
+				color: lighten($blue, 15%);
+			}
+			& .hljs-string,
+			& .hljs-regexp,
+			& .hljs-addition,
+			& .hljs-attribute,
+			& .hljs-meta-string {
+				color: tint-color($teal, 50%);
+			}
+			& .hljs-comment {
+				color: rgba($white, .5);
+			}
+		}
+	}
+	& .btn-clipboard {
+		position: absolute;
+		right: rem(10px);
+		top: rem(10px);
+		
+		@if $enable-rtl {
+			right: auto;
+			left: rem(10px);
+		}
+	}
+}
+.panel-body + .hljs-wrapper {
+	border-radius: 0 0 $border-radius $border-radius;
+}
+.modal {
+	& .hljs-wrapper {
+		margin-top: rem(-1px);
+		border-radius: 0;
+		
+		& + .modal-footer {
+			border-top: none;
+		}
+	}
+}

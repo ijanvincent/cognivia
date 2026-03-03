@@ -1,0 +1,12 @@
+.app-without-sidebar {
+	& .app-content {
+		margin: 0;
+	}
+	&:not(.app-with-top-menu) .app-header {
+		& .navbar-brand {
+			@include media-breakpoint-down(sm) {
+				justify-content: center;
+			}
+		}
+	}
+}

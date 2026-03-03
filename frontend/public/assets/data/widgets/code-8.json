@@ -1,0 +1,3 @@
+<Link to="/widgets" className="widget-card rounded square mb-1">
+  <div className="widget-card-cover" style={{ backgroundImage: 'url(/assets/img/login-bg/login-bg-1-thumb.jpg)'}}></div>
+</Link>

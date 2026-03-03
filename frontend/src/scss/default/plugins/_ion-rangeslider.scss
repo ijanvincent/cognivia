@@ -1,0 +1,91 @@
+.irs {
+	font-family: inherit !important;
+	
+	& .irs {
+		& .irs-line {
+			height: rem(4px);
+			top: rem(30px);
+			background: var(--#{$prefix}component-border-color);
+			border: none;
+		}
+		& .irs-to,
+		& .irs-from, 
+		& .irs-single {
+			background: $gray-800;
+			font-size: $font-size-sm;
+			font-weight: $font-weight-bold;
+			
+			&:before {
+				border-top-color: $gray-800;
+			}
+			.dark-mode & {
+				background: $gray-600;
+				
+				&:before {
+					border-top-color: $gray-600;
+				}
+			}
+		}
+		& .irs-min,
+		& .irs-max {
+			color: $dark;
+			font-size: $font-size-sm;
+			font-weight: $font-weight-bold;
+			background: $gray-300;
+		}
+	}
+	
+	&.irs--flat {
+		& .irs-bar {
+			height: rem(4px);
+			top: rem(30px);
+			background: var(--#{$prefix}component-active-bg);
+		}
+		& .irs-handle {
+			height: rem(14px);
+			top: rem(25px);
+			
+			& > i {
+				&:first-child {
+					background: $component-active-bg;
+					width: rem(4px);
+					margin-left: rem(-2px);
+				}
+			}
+			&:hover,
+			&:focus,
+			&.state_hover {
+				& > i {
+					&:first-child {
+						background: shade-color($component-active-bg, 25%);
+					}
+				}
+			}
+		}
+	}
+	&.irs--big {
+		height: rem(40px);
+		
+		& .irs-bar {
+			height: rem(4px);
+			top: rem(30px);
+			background: $component-active-bg;
+			box-shadow: none;
+		}
+		& .irs-handle {
+			top: rem(21px);
+			width: rem(20px);
+			height: rem(20px);
+			background: $white;
+			border: none;
+			box-shadow: 0 2px 5px rgba($gray-900, .2);
+			
+			&:hover,
+			&:focus,
+			&.state_hover {
+				background: $white;
+				box-shadow: 0 2px 5px rgba($gray-900, .4);
+			}
+		}
+	}
+}

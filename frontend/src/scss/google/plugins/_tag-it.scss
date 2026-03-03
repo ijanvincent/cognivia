@@ -1,0 +1,133 @@
+.tagit {
+	&.ui-widget {
+		border: 1px solid var(--#{$prefix}component-border-color);
+		background: var(--#{$prefix}component-bg);
+		padding: $input-padding-y * .666 $input-padding-x 0;
+		margin-bottom: 0;
+		font-family: inherit;
+		min-height: $input-height;
+		border-radius: $border-radius;
+		display: flex;
+		flex-wrap: wrap;
+		
+		& li {
+			float: none;
+			margin: 0 $input-padding-y * .666 $input-padding-y * .5 0;
+			
+			&.tagit-choice {
+				background: var(--#{$prefix}component-secondary-bg);
+				border: none;
+				color: var(--#{$prefix}component-color);
+				padding: $input-padding-y * .4 $input-padding-x;
+				font-weight: $input-font-weight;
+				line-height: $input-line-height;
+				display: flex;
+				align-items: center;
+				border-radius: $border-radius;
+				
+				& .tagit-label {
+					flex: 1;
+					
+					@if $enable-rtl {
+						padding-left: $input-padding-x;
+					} @else {
+						padding-right: $input-padding-x;
+					}
+				}
+				& .tagit-close {
+					line-height: 1;
+					text-align: center;
+					top: 0;
+					margin: 0;
+					right: 0;
+					margin: rem(-5px) rem(-8px);
+					padding: rem(5px) rem(8px);
+					position: relative;
+					color: inherit;
+					
+					& .ui-icon-close {
+						background: none;
+						height: auto;
+						width: auto;
+						text-indent: 0;
+						margin-top: rem(0);
+						
+						@include fontawesome();
+						
+						&:before {
+							content: '\f00d';
+							font-size: inherit;
+							color: inherit;
+							opacity: 0.5;
+						}
+					}
+					&:hover,
+					&:focus {
+						& .ui-icon-close {
+							&:before {
+								opacity: 0.75;
+								color: inherit;
+							}
+						}
+					}
+				}
+			}
+			&.tagit-new {
+				padding: 0;
+				
+				& input {
+					height: 100%;
+					font-family: inherit;
+					font-weight: $input-font-weight;
+					font-size: $input-font-size;
+					min-height: ($input-padding-y * .4) * 2 + $input-font-size * $input-line-height;
+					color: var(--#{$prefix}component-color);
+				}
+			}
+		}
+		
+		&.white {
+			& li.tagit-choice {
+				background: $white;
+				color: $gray-800;
+				box-shadow: inset 0 0 0 1px $gray-300;
+			}
+		}
+		&.inverse {
+			& li.tagit-choice {
+				background: $gray-700;
+				color: $white;
+			}
+		}
+		&.primary {
+			& li.tagit-choice {
+				background: $blue;
+				color: $white;
+			}
+		}
+		&.info {
+			& li.tagit-choice {
+				background: $info;
+				color: $white;
+			}
+		}
+		&.success {
+			& li.tagit-choice {
+				background: $teal;
+				color: $white;
+			}
+		}
+		&.warning {
+			& li.tagit-choice {
+				background: $warning;
+				color: $white;
+			}
+		}
+		&.danger {
+			& li.tagit-choice {
+				background: $danger;
+				color: $white;
+			}
+		}
+	}
+}

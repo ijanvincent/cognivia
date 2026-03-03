@@ -1,0 +1,139 @@
+.fc {
+	@if $enable-rtl {
+		direction: rtl;
+	}
+	
+	& .fc-view {
+		background: var(--#{$prefix}component-bg);
+		
+		& table {
+			&.table-bordered {
+				border-top: 1px solid var(--#{$prefix}component-table-border-color);
+				border-bottom: 1px solid var(--#{$prefix}component-table-border-color);
+			}
+			& > :not(caption) > * {
+				border-width: 1px 0;
+				border-color: var(--#{$prefix}component-table-border-color);
+			
+				& > * {
+					border-width: 0 1px;
+					border-color: var(--#{$prefix}component-table-border-color);
+					
+					&.fc-timegrid-divider {
+						background: var(--#{$prefix}component-table-border-color);
+					}
+				}
+			}
+		}
+		& .fc-event {
+			&:not(.fc-h-event) {
+				&:hover {
+					background-color: #{rgba(var(--#{$prefix}component-color-rgb), .1)};
+					border-color: #{rgba(var(--#{$prefix}component-color-rgb), .1)};
+				}
+			}
+			&.fc-h-event {
+				background: $blue;
+				border-color: $blue;
+			}
+		}
+		& a {
+			text-decoration: none;
+		}
+	}
+	& .fc-event-dragging {
+		background-color: $gray-500 !important;
+		border-color: $gray-500 !important;
+	}
+	& .fc-timeGridDay-view,
+	& .fc-timeGridWeek-view {
+		position: relative !important;
+		
+		& .fc-scroller-liquid-absolute {
+			position: relative !important;
+		}
+	}
+	& .fc-timegrid-event-harness-inset .fc-timegrid-event, 
+	& .fc-timegrid-event.fc-event-mirror, 
+	& .fc-timegrid-more-link {
+		box-shadow: none;
+	}
+}
+.fc-event-list .fc-event {
+	background: none;
+	border: none;
+	color: var(--#{$prefix}component-color);
+	font-size: $font-size-base;
+	line-height: $line-height-sm;
+	font-weight: $font-weight-bold;
+	position: relative;
+	background: var(--#{$prefix}component-bg);
+	margin-bottom: $spacer * .5;
+	border-radius: $border-radius;
+	display: flex;
+	
+	@if $enable-rtl {
+		padding: $spacer * .5 $spacer * 2.5 $spacer * .5 $spacer;
+	} @else {
+		padding: $spacer * .5 $spacer $spacer * .5 $spacer * 2.5;
+	}
+	
+	& + .fc-event {
+		margin-top: 0;
+	}
+	& .fc-event-text {
+		flex: 1;
+	}
+	& .fc-event-icon {
+		display: flex;
+		align-items: center;
+	}
+	&.ui-draggable-dragging {
+		border: 1px solid $border-color;
+	}
+	&:before {
+		content: '\f0b2';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: $spacer * 2;
+		text-align: center;
+		font-size: $font-size-lg;
+		background: rgba(var(--#{$prefix}component-color-rgb), .075);
+		color: rgba(var(--#{$prefix}component-color-rgb), .5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		
+		@include fontawesome();
+		@if $enable-rtl {
+			right: 0;
+			border-radius: 0 $border-radius $border-radius 0;
+		} @else {
+			left: 0;
+			border-radius: $border-radius 0 0 $border-radius;
+		}
+	}
+	&:hover,
+	&:focus {
+		cursor: pointer;
+		background: var(--#{$prefix}component-bg);
+		
+		&:before {
+			color: var(--#{$prefix}component-color);
+		}
+	}
+}
+.fc-event.fc-event-dragging {
+	background: $white;
+	position: relative;
+	padding: $spacer * .5 $spacer;
+	box-shadow: $box-shadow-lg;
+	display: flex;
+	align-items: center;
+	border-radius: $border-radius;
+	
+	& .fc-event-text {
+		flex: 1;
+	}
+}

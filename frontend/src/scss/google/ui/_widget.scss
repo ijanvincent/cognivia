@@ -1,0 +1,36 @@
+.widget {
+	overflow: hidden;
+	margin-bottom: rem(20px);
+	background: var(--#{$prefix}component-bg);
+	color: inherit;
+	padding: 0;
+	box-shadow: inset 0 0 0 1px var(--#{$prefix}component-border-color-transparent);
+	
+	& .widget-header {
+		border-bottom: 1px solid var(--#{$prefix}component-border-color);
+		color: var(--#{$prefix}component-color);
+		display: flex;
+		align-items: center;
+		
+		& .widget-header-title {
+			margin: 0;
+			font-size: $font-size-base;
+			padding: $spacer * 0.66 $spacer;
+			flex: 1;
+		}
+		& .widget-header-icon {
+			padding: $spacer * 0.66 $spacer;
+			
+			& + .widget-header-icon {
+				@if $enable-rtl {
+					padding-right: 0;
+				} @else {
+					padding-left: 0;
+				}
+			}
+		}
+	}
+	& .widget-body {
+		padding: $spacer;
+	}
+}

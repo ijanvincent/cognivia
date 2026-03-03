@@ -1,0 +1,9 @@
+import InputMask from 'react-input-mask';
+
+<!-- html -->
+<InputMask mask="9999/99/99" className="form-control" placeholder="yyyy/mm/dd"></InputMask>
+<InputMask mask="(999) 999-999" className="form-control" placeholder="(999) 999-9999"></InputMask>
+<InputMask mask="99-999999" className="form-control" placeholder="99-9999999"></InputMask>
+<InputMask mask="a\*-999-a999" className="form-control" placeholder="a*-999-a999"></InputMask>
+<InputMask mask="999/99/9999" className="form-control" placeholder="999/99/9999"></InputMask>
+<InputMask mask="AAA-1111-A" className="form-control" placeholder="AAA-9999-A"></InputMask>

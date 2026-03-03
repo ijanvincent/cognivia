@@ -1,0 +1,70 @@
+@keyframes pace-spinner {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+.pace-top {
+	& .pace {
+		& .pace-progress {
+			top: 0 !important;
+		}
+		& .pace-activity {
+			top: rem(15px) !important;
+		}
+	}
+}
+
+.pace {
+	background: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: $pace-loader-zindex;
+	opacity: 1;
+	transition: opacity 1s;
+	
+	& .pace-progress {
+		top: 0;
+		height: rem(3px);
+		background: var(--#{$prefix}white);
+		transition: all .2s linear;
+		
+		& .pace-progress-inner {
+			display: none;
+		}
+	}
+	& .pace-activity {
+		display: block;
+		position: fixed;
+		z-index: $pace-loader-zindex;
+		top: rem(15px) !important;
+		right: $app-content-padding-x - 20;
+		width: $spacer;
+		height: $spacer;
+		border: 2px solid transparent;
+		border-top-color: var(--#{$prefix}white);
+		border-left-color: var(--#{$prefix}white);
+		animation: pace-spinner 400ms linear infinite;
+		border-radius: $border-radius * 10;
+		
+		@if $enable-rtl {
+			right: auto;
+			left: $app-content-padding-x - 20;
+		}
+		@include media-breakpoint-down(sm) {
+			top: ($app-header-height-sm * 2) + $app-content-padding-y-sm - 7;
+		}
+	}
+	&.pace-inactive {
+		display: block;
+		opacity: 0;
+	}
+}
+.pace-done {
+	& .pace {
+		&.pace-inactive {
+			display: block;
+		}
+	}
+}

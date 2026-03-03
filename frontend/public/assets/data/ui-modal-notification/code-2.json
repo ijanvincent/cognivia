@@ -1,0 +1,16 @@
+<button data-bs-toggle="modal" data-bs-target="#modalDialog" className="btn btn-sm btn-success">Demo</button>
+
+<div className="modal fade" id="modalDialog">
+  <div className="modal-dialog">
+    <div className="modal-header">
+      ..
+    </div>
+    <div className="modal-body">
+      ..
+    </div>
+    <div className="modal-footer">
+      <button className="btn btn-white" data-bs-dismiss="modal">Close</button>
+      <button className="btn btn-success">Action</button>
+    </div>
+  </div>
+</div>

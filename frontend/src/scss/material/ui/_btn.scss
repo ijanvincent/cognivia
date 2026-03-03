@@ -1,0 +1,152 @@
+.btn {
+	&:not(.btn-link) {
+		box-shadow: 0 0 2px rgba($black, .2), 0 4px 4px -2px rgba($black, .4);
+	}
+	&.btn-icon {
+		width: rem(28px);
+		height: rem(28px);
+		padding: 0;
+		border: none;
+		line-height: rem(28px);
+		text-align: center;
+		font-size: rem(14px);
+		border-radius: 28px;
+		
+		&.btn-xs {
+			width: rem(16px);
+			height: rem(16px);
+			font-size: rem(8px);
+			line-height: rem(16px);
+		}
+		&.btn-sm {
+			width: rem(22px);
+			height: rem(22px);
+			font-size: rem(11px);
+			line-height: rem(22px);
+		}
+		&.btn-lg {
+			width: rem(34px);
+			height: rem(34px);
+			font-size: rem(17px);
+			line-height: rem(34px);
+		}
+	}
+	&.btn-xs {
+		font-size: $font-size-sm;
+		padding: rem(2px) rem(6px);
+	}
+	&[class*="btn-outline-"]:not(.btn-yellow):not(.btn-white) {
+		&:hover {
+			color: $white;
+		}
+	}
+}
+.btn-group {
+	border-radius: $border-radius;
+	box-shadow: 0 0 2px rgba($black, .2), 0 4px 4px -2px rgba($black, .4);
+	
+	& .btn-group,
+	& > .btn {
+		box-shadow: none;
+	}
+}
+.input-group {
+	& .btn-group,
+	& > .btn {
+		box-shadow: none;
+	}
+}
+.btn-theme {
+	--#{$prefix}btn-bg: var(--#{$prefix}app-theme);
+	--#{$prefix}btn-color: var(--#{$prefix}app-theme-color);
+	--#{$prefix}border-color: var(--#{$prefix}app-theme);
+	
+	--#{$prefix}btn-hover-color: var(--#{$prefix}app-theme-hover-color);
+	--#{$prefix}btn-hover-bg: var(--#{$prefix}app-theme-hover);
+	--#{$prefix}btn-hover-border-color: var(--#{$prefix}app-theme-hover-border-color);
+	--#{$prefix}btn-focus-shadow-rgb: var(--#{$prefix}app-theme-rgb);
+	
+	--#{$prefix}btn-active-color: var(--#{$prefix}app-theme-hover-color);
+	--#{$prefix}btn-active-bg: var(--#{$prefix}app-theme-hover);
+	--#{$prefix}btn-active-border-color: var(--#{$prefix}app-theme-hover-border-color);
+	--#{$prefix}btn-active-shadow: inset 0 3px 5px rgba(var(--#{$prefix}app-theme-rgb), 0.125);
+	--#{$prefix}btn-active-color: var(--#{$prefix}app-theme-disabled-color);
+	--#{$prefix}btn-active-bg: var(--#{$prefix}app-theme-disabled);
+	--#{$prefix}btn-active-border-color: var(--#{$prefix}app-theme-disabled-border-color);
+}
+.btn-outline-theme {
+	color: var(--#{$prefix}app-theme);
+	border-color: var(--#{$prefix}app-theme);
+	
+	&:hover,
+	&.active {
+		background-color: var(--#{$prefix}app-theme);
+		border-color: var(--#{$prefix}app-theme);
+	}
+	&.disabled,
+	&:disabled {
+		color: var(--#{$prefix}app-theme);
+	}
+	&:focus,
+	&:active,
+	&.active:focus, 
+	&:active:focus {
+		@include box-shadow(0 0 0 0.25rem rgba(#{var(--#{$prefix}app-theme-rgb)}, .5));
+	}
+}
+
+@each $color, $value in $theme-colors {
+  .btn-#{$color} {
+		$bg:                 $value;
+		$border:             $value;
+		$textColor:          $white;
+		$hoverBg:            shade-color($value, 25%);
+		$hoverBorder:        shade-color($value, 25%);
+		$hoverTextColor:     $white;
+		$activeBg:           shade-color($value, 25%);
+		$activeBorder:       shade-color($value, 25%);
+		$activeTextColor:    $white;
+		$disabledBg:         tint-color($value, 25%);
+		$disabledBorder:     tint-color($value, 25%);
+		$disabledTextColor:  $white;
+		
+		@if $color == 'yellow' or $color == 'default' or $color == 'white' {
+			$textColor: $gray-900;
+			$hoverTextColor: $gray-900;
+			$activeTextColor: $gray-900;
+			$disabledTextColor: $gray-900;
+		}
+		@if $color == 'default' {
+			$hoverBg: $gray-100;
+			$hoverBorder: $gray-100;
+			$activeBg: $gray-100;
+			$activeBorder: $gray-100;
+		}
+		@if $color == 'white' {
+			$border: $white;
+			$hoverBg: shade-color($white, 10%);
+			$hoverBorder: shade-color($white, 10%);
+			$activeBg: shade-color($white, 15%);
+			$activeBorder: shade-color($white, 15%);
+			$disabledBg: $white;
+			$disabledBorder: $white;
+		}
+		
+		@include button-variant(
+			$bg, $border, $textColor, $hoverBg, 
+			$hoverBorder, $hoverTextColor, 
+			$activeBg, $activeBorder, $activeTextColor,  
+			$disabledBg, $disabledBorder, $disabledTextColor
+		);
+		
+		.btn-group > .btn + &,
+		.input-group > .btn + &,
+		.input-group > .btn + .dropdown-menu + & {
+			@if $enable-rtl {
+				border-right: 1px solid $hoverBorder;
+			} @else {
+				border-left: 1px solid $hoverBorder;
+			}
+		}
+  }
+}

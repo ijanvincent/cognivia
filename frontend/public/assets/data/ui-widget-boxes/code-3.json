@@ -1,0 +1,17 @@
+<Panel>
+  <PanelHeader noButton={true}>
+    <div className="d-flex align-items-center">
+      <div className="flex-1">Panel Header with Radio Button</div>
+      <div className="btn-group btn-group-toggle my-n1" data-toggle="buttons">
+        <input type="radio" name="options" className="btn-check" id="option1" autocomplete="off" checked />
+        <label className="btn btn-success btn-xs" htmlFor="option1"> Option 1</label>
+    
+        <input type="radio" name="options" className="btn-check" id="option2" autocomplete="off" />
+        <label className="btn btn-success btn-xs" htmlFor="option2"> Option 2</label>
+      </div>
+    </div>
+  </PanelHeader>
+  <PanelBody>
+    <p>Panel Content Here</p>
+  </PanelBody>
+</Panel>
