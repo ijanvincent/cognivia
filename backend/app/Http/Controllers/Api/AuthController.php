@@ -44,6 +44,21 @@ class AuthController extends Controller
         ]);
     }
 
+    public function adminLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $result = $this->authService->adminLogin($request->all());
+
+        return response()->json([
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $this->authService->logout($request->user());
