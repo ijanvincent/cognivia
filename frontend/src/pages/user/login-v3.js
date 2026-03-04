@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
 
@@ -30,7 +30,7 @@ function LoginV3() {
     setError('');
 
     try {
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/admin/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setRedirect(true);
@@ -42,7 +42,7 @@ function LoginV3() {
   }
 
   if (redirect) {
-    return <Navigate to='/dashboard/v3' />;
+    return <Navigate to='/admin/dashboard/' />;
   }
 
   return (
@@ -106,9 +106,6 @@ function LoginV3() {
               >
                 {loading ? 'Signing in...' : 'Sign me in'}
               </button>
-            </div>
-            <div className="mb-40px pb-40px text-body">
-              Not a member yet? Click <Link to="/user/register-v3" className="text-primary">here</Link> to register.
             </div>
             <hr className="bg-gray-600 opacity-2" />
             <div className="text-gray-600 text-center text-gray-500-darker mb-0">
