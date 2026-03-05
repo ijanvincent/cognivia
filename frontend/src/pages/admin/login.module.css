@@ -334,6 +334,13 @@
     font-size: 11px;
   }
 }
+.noticeIcon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
 
 .inputField:focus-visible,
 .eyeButton:focus-visible,

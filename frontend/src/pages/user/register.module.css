@@ -1,8 +1,3 @@
-/* ==========================================
-   COGNIVIA USER REGISTER
-   Professional & Industry Standard
-   ========================================== */
-
 * {
   margin: 0;
   padding: 0;
@@ -187,12 +182,22 @@
 .inputIcon {
   position: absolute;
   left: 14px;
-  width: 18px;
-  height: 18px;
+  width:24px;
+  height:21px;
+  object-fit: contain;
   opacity: 0.5;
   z-index: 2;
-  color: #64748b;
 }
+.userinputIcon {
+  position: absolute;
+  left: 14px;
+  width:24px;
+  height:17px;
+  object-fit: contain;
+  opacity: 0.5;
+  z-index: 2;
+}
+
 
 .input {
   width: 100%;
@@ -259,7 +264,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
 }
 
 .eyeButton:hover:not(:disabled) {
@@ -269,6 +273,17 @@
 .eyeButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.eyeIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0.6;
+}
+
+.eyeButton:hover .eyeIcon {
+  opacity: 1;
 }
 
 .errorText {
