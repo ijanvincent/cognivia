@@ -2,20 +2,24 @@ import React, { useEffect, useContext, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
+import styles from './login.module.css';
+import emailIcon from './../../assets/email.png';
+import lockIcon from './../../assets/lock.png';
+import eyeIcon from './../../assets/eye.png';
+import hideIcon from './../../assets/hide.png';
 
 function UserLogin() {
   const context = useContext(AppSettings);
   const [redirect, setRedirect] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     context.handleSetAppSidebarNone(true);
     context.handleSetAppHeaderNone(true);
     context.handleSetAppContentClass('p-0');
-
     return () => {
       context.handleSetAppSidebarNone(false);
       context.handleSetAppHeaderNone(false);
@@ -24,85 +28,159 @@ function UserLogin() {
     // eslint-disable-next-line
   }, []);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.password) newErrors.password = 'Password is required';
+    return newErrors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setLoading(true);
+    setErrors({});
     try {
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/login', {
+        email: formData.email,
+        password: formData.password
+      });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setRedirect(true);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+    } catch (error) {
+      if (error.response?.status === 401) {
+        setErrors({ general: 'Invalid email or password' });
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: 'Login failed. Please try again.' });
+      }
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   if (redirect) {
     return <Navigate to='/dashboard' />;
   }
 
   return (
-    <div className="login login-v2 fw-bold">
-      <div className="login-cover">
-        <div className="login-cover-img" style={{backgroundImage: 'url(/assets/img/login-bg/login-bg-17.jpg)'}}></div>
-        <div className="login-cover-bg"></div>
-      </div>
-      <div className="login-container">
-        <div className="login-header">
-          <div className="brand">
-            <div className="d-flex align-items-center">
-              <span className="logo"></span> <b>Cognivia</b>
-            </div>
-            <small>Welcome back!</small>
-          </div>
-          <div className="icon">
-            <i className="fa fa-lock"></i>
-          </div>
+    <div className={styles.pageContainer}>
+      {loading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner}></div>
         </div>
-        <div className="login-content">
-          <form onSubmit={handleSubmit}>
-            {error && (
-              <div className="alert alert-danger mb-20px">{error}</div>
+      )}
+      <div className={styles.container}>
+        <div className={styles.loginCard}>
+          {/* Header */}
+          <div className={styles.header}>
+            <div className={styles.logoSection}>
+              <div className={styles.logoIcon}>C</div>
+              <div className={styles.titleSection}>
+                <h1 className={styles.systemTitle}>Cognivia</h1>
+                <p className={styles.systemSubtitle}>Welcome back! Please sign in.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className={styles.form}>
+            {errors.general && (
+              <div className={styles.errorAlert}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                </svg>
+                <span>{errors.general}</span>
+              </div>
             )}
-            <div className="form-floating mb-20px">
-              <input
-                type="email"
-                className="form-control fs-13px h-45px border-0"
-                placeholder="Email Address"
-                id="emailAddress"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
-              <label htmlFor="emailAddress" className="d-flex align-items-center text-gray-600 fs-13px">Email Address</label>
+
+            {/* Email Field */}
+            <div className={styles.formGroup}>
+              <div className={styles.inputContainer}>
+                <img src={emailIcon} alt="email" className={styles.inputIcon} />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
+                  placeholder="Enter your email"
+                  disabled={loading}
+                  autoComplete="email"
+                />
+              </div>
+              {errors.email && <span className={styles.errorText}>{errors.email}</span>}
             </div>
-            <div className="form-floating mb-20px">
-              <input
-                type="password"
-                className="form-control fs-13px h-45px border-0"
-                placeholder="Password"
-                id="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-              <label htmlFor="password" className="d-flex align-items-center text-gray-600 fs-13px">Password</label>
+
+            {/* Password Field */}
+            <div className={styles.formGroup}>
+              <div className={styles.inputContainer}>
+                <img src={lockIcon} alt="lock" className={styles.inputIcon} />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
+                  placeholder="Enter your password"
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={styles.eyeButton}
+                  tabIndex={-1}
+                  disabled={loading}
+                >
+                  <img
+                    src={showPassword ? hideIcon : eyeIcon}
+                    alt={showPassword ? 'hide' : 'show'}
+                    className={styles.eyeIcon}
+                  />
+                </button>
+              </div>
+              {errors.password && <span className={styles.errorText}>{errors.password}</span>}
             </div>
-            <div className="mb-20px">
-              <button
-                type="submit"
-                className="btn btn-theme d-block w-100 h-45px btn-lg"
-                disabled={loading}
-              >
-                {loading ? 'Signing in...' : 'Sign me in'}
-              </button>
-            </div>
-            <div className="text-white">
-              Not a member yet? Click <Link to="/register" className="text-white fw-bold">here</Link> to register.
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles.submitButton}
+            >
+              {loading ? (
+                <>
+                  <div className={styles.buttonSpinner}></div>
+                  Signing In...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+
+            {/* Links */}
+            <div className={styles.linksSection}>
+              <div className={styles.registerPrompt}>
+                <span>Don't have an account? </span>
+                <Link to="/register" className={styles.registerLink}>
+                  Register here
+                </Link>
+              </div>
             </div>
           </form>
         </div>

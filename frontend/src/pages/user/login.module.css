@@ -1,27 +1,53 @@
-/* ==========================================
-   COGNIVIA ADMIN LOGIN
-   Professional & Industry Standard
-   ========================================== */
-
 .pageContainer {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+}
+
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .loginCard {
-  width: 100%;
-  max-width: 440px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 15px 35px rgba(0, 0, 0, 0.2),
+    0 5px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   animation: slideUp 0.4s ease-out;
 }
@@ -39,7 +65,7 @@
 
 .header {
   background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-  padding: 28px 32px;
+  padding: 24px 28px;
   position: relative;
   overflow: hidden;
 }
@@ -58,8 +84,7 @@
 .logoSection {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 16px;
+  gap: 16px;
   position: relative;
   z-index: 1;
 }
@@ -88,43 +113,27 @@
   color: #ffffff;
   margin: 0 0 4px 0;
   line-height: 1.3;
-  letter-spacing: -0.2px;
 }
 
 .systemSubtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
   font-weight: 500;
 }
 
-.securityBadgeAdmin {
-  display: inline-block;
-  padding: 8px 16px;
-  border-radius: 16px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-}
-
 .form {
-  padding: 28px 32px;
+  padding: 28px;
 }
 
 .errorAlert {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-left: 3px solid #dc2626;
+  border-left: 4px solid #dc2626;
   color: #991b1b;
-  padding: 14px 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -133,7 +142,7 @@
 }
 
 .formGroup {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .inputContainer {
@@ -154,7 +163,7 @@
 
 .inputField {
   width: 100%;
-  padding: 14px 16px 14px 44px;
+  padding: 13px 16px 13px 44px;
   font-size: 14px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
@@ -238,12 +247,13 @@
   padding-left: 6px;
 }
 
-.submitButtonAdmin {
+.submitButton {
   width: 100%;
   padding: 14px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #ffffff;
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -255,19 +265,18 @@
   margin-top: 8px;
   outline: none;
   font-family: inherit;
-  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
 }
 
-.submitButtonAdmin:hover:not(:disabled) {
+.submitButton:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
 }
 
-.submitButtonAdmin:active:not(:disabled) {
+.submitButton:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.submitButtonAdmin:disabled {
+.submitButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
@@ -282,33 +291,55 @@
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.linksSection {
+  margin-top: 20px;
+  text-align: center;
 }
 
-.securityNotice {
-  margin-top: 24px;
-  padding: 14px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  color: #e2e8f0;
-  font-size: 12px;
+.registerPrompt {
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.registerLink {
+  color: #0d9488;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.registerLink:hover {
+  color: #0f766e;
+  text-decoration: underline;
+}
+
+.footer {
+  background: #f8fafc;
+  padding: 16px 28px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footerText {
+  font-size: 11px;
+  color: #64748b;
+  text-align: center;
+  margin: 0;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 440px;
 }
 
-@media (max-width: 640px) {
-  .loginCard {
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 16px;
+  }
+
+  .container {
     max-width: 100%;
   }
 
   .header {
-    padding: 24px;
+    padding: 20px;
   }
 
   .form {
@@ -318,7 +349,7 @@
   .logoSection {
     flex-direction: column;
     text-align: center;
-    gap: 16px;
+    gap: 12px;
   }
 
   .systemTitle {
@@ -328,16 +359,11 @@
   .inputField {
     font-size: 16px;
   }
-
-  .securityNotice {
-    margin: 16px;
-    font-size: 11px;
-  }
 }
 
 .inputField:focus-visible,
 .eyeButton:focus-visible,
-.submitButtonAdmin:focus-visible {
+.submitButton:focus-visible {
   outline: 2px solid #0d9488;
   outline-offset: 2px;
 }

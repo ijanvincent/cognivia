@@ -12,13 +12,13 @@ function App() {
 	const [appTheme] = useState('');
 	const [appDarkMode, setAppDarkMode] = useState(false);
 	const [appGradientEnabled, setAppGradientEnabled] = useState(false);
-	const [appHeaderNone, setAppHeaderNone] = useState(false);
+	const [appHeaderNone, setAppHeaderNone] = useState(true);
 	const [appHeaderFixed, setAppHeaderFixed] = useState(true);
 	const [appHeaderInverse, setAppHeaderInverse] = useState(false);
 	const [appHeaderMegaMenu, setAppHeaderMegaMenu] = useState(false);
 	const [appHeaderLanguageBar, setAppHeaderLanguageBar] = useState(false);
 	const [hasScroll, setHasScroll] = useState(false);
-	const [appSidebarNone, setAppSidebarNone] = useState(false);
+	const [appSidebarNone, setAppSidebarNone] = useState(true);
 	const [appSidebarWide, setAppSidebarWide] = useState(false);
 	const [appSidebarLight, setAppSidebarLight] = useState(false);
 	const [appSidebarMinify, setAppSidebarMinify] = useState(false);
@@ -37,7 +37,7 @@ function App() {
 	const [appSidebarEndToggled, setAppSidebarEndToggled] = useState(false);
 	const [appSidebarEndMobileToggled, setAppSidebarEndMobileToggled] = useState(false);
   
-  const handleSetAppHeaderNone = (value) => {
+	const handleSetAppHeaderNone = (value) => {
 		setAppHeaderNone(value);
 	};
 
@@ -194,7 +194,6 @@ function App() {
 			}
 		}
 		document.body.classList.add(newTheme);
-
 		if (localStorage && value) {
 			localStorage.appTheme = value;
 		}

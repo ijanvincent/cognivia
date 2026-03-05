@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 
-function PrivateRoute({ children }) {
+function AdminPrivateRoute({ children }) {
     const [isChecking, setIsChecking] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        setIsAuthenticated(!!token);
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        setIsAuthenticated(!!token && user.role === 'admin');
         setIsChecking(false);
     }, []);
 
@@ -34,10 +35,10 @@ function PrivateRoute({ children }) {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to='/login' replace />;
+        return <Navigate to='/admin/login' replace />;
     }
 
     return children;
 }
 
-export default PrivateRoute;
+export default AdminPrivateRoute;
