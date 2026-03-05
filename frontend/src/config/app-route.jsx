@@ -74,7 +74,9 @@ import ExtraPricingPage from './../pages/extra/extra-pricing-page.js';
 import ExtraMessengerPage from './../pages/extra/extra-messenger-page.js';
 import ExtraDataManagement from './../pages/extra/extra-data-management.js';
 import ExtraSettingsPage from './../pages/extra/extra-settings-page.js';
-import LoginV3 from './../pages/user/login-v3.js';
+import AdminLogin from './../pages/admin/login.js';
+import UserLogin from './../pages/user/login.js';
+import UserRegister from './../pages/user/register.js';
 import HelperCSS from './../pages/helper/helper-css.js';
 
 const AppRoute = [
@@ -84,17 +86,33 @@ const AppRoute = [
     children: [
       {
         path: '',
-        element: <Navigate to='/admin/login' />
+        element: <Navigate to='/login' />
+      },
+      // Public user routes
+      {
+        path: 'login',
+        element: <UserLogin />
       },
       {
-        path: 'admin/*',
-        element: <Outlet />,
-        children: [
-          { path: 'login', element: <LoginV3 /> },
-          { path: 'dashboard', element: <PrivateRoute><DashboardV3 /></PrivateRoute> },
-          { path: '*', element: <ExtraError /> }
-        ]
+        path: 'register',
+        element: <UserRegister />
       },
+      // Protected user routes
+      {
+        path: 'dashboard',
+        element: <PrivateRoute><DashboardV3 /></PrivateRoute>
+      },
+      // Admin routes (hidden)
+      {
+    path: 'admin/*',
+    element: <Outlet />,
+    children: [
+        { path: '', element: <Navigate to='/admin/login' /> },
+        { path: 'login', element: <AdminLogin /> },
+        { path: 'dashboard', element: <PrivateRoute><DashboardV3 /></PrivateRoute> },
+        { path: '*', element: <ExtraError /> }
+    ]
+},
       {
         path: 'email/*',
         element: <Outlet />,
@@ -245,7 +263,7 @@ const AppRoute = [
         path: 'helper/css',
         element: <HelperCSS />
       },
-      { path: '*', element: <ExtraError /> }	
+      { path: '*', element: <ExtraError /> }
     ]
   }
 ];
