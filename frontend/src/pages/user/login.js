@@ -1,9 +1,9 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
 
-function LoginV3() {
+function UserLogin() {
   const context = useContext(AppSettings);
   const [redirect, setRedirect] = useState(false);
   const [email, setEmail] = useState('');
@@ -30,7 +30,7 @@ function LoginV3() {
     setError('');
 
     try {
-      const response = await api.post('/admin/login', { email, password });
+      const response = await api.post('/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setRedirect(true);
@@ -42,74 +42,67 @@ function LoginV3() {
   }
 
   if (redirect) {
-    return <Navigate to='/admin/dashboard/' />;
+    return <Navigate to='/dashboard' />;
   }
 
   return (
-    <div className="login login-with-news-feed">
-      <div className="news-feed">
-        <div className="news-image" style={{backgroundImage: 'url(/assets/img/login-bg/login-bg-11.jpg)'}}></div>
-        <div className="news-caption">
-          <h4 className="caption-title"><b>Cognivia</b></h4>
-          <p>
-            A smart quiz and learning platform. Test your knowledge, track your progress, and climb the leaderboard.
-          </p>
-        </div>
+    <div className="login login-v2 fw-bold">
+      <div className="login-cover">
+        <div className="login-cover-img" style={{backgroundImage: 'url(/assets/img/login-bg/login-bg-17.jpg)'}}></div>
+        <div className="login-cover-bg"></div>
       </div>
       <div className="login-container">
-        <div className="login-header mb-30px">
+        <div className="login-header">
           <div className="brand">
             <div className="d-flex align-items-center">
-              <span className="logo"></span>
-              <b>Cognivia</b>
+              <span className="logo"></span> <b>Cognivia</b>
             </div>
-            <small>Admin Dashboard</small>
+            <small>Welcome back!</small>
           </div>
           <div className="icon">
-            <i className="fa fa-sign-in-alt"></i>
+            <i className="fa fa-lock"></i>
           </div>
         </div>
         <div className="login-content">
-          <form onSubmit={handleSubmit} className="fs-13px">
+          <form onSubmit={handleSubmit}>
             {error && (
-              <div className="alert alert-danger mb-15px">{error}</div>
+              <div className="alert alert-danger mb-20px">{error}</div>
             )}
-            <div className="form-floating mb-15px">
+            <div className="form-floating mb-20px">
               <input
                 type="email"
-                className="form-control h-45px fs-13px"
+                className="form-control fs-13px h-45px border-0"
                 placeholder="Email Address"
                 id="emailAddress"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
               />
-              <label htmlFor="emailAddress" className="d-flex align-items-center fs-13px text-gray-600">Email Address</label>
+              <label htmlFor="emailAddress" className="d-flex align-items-center text-gray-600 fs-13px">Email Address</label>
             </div>
-            <div className="form-floating mb-15px">
+            <div className="form-floating mb-20px">
               <input
                 type="password"
-                className="form-control h-45px fs-13px"
+                className="form-control fs-13px h-45px border-0"
                 placeholder="Password"
                 id="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
               />
-              <label htmlFor="password" className="d-flex align-items-center fs-13px text-gray-600">Password</label>
+              <label htmlFor="password" className="d-flex align-items-center text-gray-600 fs-13px">Password</label>
             </div>
-            <div className="mb-15px">
+            <div className="mb-20px">
               <button
                 type="submit"
-                className="btn btn-theme d-block h-45px w-100 btn-lg fs-14px"
+                className="btn btn-theme d-block w-100 h-45px btn-lg"
                 disabled={loading}
               >
                 {loading ? 'Signing in...' : 'Sign me in'}
               </button>
             </div>
-            <hr className="bg-gray-600 opacity-2" />
-            <div className="text-gray-600 text-center text-gray-500-darker mb-0">
-              &copy; Cognivia {new Date().getFullYear()}
+            <div className="text-white">
+              Not a member yet? Click <Link to="/register" className="text-white fw-bold">here</Link> to register.
             </div>
           </form>
         </div>
@@ -118,4 +111,4 @@ function LoginV3() {
   );
 }
 
-export default LoginV3;
+export default UserLogin;
