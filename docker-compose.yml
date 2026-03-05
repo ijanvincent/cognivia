@@ -26,6 +26,9 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_PORT=3001
+      - FAST_REFRESH=false
       - HOST=0.0.0.0
       - PORT=3001
     networks:
