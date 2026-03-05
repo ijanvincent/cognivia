@@ -1,12 +1,30 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../../services/api.js';
 
 function DropdownProfile() {
+	const navigate = useNavigate();
+	const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+	async function handleLogout(e) {
+		e.preventDefault();
+		try {
+			await api.post('/logout');
+		} catch (err) {
+			console.error('Logout error:', err);
+		} finally {
+			localStorage.removeItem('token');
+			localStorage.removeItem('user');
+			navigate('/login');
+		}
+	}
+
 	return (
 		<div className="navbar-item navbar-user dropdown">
 			<a href="#/" className="navbar-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-				<img src="/assets/img/user/user-13.jpg" alt="" /> 
+				<img src="/assets/img/user/user-13.jpg" alt="" />
 				<span>
-					<span className="d-none d-md-inline">Adam Schwartz</span>
+					<span className="d-none d-md-inline">{user.name || 'User'}</span>
 					<b className="caret"></b>
 				</span>
 			</a>
@@ -14,15 +32,15 @@ function DropdownProfile() {
 				<a href="#/" className="dropdown-item">Edit Profile</a>
 				<a href="#/" className="dropdown-item d-flex align-items-center">
 					Inbox
-					<span className="badge bg-danger rounded-pill ms-auto pb-4px">2</span> 
+					<span className="badge bg-danger rounded-pill ms-auto pb-4px">2</span>
 				</a>
 				<a href="#/" className="dropdown-item">Calendar</a>
 				<a href="#/" className="dropdown-item">Settings</a>
 				<div className="dropdown-divider"></div>
-				<a href="#/" className="dropdown-item">Log Out</a>
+				<a href="#/" className="dropdown-item" onClick={handleLogout}>Log Out</a>
 			</div>
 		</div>
 	);
-};
+}
 
 export default DropdownProfile;

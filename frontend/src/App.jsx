@@ -7,7 +7,6 @@ import Sidebar from './components/sidebar/sidebar.jsx';
 import SidebarRight from './components/sidebar-right/sidebar-right.jsx';
 import TopMenu from './components/top-menu/top-menu.jsx';
 import Content from './components/content/content.jsx';
-import ThemePanel from './components/theme-panel/theme-panel.jsx';
 
 function App() {	
 	const [appTheme] = useState('');
@@ -322,7 +321,6 @@ function App() {
 				{appSidebarTwo && <SidebarRight />}
 				{appTopMenu && <TopMenu />}
 				{!appContentNone && <Content />}
-				<ThemePanel />
 			</div>
 		</AppSettings.Provider>
 	);
