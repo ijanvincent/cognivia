@@ -14,7 +14,7 @@ function UserRegister() {
   const context = useContext(AppSettings);
   const [redirect, setRedirect] = useState(false);
   const [formData, setFormData] = useState({
-    username: '', 
+    name: '', 
     email: '',
     password: '',
     password_confirmation: ''
@@ -50,12 +50,12 @@ function UserRegister() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.trim().length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Username is required';
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.name.trim())) {
+      newErrors.name = 'Username can only contain letters, numbers, and underscores';
     }
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
@@ -150,16 +150,16 @@ function UserRegister() {
                   <img src={userIcon} alt="user" className={styles.userinputIcon} />
                   <input
                     type="text"
-                    name="username"
-                    value={formData.username}
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.username ? styles.inputError : ''}`}
+                    className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
                     placeholder="Enter your username"
                     disabled={loading}
                     autoComplete="username"
                   />
                 </div>
-                {errors.username && <span className={styles.errorText}>{errors.username}</span>}
+                {errors.name && <span className={styles.errorText}>{errors.name}</span>}
               </div>
 
               {/* Email */}
