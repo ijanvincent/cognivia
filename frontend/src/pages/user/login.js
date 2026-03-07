@@ -53,7 +53,7 @@ function UserLogin() {
     setLoading(true);
     setErrors({});
     try {
-      const response = await api.post('/login', {
+      const response = await api.post('/auth/login', {
         email: formData.email,
         password: formData.password
       });

@@ -188,6 +188,15 @@
   opacity: 0.5;
   z-index: 2;
 }
+.inputicon{
+  position: absolute;
+  left: 14px;
+  width:24px;
+  height:17px;
+  object-fit: contain;
+  opacity: 0.5;
+  z-index: 2;
+}
 .userinputIcon {
   position: absolute;
   left: 14px;

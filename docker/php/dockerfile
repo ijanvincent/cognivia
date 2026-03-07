@@ -9,12 +9,28 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd opcache
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+# Opcache configuration
+RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.interned_strings_buffer=16" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.jit_buffer_size=100M" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.jit=tracing" >> /usr/local/etc/php/conf.d/opcache.ini
 
+# PHP-FPM workers optimization
+RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_children = 20" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.min_spare_servers = 3" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_spare_servers = 10" >> /usr/local/etc/php-fpm.d/www.conf
+
+WORKDIR /var/www
 COPY . .
 
 RUN composer install --no-interaction --optimize-autoloader
