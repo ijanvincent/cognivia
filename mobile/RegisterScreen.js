@@ -3,35 +3,41 @@ import {
     View,
     Text,
     TextInput,
-    TouchableOpacity, 
+    TouchableOpacity,
     Alert,
     ActivityIndicator,
     StyleSheet,
-    SafeAreaView, 
+    SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from './firebaseConfig';
+import api from './services/api';
 
 const RegisterScreen = () => {
-    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [isLoading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false); 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const navigation = useNavigation();
 
     const handleRegister = async () => {
-        if (!name || !email || !password) {
+        // Frontend validation
+        if (!username || !email || !password || !passwordConfirmation) {
             Alert.alert('Error', 'Please fill out all fields.');
             return;
         }
 
-        if (name.length <= 2) {
-            Alert.alert('Error', 'Name must be more than 2 characters.');
+        if (username.length < 3) {
+            Alert.alert('Error', 'Username must be at least 3 characters.');
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            Alert.alert('Error', 'Username can only contain letters, numbers and underscores.');
             return;
         }
 
@@ -40,25 +46,19 @@ const RegisterScreen = () => {
             return;
         }
 
+        if (password !== passwordConfirmation) {
+            Alert.alert('Error', 'Passwords do not match.');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // Create user with Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
-            // Update user profile with display name
-            await updateProfile(user, {
-                displayName: name
-            });
-
-            // Create user document in Firestore
-            await setDoc(doc(db, 'users', user.uid), {
-                name: name,
-                email: email,
-                createdAt: new Date().toISOString(),
-                theme: 'light',
-                notifications: true
+            await api.post('/auth/register', {
+                username,
+                email,
+                password,
+                password_confirmation: passwordConfirmation,
             });
 
             Alert.alert('Success', 'Registration complete! You can now log in.');
@@ -66,20 +66,16 @@ const RegisterScreen = () => {
 
         } catch (error) {
             console.error('Registration Error:', error);
-            
-            let errorMessage = 'Could not register. Please try again.';
-            
-            if (error.code === 'auth/email-already-in-use') {
-                errorMessage = 'This email is already registered.';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid email address.';
-            } else if (error.code === 'auth/weak-password') {
-                errorMessage = 'Password is too weak.';
-            } else if (error.code === 'auth/network-request-failed') {
-                errorMessage = 'Network error. Please check your connection.';
+
+            if (error.response?.data?.errors) {
+                const errors = error.response.data.errors;
+                const firstError = Object.values(errors)[0][0];
+                Alert.alert('Registration Failed', firstError);
+            } else if (error.response?.data?.message) {
+                Alert.alert('Registration Failed', error.response.data.message);
+            } else {
+                Alert.alert('Registration Failed', 'Could not register. Please try again.');
             }
-            
-            Alert.alert('Registration Failed', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -89,22 +85,24 @@ const RegisterScreen = () => {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
                 <View style={styles.logoContainer}>
-                    <Text style={styles.logoText}>Flash<Text style={styles.logoGenius}>Genius</Text></Text>
+                    <Text style={styles.logoText}>Cogni<Text style={styles.logoAccent}>via</Text></Text>
                 </View>
 
                 <Text style={styles.welcomeText}>Create Account</Text>
 
+                {/* Username */}
                 <View style={styles.inputWrapper}>
                     <TextInput
                         style={styles.input}
                         placeholder="Username"
-                        value={name}
-                        onChangeText={setName}
-                        keyboardType="default"
+                        value={username}
+                        onChangeText={setUsername}
+                        autoCapitalize="none"
                         editable={!isLoading}
                     />
                 </View>
-                
+
+                {/* Email */}
                 <View style={styles.inputWrapper}>
                     <TextInput
                         style={styles.input}
@@ -117,10 +115,11 @@ const RegisterScreen = () => {
                     />
                 </View>
 
+                {/* Password */}
                 <View style={[styles.inputWrapper, styles.passwordWrapper]}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Password"
+                        placeholder="Password (min 8 characters)"
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry={!showPassword}
@@ -131,8 +130,34 @@ const RegisterScreen = () => {
                         onPress={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
                     >
-                       <Text style={styles.showText}>Show</Text>
-                        <MaterialCommunityIcons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#777" />
+                        <MaterialCommunityIcons
+                            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                            size={20}
+                            color="#777"
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Confirm Password */}
+                <View style={[styles.inputWrapper, styles.passwordWrapper]}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Confirm Password"
+                        value={passwordConfirmation}
+                        onChangeText={setPasswordConfirmation}
+                        secureTextEntry={!showConfirmPassword}
+                        editable={!isLoading}
+                    />
+                    <TouchableOpacity
+                        style={styles.showButton}
+                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={isLoading}
+                    >
+                        <MaterialCommunityIcons
+                            name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                            size={20}
+                            color="#777"
+                        />
                     </TouchableOpacity>
                 </View>
 
@@ -144,7 +169,7 @@ const RegisterScreen = () => {
                     {isLoading ? (
                         <ActivityIndicator color="#FFFFFF" />
                     ) : (
-                        <Text style={styles.registerButtonText}>Register</Text>
+                        <Text style={styles.registerButtonText}>Create Account</Text>
                     )}
                 </TouchableOpacity>
 
@@ -170,32 +195,32 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 30,
-        paddingTop: '20%',
+        paddingTop: '10%',
     },
     logoContainer: {
         alignItems: 'center',
-        marginTop: 50,
-        marginBottom: 50,
+        marginTop: 30,
+        marginBottom: 20,
     },
     logoText: {
         fontSize: 30,
         fontWeight: '900',
         color: '#000000',
     },
-    logoGenius: {
+    logoAccent: {
         color: '#2A5DFF',
     },
     welcomeText: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginTop: 60,
-        marginBottom: 40,
+        marginTop: 20,
+        marginBottom: 30,
         textAlign: 'center',
     },
     inputWrapper: {
         backgroundColor: '#F7F7F7',
         borderRadius: 10,
-        marginBottom: 20,
+        marginBottom: 15,
         height: 55,
         justifyContent: 'center',
         paddingHorizontal: 15,
@@ -213,21 +238,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     showButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
         paddingLeft: 10,
-    },
-    showText: {
-        fontSize: 14,
-        color: '#777',
-        marginRight: 5,
     },
     registerButton: {
         backgroundColor: '#2A5DFF',
         paddingVertical: 15,
         borderRadius: 10,
         alignItems: 'center',
-        marginTop: 20, 
+        marginTop: 20,
     },
     registerButtonDisabled: {
         opacity: 0.7,
@@ -241,7 +259,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        position: 'absolute', 
+        position: 'absolute',
         bottom: 40,
         width: '100%',
         alignSelf: 'center',
