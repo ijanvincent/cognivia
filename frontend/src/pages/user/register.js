@@ -86,8 +86,6 @@ function UserRegister() {
     setErrors({});
     try {
       const response = await api.post('/auth/register', formData);
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
       setRedirect(true);
     } catch (error) {
       if (error.response?.data?.errors) {
@@ -105,7 +103,7 @@ function UserRegister() {
   };
 
   if (redirect) {
-    return <Navigate to='/dashboard' />;
+    return <Navigate to='/login' />;
   }
 
   return (
