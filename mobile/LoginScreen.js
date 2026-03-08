@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './services/api';
 
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
@@ -31,27 +31,32 @@ const LoginScreen = () => {
         setLoading(true);
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            Alert.alert('Success', 'Logged in successfully!');
+            const response = await api.post('/auth/login', {
+                email,
+                password,
+            });
+
+            // Save token and user to AsyncStorage
+            await AsyncStorage.setItem('token', response.data.token);
+            await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+
             navigation.replace('HomeTabs');
+
         } catch (error) {
             console.error('Login Error:', error);
-            
-            let errorMessage = 'Could not log in. Please try again.';
-            
-            if (error.code === 'auth/user-not-found') {
-                errorMessage = 'No account found with this email.';
-            } else if (error.code === 'auth/wrong-password') {
-                errorMessage = 'Incorrect password.';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid email address.';
-            } else if (error.code === 'auth/user-disabled') {
-                errorMessage = 'This account has been disabled.';
-            } else if (error.code === 'auth/network-request-failed') {
-                errorMessage = 'Network error. Please check your connection.';
+            console.error('Error Response:', JSON.stringify(error.response?.data));
+
+            if (error.response?.data?.errors) {
+                const errors = error.response.data.errors;
+                const firstError = Object.values(errors)[0][0];
+                Alert.alert('Login Failed', firstError);
+            } else if (error.response?.data?.message) {
+                Alert.alert('Login Failed', error.response.data.message);
+            } else if (error.message === 'Network Error') {
+                Alert.alert('Login Failed', 'Cannot connect to server. Check your connection.');
+            } else {
+                Alert.alert('Login Failed', 'Could not log in. Please try again.');
             }
-            
-            Alert.alert('Login Failed', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -61,11 +66,12 @@ const LoginScreen = () => {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
                 <View style={styles.logoContainer}>
-                    <Text style={styles.logoText}>Flash<Text style={styles.logoGenius}>Genius</Text></Text>
+                    <Text style={styles.logoText}>Cogni<Text style={styles.logoAccent}>via</Text></Text>
                 </View>
 
                 <Text style={styles.welcomeText}>Welcome Back!</Text>
 
+                {/* Email */}
                 <View style={styles.inputWrapper}>
                     <TextInput
                         style={styles.input}
@@ -78,6 +84,7 @@ const LoginScreen = () => {
                     />
                 </View>
 
+                {/* Password */}
                 <View style={[styles.inputWrapper, styles.passwordWrapper]}>
                     <TextInput
                         style={styles.input}
@@ -92,11 +99,10 @@ const LoginScreen = () => {
                         onPress={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
                     >
-                        <Text style={styles.showText}>Show</Text>
-                        <MaterialCommunityIcons 
-                            name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
-                            size={20} 
-                            color="#777" 
+                        <MaterialCommunityIcons
+                            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                            size={20}
+                            color="#777"
                         />
                     </TouchableOpacity>
                 </View>
@@ -147,7 +153,7 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         color: '#000000',
     },
-    logoGenius: {
+    logoAccent: {
         color: '#2A5DFF',
     },
     welcomeText: {
@@ -178,14 +184,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     showButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
         paddingLeft: 10,
-    },
-    showText: {
-        fontSize: 14,
-        color: '#777',
-        marginRight: 5,
     },
     loginButton: {
         backgroundColor: '#2A5DFF',
