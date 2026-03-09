@@ -4,6 +4,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import App from './../app.jsx';
 import PrivateRoute from './private-route.jsx';
 import AdminPrivateRoute from './private-route-admin.jsx';
+import AdminDashboard from './../pages/admin/dashboard.js';
 
 import DashboardV3 from './../pages/dashboard/dashboard-v3.js';
 import EmailInbox from './../pages/email/email-inbox.js';
@@ -89,7 +90,10 @@ const AppRoute = [
         path: '',
         element: <Navigate to='/login' />
       },
-      // Public user routes
+
+      // ================================================
+      // PUBLIC USER ROUTES
+      // ================================================
       {
         path: 'login',
         element: <UserLogin />
@@ -98,23 +102,37 @@ const AppRoute = [
         path: 'register',
         element: <UserRegister />
       },
-      // Protected user routes
+
+      // ================================================
+      // PROTECTED USER ROUTES
+      // ================================================
       {
         path: 'dashboard',
         element: <PrivateRoute><DashboardV3 /></PrivateRoute>
       },
-      
-      // Admin routes (hidden)
+
+      // ================================================
+      // ADMIN ROUTES — Golden Rule #1 HIGH SECURITY
+      // /admin         → redirect to /admin/login
+      // /admin/login   → login page
+      // /admin/dashboard → protected dashboard
+      // ================================================
       {
-    path: 'admin/*',
-    element: <Outlet />,
-    children: [
-        { path: '', element: <Navigate to='/admin/login' /> },
-        { path: 'login', element: <AdminLogin /> },
-        { path: 'dashboard', element: <AdminPrivateRoute><DashboardV3 /></AdminPrivateRoute> },
-        { path: '*', element: <ExtraError /> }
-    ]
-},
+        path: 'admin',
+        element: <Navigate to='/admin/login' replace />
+      },
+      {
+        path: 'admin/login',
+        element: <AdminLogin />
+      },
+      {
+        path: 'admin/dashboard',
+        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>
+      },
+
+      // ================================================
+      // COLORADMIN TEMPLATE ROUTES
+      // ================================================
       {
         path: 'email/*',
         element: <Outlet />,

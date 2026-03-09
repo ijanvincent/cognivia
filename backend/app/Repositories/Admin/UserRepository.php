@@ -36,8 +36,7 @@ class UserRepository
 
     public function getUserById(int $id): ?User
     {
-        return User::where('role', 'user')
-                   ->find($id);
+        return User::where('role', 'user')->find($id);
     }
 
     public function deleteUser(int $id): bool
