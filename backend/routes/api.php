@@ -13,7 +13,8 @@ Route::prefix('auth')->group(function () {
 
 // Admin Auth
 Route::prefix('admin')->group(function () {
-    Route::post('/login', [AdminAuthController::class, 'login']);
+    Route::post('/login', [AdminAuthController::class, 'login'])
+         ->middleware('throttle:3,5');
 });
 
 Route::middleware(['auth:sanctum', 'user'])->group(function () {

@@ -17,6 +17,8 @@ function AdminLogin() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
     context.handleSetAppSidebarNone(true);
@@ -39,23 +41,39 @@ function AdminLogin() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (locked) {
+      setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
+      return;
+    }
+
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
     setLoading(true);
     setErrors({});
+
     try {
       const response = await api.post('/admin/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      setAttempts(0);
       setRedirect(true);
     } catch (err) {
-      if (err.response?.status === 401) {
-        setErrors({ general: 'Invalid admin credentials' });
-      } else if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      if (newAttempts >= 3) {
+        setLocked(true);
+        setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
+      } else if (err.response?.status === 429) {
+        setLocked(true);
+        setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
+      } else if (err.response?.data?.errors?.email) {
+        setErrors({ general: err.response.data.errors.email[0] });
       } else if (err.response?.data?.message) {
         setErrors({ general: err.response.data.message });
       } else {
@@ -67,7 +85,7 @@ function AdminLogin() {
   }
 
   if (redirect) {
-    return <Navigate to='/admin/dashboard' />;
+    return <Navigate to='/admin/dashboard' replace />;
   }
 
   return (
@@ -87,6 +105,7 @@ function AdminLogin() {
           </div>
         </div>
 
+
         {/* Login Form */}
         <form onSubmit={handleSubmit} className={styles.form}>
           {errors.general && (
@@ -105,10 +124,10 @@ function AdminLogin() {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={e => { setEmail(e.target.value); if(errors.email) setErrors(p => ({...p, email: null})); }}
                 className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
                 placeholder="Admin email address"
-                disabled={loading}
+                disabled={loading || locked}
                 autoComplete="email"
                 autoFocus
               />
@@ -123,10 +142,10 @@ function AdminLogin() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => { setPassword(e.target.value); if(errors.password) setErrors(p => ({...p, password: null})); }}
                 className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
                 placeholder="Admin password"
-                disabled={loading}
+                disabled={loading || locked}
                 autoComplete="current-password"
               />
               <button
@@ -134,7 +153,7 @@ function AdminLogin() {
                 onClick={() => setShowPassword(!showPassword)}
                 className={styles.eyeButton}
                 tabIndex={-1}
-                disabled={loading}
+                disabled={loading || locked}
               >
                 <img
                   src={showPassword ? hideIcon : eyeIcon}
@@ -149,13 +168,20 @@ function AdminLogin() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || locked}
             className={styles.submitButtonAdmin}
           >
             {loading ? (
               <>
                 <div className={styles.buttonSpinner}></div>
                 Authenticating...
+              </>
+            ) : locked ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                Account Locked
               </>
             ) : (
               <>
@@ -170,10 +196,10 @@ function AdminLogin() {
       </div>
 
       {/* Security Notice */}
-<div className={styles.securityNotice}>
-  <img src={infoIcon} alt="info" className={styles.noticeIcon} />
-  <span>Secure access area. All activities are monitored and logged.</span>
-</div>
+      <div className={styles.securityNotice}>
+        <img src={infoIcon} alt="info" className={styles.noticeIcon} />
+        <span>Secure access area. All activities are monitored and logged.</span>
+      </div>
     </div>
   );
 }
