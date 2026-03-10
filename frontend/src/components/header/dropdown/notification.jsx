@@ -38,7 +38,7 @@ function DropdownNotification() {
                             email: u.email, created_at: u.created_at, isNew: true
                         })),
                         ...prev
-                    ].slice(0, 10));
+                    ].slice(0, 10));    
                 }
             }
         } catch (error) {

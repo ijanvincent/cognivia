@@ -27,7 +27,14 @@ function DropdownProfile() {
   return (
     <div className="navbar-item navbar-user dropdown">
       <a href="#/" className="navbar-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-        <img src="/assets/img/user/user-13.jpg" alt="" />
+        <div style={{
+    width: '32px', height: '32px', borderRadius: '50%',
+    background: 'linear-gradient(135deg, #1a73e8, #0d47a1)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#fff', fontWeight: 'bold', fontSize: '14px'
+}}>
+    {displayName.charAt(0).toUpperCase()}
+</div>
         <span>
           <span className="d-none d-md-inline">{displayName}</span>
           <b className="caret"></b>
