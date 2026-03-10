@@ -36,11 +36,13 @@ function SidebarProfile() {
 							<div className="menu-profile-info">
 								<div className="d-flex align-items-center">
 									<div className="flex-grow-1">
-										Sean Ngu
-									</div>
+                 {JSON.parse(localStorage.getItem('user') || '{}')?.username || 'User'}
+                  </div>
 									<div className="menu-caret ms-auto"></div>
 								</div>
-								<small>Front end developer</small>
+								<small>
+    {JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin' ? 'Administrator' : 'Member'}
+                </small>
 							</div>
 						</Link>
 					</div>

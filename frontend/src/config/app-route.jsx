@@ -5,6 +5,9 @@ import App from './../app.jsx';
 import PrivateRoute from './private-route.jsx';
 import AdminPrivateRoute from './private-route-admin.jsx';
 import AdminDashboard from './../pages/admin/dashboard.js';
+import AdminUsers from './../pages/admin/users.js';
+import AdminUsersAnalytics from './../pages/admin/users-analytics.js';
+
 
 import DashboardV3 from './../pages/dashboard/dashboard-v3.js';
 import EmailInbox from './../pages/email/email-inbox.js';
@@ -125,11 +128,18 @@ const AppRoute = [
         path: 'admin/login',
         element: <AdminLogin />
       },
-      {
-        path: 'admin/dashboard',
-        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>
-      },
-
+     {
+    path: 'admin/dashboard',
+    element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>
+},
+{
+    path: 'admin/users',
+    element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute>
+},
+{
+    path: 'admin/users/analytics',
+    element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute>
+},
       // ================================================
       // COLORADMIN TEMPLATE ROUTES
       // ================================================
