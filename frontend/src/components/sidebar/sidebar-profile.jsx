@@ -48,23 +48,23 @@ function SidebarProfile() {
 					</div>
 					<div id="appSidebarProfileMenu" className="collapse">
 						<div className="menu-item pt-5px">
-							<Link to="/" className="menu-link">
-								<div className="menu-icon"><i className="fa fa-cog"></i></div>
-								<div className="menu-text">Settings</div>
-							</Link>
-						</div>
-						<div className="menu-item">
-							<Link to="/" className="menu-link">
-								<div className="menu-icon"><i className="fa fa-pencil-alt"></i></div>
-								<div className="menu-text"> Send Feedback</div>
-							</Link>
-						</div>
-						<div className="menu-item pb-5px">
-							<Link to="/" className="menu-link">
-								<div className="menu-icon"><i className="fa fa-question-circle"></i></div>
-								<div className="menu-text"> Helps</div>
-							</Link>
-						</div>
+    <a href="#/" className="menu-link" onClick={e => e.preventDefault()}>
+        <div className="menu-icon"><i className="fa fa-cog"></i></div>
+        <div className="menu-text">Settings</div>
+    </a>
+</div>
+<div className="menu-item">
+    <a href="#/" className="menu-link" onClick={e => e.preventDefault()}>
+        <div className="menu-icon"><i className="fa fa-pencil-alt"></i></div>
+        <div className="menu-text">Send Feedback</div>
+    </a>
+</div>
+<div className="menu-item pb-5px">
+    <a href="#/" className="menu-link" onClick={e => e.preventDefault()}>
+        <div className="menu-icon"><i className="fa fa-question-circle"></i></div>
+        <div className="menu-text">Help</div>
+    </a>
+</div>
 						<div className="menu-divider m-0"></div>
 					</div>
 				</div>

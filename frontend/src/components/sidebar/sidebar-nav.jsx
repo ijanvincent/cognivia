@@ -3,7 +3,7 @@ import { useResolvedPath, useMatch, NavLink, useLocation, matchPath } from 'reac
 import { AppSettings } from './../../config/app-settings.js';
 import menus from './../../config/app-menu.jsx';
 
-function NavItem({ menu, ...props }: LinkProps) {
+function NavItem({ menu, ...props }) {
 	let resolved = useResolvedPath(menu.path);
   let match = useMatch({ path: resolved.pathname });
   
