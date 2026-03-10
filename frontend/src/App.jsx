@@ -9,7 +9,7 @@ import TopMenu from './components/top-menu/top-menu.jsx';
 import Content from './components/content/content.jsx';
 
 function App() {	
-	const [appTheme] = useState('');
+	const [appTheme] = useState('apple');
 	const [appDarkMode, setAppDarkMode] = useState(false);
 	const [appGradientEnabled, setAppGradientEnabled] = useState(false);
 	const [appHeaderNone, setAppHeaderNone] = useState(true);
