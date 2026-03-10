@@ -62,12 +62,33 @@ function Header() {
 					<div className="navbar-nav">
 						<SearchForm />
 						<DropdownNotification />
-						
+
 						{appHeaderLanguageBar && (
 							<DropdownLanguage />
 						)}
-						
+
+						{/* Golden Rule #1 — dark mode toggle, admin only */}
+						<AppSettings.Consumer>
+							{({ appDarkMode, handleSetAppDarkMode }) => {
+								const user = JSON.parse(localStorage.getItem('user') || '{}');
+								if (user?.role !== 'admin') return null;
+								return (
+									<div className="navbar-item">
+										<button
+											className="navbar-link icon btn border-0 bg-transparent"
+											onClick={() => handleSetAppDarkMode(!appDarkMode)}
+											title={appDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+											style={{ cursor: 'pointer' }}
+										>
+											<i className={`fa ${appDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
+										</button>
+									</div>
+								);
+							}}
+						</AppSettings.Consumer>
+
 						<DropdownProfile />
+```
 						
 						{appSidebarTwo && (
 							<div className="navbar-divider d-none d-md-block"></div>
