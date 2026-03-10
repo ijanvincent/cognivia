@@ -19,9 +19,9 @@ class UserService
         ];
     }
 
-    public function getAllUsers(): array
+    public function getAllUsers()
     {
-        return $this->userRepository->getAllUsers()->toArray();
+        return $this->userRepository->getAllUsers();
     }
 
     public function deleteUser(int $id): bool

@@ -24,7 +24,8 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/login';
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            window.location.href = user?.role === 'admin' ? '/admin/login' : '/login';
         }
         return Promise.reject(error);
     }
