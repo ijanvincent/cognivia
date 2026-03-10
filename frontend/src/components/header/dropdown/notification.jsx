@@ -4,7 +4,9 @@ import api from '../../../services/api.js';
 
 function DropdownNotification() {
     const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const [unreadCount, setUnreadCount] = useState(
+    () => parseInt(localStorage.getItem('notif_unread') || '0')
+);
     const seenIdsRef = useRef(null);
 
     useEffect(() => {
@@ -27,7 +29,9 @@ function DropdownNotification() {
                 const newUsers = users.filter(u => !seenIdsRef.current.has(u.id));
                 if (newUsers.length > 0) {
                     newUsers.forEach(u => seenIdsRef.current.add(u.id));
-                    setUnreadCount(prev => prev + newUsers.length);
+                    const newCount = unreadCount + newUsers.length;
+                    setUnreadCount(newCount);
+                    localStorage.setItem('notif_unread', String(newCount));
                     setNotifications(prev => [
                         ...newUsers.map(u => ({
                             id: u.id, username: u.username,
@@ -51,9 +55,10 @@ function DropdownNotification() {
     };
 
     const handleOpen = () => {
-        setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, isNew: false })));
-    };
+    setUnreadCount(0);
+    localStorage.setItem('notif_unread', '0');
+    setNotifications(prev => prev.map(n => ({ ...n, isNew: false })));
+};
 
     return (
         <div className="navbar-item dropdown">
