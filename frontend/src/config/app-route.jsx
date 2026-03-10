@@ -7,6 +7,7 @@ import AdminPrivateRoute from './private-route-admin.jsx';
 import AdminDashboard from './../pages/admin/dashboard.js';
 import AdminUsers from './../pages/admin/users.js';
 import AdminUsersAnalytics from './../pages/admin/users-analytics.js';
+import UserDashboard from './../pages/user/dashboard.js';
 
 
 import DashboardV3 from './../pages/dashboard/dashboard-v3.js';
@@ -111,7 +112,7 @@ const AppRoute = [
       // ================================================
       {
         path: 'dashboard',
-        element: <PrivateRoute><DashboardV3 /></PrivateRoute>
+        element: <PrivateRoute><UserDashboard/></PrivateRoute>
       },
 
       // ================================================
