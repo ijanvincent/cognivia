@@ -14,9 +14,9 @@ import AdminLogin from './../pages/admin/login.js';
 import UserDashboard from './../pages/user/dashboard.js';
 import UserLogin from './../pages/user/login.js';
 import UserRegister from './../pages/user/register.js';
-import About from './../pages/user/about.js'; // ← ADD THIS
+import About from './../pages/user/about.js';
+import Solutions from './../pages/user/solutions.js'; // ← NEW
 
-import DashboardV3 from './../pages/dashboard/dashboard-v3.js';
 import EmailInbox from './../pages/email/email-inbox.js';
 import EmailCompose from './../pages/email/email-compose.js';
 import EmailDetail from './../pages/email/email-detail.js';
@@ -89,200 +89,122 @@ import ExtraSettingsPage from './../pages/extra/extra-settings-page.js';
 import HelperCSS from './../pages/helper/helper-css.js';
 
 const AppRoute = [
-
-  // ════════════════════════════════════════════
-  // USER ROUTES — completely outside ColorAdmin
-  // Uses UserLayout (no sidebar, no header)
-  // ════════════════════════════════════════════
   {
     path: '/',
     element: <UserLayout />,
     children: [
-      {
-        path: '',
-        element: <Navigate to='/login' replace />
-      },
-      {
-        path: 'login',
-        element: <UserLogin />
-      },
-      {
-        path: 'register',
-        element: <UserRegister />
-      },
-      {
-        path: 'about',          // ← ADD THIS
-        element: <About />
-      },
-      {
-        path: 'dashboard',
-        element: <PrivateRoute><UserDashboard /></PrivateRoute>
-      },
+      { path: '',          element: <Navigate to='/login' replace /> },
+      { path: 'login',     element: <UserLogin /> },
+      { path: 'register',  element: <UserRegister /> },
+      { path: 'about',     element: <About /> },
+      { path: 'solutions', element: <Solutions /> }, // ← NEW
+      { path: 'dashboard', element: <PrivateRoute><UserDashboard /></PrivateRoute> },
     ]
   },
-
-  // ════════════════════════════════════════════
-  // ADMIN + COLORADMIN ROUTES — inside <App />
-  // ════════════════════════════════════════════
   {
     path: '*',
     element: <App />,
     children: [
-
-      // ── Admin Routes ──
-      {
-        path: 'admin',
-        element: <Navigate to='/admin/login' replace />
-      },
-      {
-        path: 'admin/login',
-        element: <AdminLogin />
-      },
-      {
-        path: 'admin/dashboard',
-        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>
-      },
-      {
-        path: 'admin/users',
-        element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute>
-      },
-      {
-        path: 'admin/users/analytics',
-        element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute>
-      },
-
-      // ── ColorAdmin Template Routes ──
-      {
-        path: 'email/*',
-        element: <Outlet />,
-        children: [
-          { path: 'inbox',   element: <EmailInbox /> },
-          { path: 'compose', element: <EmailCompose /> },
-          { path: 'detail',  element: <EmailDetail /> },
-          { path: '*',       element: <ExtraError /> }
-        ]
-      },
-      { path: 'widgets',     element: <Widgets /> },
-      {
-        path: 'ui/*',
-        element: <Outlet />,
-        children: [
-          { path: 'general',               element: <UIGeneral /> },
-          { path: 'typography',            element: <UITypography /> },
-          { path: 'tabs-accordion',        element: <UITabsAccordion /> },
-          { path: 'modal-notification',    element: <UIModalNotification /> },
-          { path: 'widget-boxes',          element: <UIWidgetBoxes /> },
-          { path: 'media-object',          element: <UIMediaObject /> },
-          { path: 'buttons',               element: <UIButtons /> },
-          { path: 'icon-duotone',          element: <UIIconDuotone /> },
-          { path: 'icon-fontawesome',      element: <UIIconFontAwesome /> },
-          { path: 'icon-bootstrap',        element: <UIIconBootstrap /> },
-          { path: 'icon-simple-line-icons',element: <UIIconSimpleLineIcons /> },
-          { path: 'language-bar-icon',     element: <UILanguageBarIcon /> },
-          { path: 'social-buttons',        element: <UISocialButtons /> },
-          { path: '*',                     element: <ExtraError /> }
-        ]
-      },
+      { path: 'admin',                 element: <Navigate to='/admin/login' replace /> },
+      { path: 'admin/login',           element: <AdminLogin /> },
+      { path: 'admin/dashboard',       element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute> },
+      { path: 'admin/users',           element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute> },
+      { path: 'admin/users/analytics', element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute> },
+      { path: 'email/*', element: <Outlet />, children: [
+        { path: 'inbox',   element: <EmailInbox /> },
+        { path: 'compose', element: <EmailCompose /> },
+        { path: 'detail',  element: <EmailDetail /> },
+        { path: '*',       element: <ExtraError /> }
+      ]},
+      { path: 'widgets', element: <Widgets /> },
+      { path: 'ui/*', element: <Outlet />, children: [
+        { path: 'general',                element: <UIGeneral /> },
+        { path: 'typography',             element: <UITypography /> },
+        { path: 'tabs-accordion',         element: <UITabsAccordion /> },
+        { path: 'modal-notification',     element: <UIModalNotification /> },
+        { path: 'widget-boxes',           element: <UIWidgetBoxes /> },
+        { path: 'media-object',           element: <UIMediaObject /> },
+        { path: 'buttons',                element: <UIButtons /> },
+        { path: 'icon-duotone',           element: <UIIconDuotone /> },
+        { path: 'icon-fontawesome',       element: <UIIconFontAwesome /> },
+        { path: 'icon-bootstrap',         element: <UIIconBootstrap /> },
+        { path: 'icon-simple-line-icons', element: <UIIconSimpleLineIcons /> },
+        { path: 'language-bar-icon',      element: <UILanguageBarIcon /> },
+        { path: 'social-buttons',         element: <UISocialButtons /> },
+        { path: '*',                      element: <ExtraError /> }
+      ]},
       { path: 'bootstrap-5', element: <Bootstrap5 /> },
-      {
-        path: 'form/*',
-        element: <Outlet />,
-        children: [
-          { path: 'elements', element: <FormElements /> },
-          { path: 'plugins',  element: <FormPlugins /> },
-          { path: 'wizards',  element: <FormWizards /> },
-          { path: '*',        element: <ExtraError /> }
-        ]
-      },
-      {
-        path: 'table/*',
-        element: <Outlet />,
-        children: [
-          { path: 'elements', element: <TableElements /> },
-          { path: 'plugins',  element: <TablePlugins /> },
-          { path: '*',        element: <ExtraError /> }
-        ]
-      },
-      {
-        path: 'pos/*',
-        element: <Outlet />,
-        children: [
-          { path: 'customer-order',    element: <PosCustomerOrder /> },
-          { path: 'kitchen-order',     element: <PosKitchenOrder /> },
-          { path: 'counter-checkout',  element: <PosCounterCheckout /> },
-          { path: 'table-booking',     element: <PosTableBooking /> },
-          { path: 'menu-stock',        element: <PosMenuStock /> },
-          { path: '*',                 element: <ExtraError /> }
-        ]
-      },
-      {
-        path: 'chart/*',
-        element: <Outlet />,
-        children: [
-          { path: 'js',   element: <ChartJS /> },
-          { path: 'apex', element: <ChartApex /> },
-          { path: '*',    element: <ExtraError /> }
-        ]
-      },
+      { path: 'form/*', element: <Outlet />, children: [
+        { path: 'elements', element: <FormElements /> },
+        { path: 'plugins',  element: <FormPlugins /> },
+        { path: 'wizards',  element: <FormWizards /> },
+        { path: '*',        element: <ExtraError /> }
+      ]},
+      { path: 'table/*', element: <Outlet />, children: [
+        { path: 'elements', element: <TableElements /> },
+        { path: 'plugins',  element: <TablePlugins /> },
+        { path: '*',        element: <ExtraError /> }
+      ]},
+      { path: 'pos/*', element: <Outlet />, children: [
+        { path: 'customer-order',   element: <PosCustomerOrder /> },
+        { path: 'kitchen-order',    element: <PosKitchenOrder /> },
+        { path: 'counter-checkout', element: <PosCounterCheckout /> },
+        { path: 'table-booking',    element: <PosTableBooking /> },
+        { path: 'menu-stock',       element: <PosMenuStock /> },
+        { path: '*',                element: <ExtraError /> }
+      ]},
+      { path: 'chart/*', element: <Outlet />, children: [
+        { path: 'js',   element: <ChartJS /> },
+        { path: 'apex', element: <ChartApex /> },
+        { path: '*',    element: <ExtraError /> }
+      ]},
       { path: 'landing',  element: <Landing /> },
       { path: 'calendar', element: <Calendar /> },
-      {
-        path: 'map/*',
-        element: <Outlet />,
-        children: [
-          { path: 'google', element: <MapGoogle /> },
-          { path: 'vector', element: <MapVector /> },
-        ]
-      },
+      { path: 'map/*', element: <Outlet />, children: [
+        { path: 'google', element: <MapGoogle /> },
+        { path: 'vector', element: <MapVector /> },
+      ]},
       { path: 'gallery', element: <Gallery /> },
-      {
-        path: 'page-option/*',
-        element: <Outlet />,
-        children: [
-          { path: 'blank',                          element: <PageBlank /> },
-          { path: 'with-footer',                    element: <PageWithFooter /> },
-          { path: 'with-fixed-footer',              element: <PageWithFixedFooter /> },
-          { path: 'without-sidebar',                element: <PageWithoutSidebar /> },
-          { path: 'with-right-sidebar',             element: <PageWithRightSidebar /> },
-          { path: 'with-minified-sidebar',          element: <PageWithMinifiedSidebar /> },
-          { path: 'with-two-sidebar',               element: <PageWithTwoSidebar /> },
-          { path: 'full-height',                    element: <PageFullHeight /> },
-          { path: 'with-wide-sidebar',              element: <PageWithWideSidebar /> },
-          { path: 'with-light-sidebar',             element: <PageWithLightSidebar /> },
-          { path: 'with-mega-menu',                 element: <PageWithMegaMenu /> },
-          { path: 'with-top-menu',                  element: <PageWithTopMenu /> },
-          { path: 'with-boxed-layout',              element: <PageWithBoxedLayout /> },
-          { path: 'with-mixed-menu',                element: <PageWithMixedMenu /> },
-          { path: 'boxed-layout-with-mixed-menu',   element: <PageBoxedLayoutWithMixedMenu /> },
-          { path: 'with-transparent-sidebar',       element: <PageWithTransparentSidebar /> },
-          { path: 'with-search-sidebar',            element: <PageWithSearchSidebar /> },
-          { path: '*',                              element: <ExtraError /> }
-        ]
-      },
-      {
-        path: 'extra/*',
-        element: <Outlet />,
-        children: [
-          { path: 'timeline',               element: <ExtraTimeline /> },
-          { path: 'coming-soon',            element: <ExtraComingSoon /> },
-          { path: 'search',                 element: <ExtraSearch /> },
-          { path: 'invoice',                element: <ExtraInvoice /> },
-          { path: 'error',                  element: <ExtraError /> },
-          { path: 'profile',                element: <ExtraProfile /> },
-          { path: 'scrum-board',            element: <ExtraScrumBoard /> },
-          { path: 'cookie-acceptance-banner', element: <ExtraCookieAcceptanceBanner /> },
-          { path: 'orders',                 element: <ExtraOrders /> },
-          { path: 'order-details',          element: <ExtraOrderDetails /> },
-          { path: 'products',               element: <ExtraProducts /> },
-          { path: 'product-details',        element: <ExtraProductDetails /> },
-          { path: 'file-manager',           element: <ExtraFileManager /> },
-          { path: 'pricing-page',           element: <ExtraPricingPage /> },
-          { path: 'messenger-page',         element: <ExtraMessengerPage /> },
-          { path: 'data-management',        element: <ExtraDataManagement /> },
-          { path: 'settings-page',          element: <ExtraSettingsPage /> },
-          { path: '*',                      element: <ExtraError /> }
-        ]
-      },
+      { path: 'page-option/*', element: <Outlet />, children: [
+        { path: 'blank',                        element: <PageBlank /> },
+        { path: 'with-footer',                  element: <PageWithFooter /> },
+        { path: 'with-fixed-footer',            element: <PageWithFixedFooter /> },
+        { path: 'without-sidebar',              element: <PageWithoutSidebar /> },
+        { path: 'with-right-sidebar',           element: <PageWithRightSidebar /> },
+        { path: 'with-minified-sidebar',        element: <PageWithMinifiedSidebar /> },
+        { path: 'with-two-sidebar',             element: <PageWithTwoSidebar /> },
+        { path: 'full-height',                  element: <PageFullHeight /> },
+        { path: 'with-wide-sidebar',            element: <PageWithWideSidebar /> },
+        { path: 'with-light-sidebar',           element: <PageWithLightSidebar /> },
+        { path: 'with-mega-menu',               element: <PageWithMegaMenu /> },
+        { path: 'with-top-menu',                element: <PageWithTopMenu /> },
+        { path: 'with-boxed-layout',            element: <PageWithBoxedLayout /> },
+        { path: 'with-mixed-menu',              element: <PageWithMixedMenu /> },
+        { path: 'boxed-layout-with-mixed-menu', element: <PageBoxedLayoutWithMixedMenu /> },
+        { path: 'with-transparent-sidebar',     element: <PageWithTransparentSidebar /> },
+        { path: 'with-search-sidebar',          element: <PageWithSearchSidebar /> },
+        { path: '*',                            element: <ExtraError /> }
+      ]},
+      { path: 'extra/*', element: <Outlet />, children: [
+        { path: 'timeline',                 element: <ExtraTimeline /> },
+        { path: 'coming-soon',              element: <ExtraComingSoon /> },
+        { path: 'search',                   element: <ExtraSearch /> },
+        { path: 'invoice',                  element: <ExtraInvoice /> },
+        { path: 'error',                    element: <ExtraError /> },
+        { path: 'profile',                  element: <ExtraProfile /> },
+        { path: 'scrum-board',              element: <ExtraScrumBoard /> },
+        { path: 'cookie-acceptance-banner', element: <ExtraCookieAcceptanceBanner /> },
+        { path: 'orders',                   element: <ExtraOrders /> },
+        { path: 'order-details',            element: <ExtraOrderDetails /> },
+        { path: 'products',                 element: <ExtraProducts /> },
+        { path: 'product-details',          element: <ExtraProductDetails /> },
+        { path: 'file-manager',             element: <ExtraFileManager /> },
+        { path: 'pricing-page',             element: <ExtraPricingPage /> },
+        { path: 'messenger-page',           element: <ExtraMessengerPage /> },
+        { path: 'data-management',          element: <ExtraDataManagement /> },
+        { path: 'settings-page',            element: <ExtraSettingsPage /> },
+        { path: '*',                        element: <ExtraError /> }
+      ]},
       { path: 'helper/css', element: <HelperCSS /> },
       { path: '*',          element: <ExtraError /> }
     ]
