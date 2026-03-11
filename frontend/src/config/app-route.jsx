@@ -15,7 +15,9 @@ import UserDashboard from './../pages/user/dashboard.js';
 import UserLogin from './../pages/user/login.js';
 import UserRegister from './../pages/user/register.js';
 import About from './../pages/user/about.js';
-import Solutions from './../pages/user/solutions.js'; // ← NEW
+import Solutions from './../pages/user/solutions.js'; 
+import Pricing from './../pages/user/pricing.js'; 
+
 
 import EmailInbox from './../pages/email/email-inbox.js';
 import EmailCompose from './../pages/email/email-compose.js';
@@ -97,7 +99,8 @@ const AppRoute = [
       { path: 'login',     element: <UserLogin /> },
       { path: 'register',  element: <UserRegister /> },
       { path: 'about',     element: <About /> },
-      { path: 'solutions', element: <Solutions /> }, // ← NEW
+      { path: 'solutions', element: <Solutions /> }, 
+      { path: 'pricing',   element: <Pricing /> },
       { path: 'dashboard', element: <PrivateRoute><UserDashboard /></PrivateRoute> },
     ]
   },
