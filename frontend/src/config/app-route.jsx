@@ -17,6 +17,9 @@ import UserRegister from './../pages/user/register.js';
 import About from './../pages/user/about.js';
 import Solutions from './../pages/user/solutions.js'; 
 import Pricing from './../pages/user/pricing.js'; 
+import FAQ from './../pages/user/faq.js';
+import Legal from './../pages/user/legal.js';
+
 
 
 import EmailInbox from './../pages/email/email-inbox.js';
@@ -101,6 +104,7 @@ const AppRoute = [
       { path: 'about',     element: <About /> },
       { path: 'solutions', element: <Solutions /> }, 
       { path: 'pricing',   element: <Pricing /> },
+      { path: 'faq', element: <FAQ /> },
       { path: 'dashboard', element: <PrivateRoute><UserDashboard /></PrivateRoute> },
     ]
   },
