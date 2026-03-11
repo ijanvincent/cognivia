@@ -123,10 +123,10 @@ function UserRegister() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <Link to="/about" className={styles.navLink}>About</Link>
-          <a href="#" className={styles.navLink}>Solutions</a>
-          <a href="#" className={styles.navLink}>Pricing</a>
-          <a href="#" className={styles.navLink}>FAQ</a>
+          <Link to="/about"     className={styles.navLink}>About</Link>
+          <Link to="/solutions" className={styles.navLink}>Solutions</Link>
+          <Link to="/pricing"   className={styles.navLink}>Pricing</Link>
+          <Link to="/faq"       className={styles.navLink}>FAQ</Link>
         </nav>
       </div>
 
