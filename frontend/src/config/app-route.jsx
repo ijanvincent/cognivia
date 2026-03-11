@@ -19,7 +19,7 @@ import Solutions from './../pages/user/solutions.js';
 import Pricing from './../pages/user/pricing.js'; 
 import FAQ from './../pages/user/faq.js';
 import Legal from './../pages/user/legal.js';
-
+import Contact from './../pages/user/contact.js';
 
 
 import EmailInbox from './../pages/email/email-inbox.js';
@@ -107,6 +107,7 @@ const AppRoute = [
       { path: 'faq', element: <FAQ /> },
       { path: 'privacy', element: <Legal /> },
       { path: 'terms',   element: <Legal /> },
+      { path: 'contact', element: <Contact /> },
       { path: 'dashboard', element: <PrivateRoute><UserDashboard /></PrivateRoute> },
     ]
   },

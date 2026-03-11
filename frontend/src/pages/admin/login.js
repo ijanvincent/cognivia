@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext, useState, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
@@ -12,14 +12,18 @@ import finalLogo from './../../assets/final-remove.png';
 
 function AdminLogin() {
   const context = useContext(AppSettings);
-  const [redirect, setRedirect] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [redirect, setRedirect]         = useState(false);
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
+  const [errors, setErrors]             = useState({});
+  const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [locked, setLocked] = useState(false);
+  const [attempts, setAttempts]         = useState(0);
+  const [locked, setLocked]             = useState(false);
+
+  // ── Use a ref so handleSubmit always reads the latest count synchronously
+  const attemptsRef = useRef(0);
+  const MAX_ATTEMPTS = 3;
 
   useEffect(() => {
     context.handleSetAppSidebarNone(true);
@@ -35,14 +39,15 @@ function AdminLogin() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!email.trim()) newErrors.email = 'Email is required';
-    if (!password) newErrors.password = 'Password is required';
+    if (!email.trim()) newErrors.email    = 'Email is required';
+    if (!password)     newErrors.password = 'Password is required';
     return newErrors;
   };
 
   async function handleSubmit(event) {
     event.preventDefault();
 
+    // Guard: already locked
     if (locked) {
       setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
       return;
@@ -61,16 +66,18 @@ function AdminLogin() {
       const response = await api.post('/admin/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Reset on success
+      attemptsRef.current = 0;
       setAttempts(0);
       setRedirect(true);
-    } catch (err) {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
 
-      if (newAttempts >= 3) {
-        setLocked(true);
-        setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
-      } else if (err.response?.status === 429) {
+    } catch (err) {
+      // ── Increment ref first (synchronous), then sync state
+      attemptsRef.current += 1;
+      const currentAttempts = attemptsRef.current;
+      setAttempts(currentAttempts);
+
+      if (err.response?.status === 429 || currentAttempts >= MAX_ATTEMPTS) {
         setLocked(true);
         setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
       } else if (err.response?.data?.errors?.email) {
@@ -78,7 +85,7 @@ function AdminLogin() {
       } else if (err.response?.data?.message) {
         setErrors({ general: err.response.data.message });
       } else {
-        setErrors({ general: 'Login failed. Please try again.' });
+        setErrors({ general: 'Invalid email or password. Please try again.' });
       }
     } finally {
       setLoading(false);
@@ -88,6 +95,8 @@ function AdminLogin() {
   if (redirect) {
     return <Navigate to='/admin/dashboard' replace />;
   }
+
+  const remainingAttempts = MAX_ATTEMPTS - attempts;
 
   return (
     <div className={styles.pageContainer}>
@@ -101,31 +110,22 @@ function AdminLogin() {
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
-            <path
-              key={`pink-${i}`}
-              className={styles.wavePath}
+            <path key={`pink-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
               d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
-              fill="none" strokeWidth="1.2"
-            />
+              fill="none" strokeWidth="1.2" />
           ))}
           {[...Array(18)].map((_, i) => (
-            <path
-              key={`cyan-${i}`}
-              className={styles.wavePath}
+            <path key={`cyan-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
               d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
-              fill="none" strokeWidth="1.2"
-            />
+              fill="none" strokeWidth="1.2" />
           ))}
           {[...Array(10)].map((_, i) => (
-            <path
-              key={`purple-${i}`}
-              className={styles.wavePath}
+            <path key={`purple-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
               d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
-              fill="none" strokeWidth="1"
-            />
+              fill="none" strokeWidth="1" />
           ))}
         </svg>
       </div>
@@ -141,7 +141,7 @@ function AdminLogin() {
         </nav>
       </div>
 
-      {/* Main Content — split layout */}
+      {/* Main Content */}
       <div className={styles.mainContent}>
 
         {/* Left Hero */}
@@ -239,12 +239,13 @@ function AdminLogin() {
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
 
+              {/* Attempts warning — only show after first failure, before lockout */}
               {attempts > 0 && !locked && (
                 <div className={styles.attemptsWarning}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                   </svg>
-                  {3 - attempts} attempt{3 - attempts !== 1 ? 's' : ''} remaining before lockout
+                  {remainingAttempts} attempt{remainingAttempts !== 1 ? 's' : ''} remaining before lockout
                 </div>
               )}
 
@@ -254,10 +255,7 @@ function AdminLogin() {
                 className={`${styles.submitButton} ${locked ? styles.submitButtonLocked : ''}`}
               >
                 {loading ? (
-                  <>
-                    <div className={styles.buttonSpinner}></div>
-                    Authenticating...
-                  </>
+                  <><div className={styles.buttonSpinner}></div>Authenticating...</>
                 ) : locked ? (
                   <>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -413,7 +413,7 @@ export default function FAQ() {
         <div className={styles.footerLinks}>
           <Link to="/privacy" className={styles.footerLink}>Privacy</Link>
           <Link to="/terms"   className={styles.footerLink}>Terms</Link>
-          <a href="#" className={styles.footerLink}>Contact</a>
+          <Link to="/contact" className={styles.footerLink}>Contact</Link>
         </div>
       </footer>
     </div>
