@@ -336,8 +336,8 @@ export default function Solutions() {
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>
         <div className={styles.footerLinks}>
-          <a href="#" className={styles.footerLink}>Privacy</a>
-          <a href="#" className={styles.footerLink}>Terms</a>
+          <Link to="/privacy" className={styles.footerLink}>Privacy</Link>
+          <Link to="/terms"   className={styles.footerLink}>Terms</Link>
           <a href="#" className={styles.footerLink}>Contact</a>
         </div>
       </footer>
