@@ -1,6 +1,5 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
 import styles from './register.module.css';
 import emailIcon from './../../assets/email.png';
@@ -12,7 +11,6 @@ import confirmPassIcon from './../../assets/confirm-pass.png';
 import finalLogo from './../../assets/final-remove.png';
 
 function UserRegister() {
-  const context = useContext(AppSettings);
   const [redirect, setRedirect] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -20,34 +18,18 @@ function UserRegister() {
     password: '',
     password_confirmation: ''
   });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors]                       = useState({});
+  const [loading, setLoading]                     = useState(false);
+  const [showPassword, setShowPassword]           = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    context.handleSetAppSidebarNone(true);
-    context.handleSetAppHeaderNone(true);
-    context.handleSetAppContentClass('p-0');
-    return () => {
-      context.handleSetAppSidebarNone(false);
-      context.handleSetAppHeaderNone(false);
-      context.handleSetAppContentClass('');
-    };
-    // eslint-disable-next-line
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const validateForm = () => {
     const newErrors = {};
@@ -79,14 +61,11 @@ function UserRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setLoading(true);
     setErrors({});
     try {
-      const response = await api.post('/auth/register', formData);
+      await api.post('/auth/register', formData);
       setRedirect(true);
     } catch (error) {
       if (error.response?.data?.errors) {
@@ -103,9 +82,7 @@ function UserRegister() {
     }
   };
 
-  if (redirect) {
-    return <Navigate to='/login' />;
-  }
+  if (redirect) return <Navigate to='/login' />;
 
   return (
     <div className={styles.pageContainer}>
@@ -119,33 +96,24 @@ function UserRegister() {
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
-            <path
-              key={`pink-${i}`}
-              className={styles.wavePath}
+            <path key={`pink-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
               d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
-              fill="none"
-              strokeWidth="1.2"
+              fill="none" strokeWidth="1.2"
             />
           ))}
           {[...Array(18)].map((_, i) => (
-            <path
-              key={`cyan-${i}`}
-              className={styles.wavePath}
+            <path key={`cyan-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
               d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
-              fill="none"
-              strokeWidth="1.2"
+              fill="none" strokeWidth="1.2"
             />
           ))}
           {[...Array(10)].map((_, i) => (
-            <path
-              key={`purple-${i}`}
-              className={styles.wavePath}
+            <path key={`purple-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
               d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
-              fill="none"
-              strokeWidth="1"
+              fill="none" strokeWidth="1"
             />
           ))}
         </svg>
@@ -155,7 +123,7 @@ function UserRegister() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <a href="#" className={styles.navLink}>About</a>
+          <Link to="/about" className={styles.navLink}>About</Link>
           <a href="#" className={styles.navLink}>Solutions</a>
           <a href="#" className={styles.navLink}>Pricing</a>
           <a href="#" className={styles.navLink}>FAQ</a>
@@ -164,7 +132,8 @@ function UserRegister() {
 
       {/* Main Content */}
       <div className={styles.mainContent}>
-        {/* Left hero */}
+
+        {/* Left Hero */}
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -181,7 +150,7 @@ function UserRegister() {
           </div>
         </div>
 
-        {/* Right register card */}
+        {/* Right Register Card */}
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -218,6 +187,7 @@ function UserRegister() {
                     placeholder="Enter your username"
                     disabled={loading}
                     autoComplete="username"
+                    autoFocus
                   />
                 </div>
                 {errors.username && <span className={styles.errorText}>{errors.username}</span>}
@@ -242,9 +212,8 @@ function UserRegister() {
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
               </div>
 
-              {/* Two-column row for passwords */}
+              {/* Two-column password row */}
               <div className={styles.formRow}>
-                {/* Password */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Password</label>
                   <div className={styles.inputContainer}>
@@ -259,20 +228,13 @@ function UserRegister() {
                       disabled={loading}
                       autoComplete="new-password"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={styles.eyeButton}
-                      tabIndex={-1}
-                      disabled={loading}
-                    >
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className={styles.eyeButton} tabIndex={-1} disabled={loading}>
                       <img src={showPassword ? hideIcon : eyeIcon} alt={showPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
                     </button>
                   </div>
                   {errors.password && <span className={styles.errorText}>{errors.password}</span>}
                 </div>
 
-                {/* Confirm Password */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Confirm password</label>
                   <div className={styles.inputContainer}>
@@ -287,13 +249,7 @@ function UserRegister() {
                       disabled={loading}
                       autoComplete="new-password"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className={styles.eyeButton}
-                      tabIndex={-1}
-                      disabled={loading}
-                    >
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className={styles.eyeButton} tabIndex={-1} disabled={loading}>
                       <img src={showConfirmPassword ? hideIcon : eyeIcon} alt={showConfirmPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
                     </button>
                   </div>
@@ -304,10 +260,7 @@ function UserRegister() {
               {/* Submit */}
               <button type="submit" disabled={loading} className={styles.submitButton}>
                 {loading ? (
-                  <>
-                    <div className={styles.buttonSpinner}></div>
-                    Creating Account...
-                  </>
+                  <><div className={styles.buttonSpinner}></div>Creating Account...</>
                 ) : (
                   'Create Account'
                 )}

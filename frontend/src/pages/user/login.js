@@ -1,6 +1,5 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { AppSettings } from '../../config/app-settings.js';
 import api from '../../services/api.js';
 import styles from './login.module.css';
 import emailIcon from './../../assets/email.png';
@@ -10,47 +9,29 @@ import hideIcon from './../../assets/hide.png';
 import finalLogo from './../../assets/final-remove.png';
 
 function UserLogin() {
-  const context = useContext(AppSettings);
-  const [redirect, setRedirect] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [redirect, setRedirect]         = useState(false);
+  const [formData, setFormData]         = useState({ email: '', password: '' });
+  const [errors, setErrors]             = useState({});
+  const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    context.handleSetAppSidebarNone(true);
-    context.handleSetAppHeaderNone(true);
-    context.handleSetAppContentClass('p-0');
-    return () => {
-      context.handleSetAppSidebarNone(false);
-      context.handleSetAppHeaderNone(false);
-      context.handleSetAppContentClass('');
-    };
-    // eslint-disable-next-line
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!formData.email.trim()) newErrors.email    = 'Email is required';
+    if (!formData.password)     newErrors.password = 'Password is required';
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setLoading(true);
     setErrors({});
     try {
@@ -74,9 +55,7 @@ function UserLogin() {
     }
   };
 
-  if (redirect) {
-    return <Navigate to='/dashboard' />;
-  }
+  if (redirect) return <Navigate to='/dashboard' />;
 
   return (
     <div className={styles.pageContainer}>
@@ -89,37 +68,25 @@ function UserLogin() {
       {/* Animated SVG Background */}
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          {/* Pink/Magenta wave cluster - left-center */}
           {[...Array(18)].map((_, i) => (
-            <path
-              key={`pink-${i}`}
-              className={styles.wavePath}
+            <path key={`pink-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
               d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
-              fill="none"
-              strokeWidth="1.2"
+              fill="none" strokeWidth="1.2"
             />
           ))}
-          {/* Cyan/Blue wave cluster - bottom right */}
           {[...Array(18)].map((_, i) => (
-            <path
-              key={`cyan-${i}`}
-              className={styles.wavePath}
+            <path key={`cyan-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
               d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
-              fill="none"
-              strokeWidth="1.2"
+              fill="none" strokeWidth="1.2"
             />
           ))}
-          {/* Subtle purple mid waves */}
           {[...Array(10)].map((_, i) => (
-            <path
-              key={`purple-${i}`}
-              className={styles.wavePath}
+            <path key={`purple-${i}`} className={styles.wavePath}
               style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
               d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
-              fill="none"
-              strokeWidth="1"
+              fill="none" strokeWidth="1"
             />
           ))}
         </svg>
@@ -127,19 +94,19 @@ function UserLogin() {
 
       {/* Top Navigation Bar */}
       <div className={styles.topBar}>
-        <div className={styles.topBarLogo}>
-        </div>
+        <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <a href="#" className={styles.navLink}>About</a>
+          <Link to="/about"   className={styles.navLink}>About</Link>
           <a href="#" className={styles.navLink}>Solutions</a>
           <a href="#" className={styles.navLink}>Pricing</a>
           <a href="#" className={styles.navLink}>FAQ</a>
         </nav>
       </div>
 
-      {/* Main Content — split layout */}
+      {/* Main Content */}
       <div className={styles.mainContent}>
-        {/* Left hero text */}
+
+        {/* Left Hero */}
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -153,11 +120,11 @@ function UserLogin() {
           </p>
           <div className={styles.heroActions}>
             <Link to="/register" className={styles.heroBtnPrimary}>Get Started</Link>
-            <a href="#" className={styles.heroBtnOutline}>Learn More</a>
+            <Link to="/about"    className={styles.heroBtnOutline}>Learn More</Link>
           </div>
         </div>
 
-        {/* Right login card */}
+        {/* Right Login Card */}
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -191,9 +158,10 @@ function UserLogin() {
                     value={formData.email}
                     onChange={handleChange}
                     className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
-                    placeholder="you@company.com"
+                    placeholder="you@example.com"
                     disabled={loading}
                     autoComplete="email"
+                    autoFocus
                   />
                 </div>
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
@@ -221,27 +189,16 @@ function UserLogin() {
                     tabIndex={-1}
                     disabled={loading}
                   >
-                    <img
-                      src={showPassword ? hideIcon : eyeIcon}
-                      alt={showPassword ? 'hide' : 'show'}
-                      className={styles.eyeIcon}
-                    />
+                    <img src={showPassword ? hideIcon : eyeIcon} alt={showPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
                   </button>
                 </div>
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
 
               {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className={styles.submitButton}
-              >
+              <button type="submit" disabled={loading} className={styles.submitButton}>
                 {loading ? (
-                  <>
-                    <div className={styles.buttonSpinner}></div>
-                    Signing In...
-                  </>
+                  <><div className={styles.buttonSpinner}></div>Signing In...</>
                 ) : (
                   'Sign In'
                 )}
