@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
 import styles from './login.module.css';
@@ -134,7 +134,7 @@ function AdminLogin() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <a href="#" className={styles.navLink}>About</a>
+          <Link to="/about" className={styles.navLink}>About</Link>
           <a href="#" className={styles.navLink}>Solutions</a>
           <a href="#" className={styles.navLink}>Pricing</a>
           <a href="#" className={styles.navLink}>FAQ</a>
@@ -156,7 +156,6 @@ function AdminLogin() {
             Your AI learning companion —<br />
             turning knowledge into a game.
           </p>
-          {/* Security notice inline */}
           <div className={styles.securityNotice}>
             <img src={infoIcon} alt="info" className={styles.noticeIcon} />
             <span>Secure area. All activities are monitored and logged.</span>
@@ -240,7 +239,6 @@ function AdminLogin() {
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
 
-              {/* Attempts indicator */}
               {attempts > 0 && !locked && (
                 <div className={styles.attemptsWarning}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
@@ -250,17 +248,13 @@ function AdminLogin() {
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading || locked}
                 className={`${styles.submitButton} ${locked ? styles.submitButtonLocked : ''}`}
               >
                 {loading ? (
-                  <>
-                    <div className={styles.buttonSpinner}></div>
-                    Authenticating...
-                  </>
+                  <><div className={styles.buttonSpinner}></div>Authenticating...</>
                 ) : locked ? (
                   <>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,7 +275,7 @@ function AdminLogin() {
               <div className={styles.linksSection}>
                 <span className={styles.registerPrompt}>
                   Not an admin?{' '}
-                  <a href="/login" className={styles.registerLink}>Go to user login</a>
+                  <Link to="/login" className={styles.registerLink}>Go to user login</Link>
                 </span>
               </div>
             </form>
