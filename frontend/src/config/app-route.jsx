@@ -105,6 +105,8 @@ const AppRoute = [
       { path: 'solutions', element: <Solutions /> }, 
       { path: 'pricing',   element: <Pricing /> },
       { path: 'faq', element: <FAQ /> },
+      { path: 'privacy', element: <Legal /> },
+      { path: 'terms',   element: <Legal /> },
       { path: 'dashboard', element: <PrivateRoute><UserDashboard /></PrivateRoute> },
     ]
   },
