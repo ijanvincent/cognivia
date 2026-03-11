@@ -8,6 +8,7 @@ import lockIcon from './../../assets/lock.png';
 import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 import infoIcon from './../../assets/info.png';
+import finalLogo from './../../assets/final-remove.png';
 
 function AdminLogin() {
   const context = useContext(AppSettings);
@@ -90,115 +91,202 @@ function AdminLogin() {
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.loginCard}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.logoSection}>
-            <div className={styles.logoIcon}>C</div>
-            <div className={styles.titleSection}>
-              <h1 className={styles.systemTitle}>Cognivia</h1>
-              <p className={styles.systemSubtitle}>Admin Portal</p>
-            </div>
-          </div>
-          <div className={styles.securityBadgeAdmin}>
-            Authorized Access Only
+      {loading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner}></div>
+        </div>
+      )}
+
+      {/* Animated SVG Background */}
+      <div className={styles.bgCanvas}>
+        <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          {[...Array(18)].map((_, i) => (
+            <path
+              key={`pink-${i}`}
+              className={styles.wavePath}
+              style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
+              d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
+              fill="none" strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(18)].map((_, i) => (
+            <path
+              key={`cyan-${i}`}
+              className={styles.wavePath}
+              style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
+              d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
+              fill="none" strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(10)].map((_, i) => (
+            <path
+              key={`purple-${i}`}
+              className={styles.wavePath}
+              style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
+              d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
+              fill="none" strokeWidth="1"
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* Top Navigation Bar */}
+      <div className={styles.topBar}>
+        <div className={styles.topBarLogo}></div>
+        <nav className={styles.topBarNav}>
+          <a href="#" className={styles.navLink}>About</a>
+          <a href="#" className={styles.navLink}>Solutions</a>
+          <a href="#" className={styles.navLink}>Pricing</a>
+          <a href="#" className={styles.navLink}>FAQ</a>
+        </nav>
+      </div>
+
+      {/* Main Content — split layout */}
+      <div className={styles.mainContent}>
+
+        {/* Left Hero */}
+        <div className={styles.heroSection}>
+          <div className={styles.heroDivider}></div>
+          <h1 className={styles.heroTitle}>
+            <span className={styles.heroTitleLight}>Secure</span>
+            <span className={styles.heroTitleBold}><span className={styles.heroAccent}>Control.</span></span>
+            <span className={styles.heroTitleSub}>Admin access.</span>
+          </h1>
+          <p className={styles.heroSubtext}>
+            Your AI learning companion —<br />
+            turning knowledge into a game.
+          </p>
+          {/* Security notice inline */}
+          <div className={styles.securityNotice}>
+            <img src={infoIcon} alt="info" className={styles.noticeIcon} />
+            <span>Secure area. All activities are monitored and logged.</span>
           </div>
         </div>
 
-
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {errors.general && (
-            <div className={styles.errorAlert}>
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span>{errors.general}</span>
+        {/* Right Admin Card */}
+        <div className={styles.cardWrapper}>
+          <div className={styles.loginCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardHeaderRow}>
+                <div>
+                  <h2 className={styles.cardTitle}>Admin Portal</h2>
+                  <p className={styles.cardSubtitle}>Authorized personnel only</p>
+                </div>
+                <img src={finalLogo} alt="CogniVia" className={styles.cardLogo} />
+              </div>
+              <div className={styles.securityBadge}>
+                <span className={styles.securityDot}></span>
+                Authorized Access Only
+              </div>
             </div>
-          )}
 
-          {/* Email Field */}
-          <div className={styles.formGroup}>
-            <div className={styles.inputContainer}>
-              <img src={emailIcon} alt="email" className={styles.inputIcon} />
-              <input
-                type="email"
-                value={email}
-                onChange={e => { setEmail(e.target.value); if(errors.email) setErrors(p => ({...p, email: null})); }}
-                className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
-                placeholder="Admin email address"
-                disabled={loading || locked}
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-            {errors.email && <span className={styles.errorText}>{errors.email}</span>}
-          </div>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              {errors.general && (
+                <div className={styles.errorAlert}>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                    <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                  </svg>
+                  <span>{errors.general}</span>
+                </div>
+              )}
 
-          {/* Password Field */}
-          <div className={styles.formGroup}>
-            <div className={styles.inputContainer}>
-              <img src={lockIcon} alt="lock" className={styles.inputIcon} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => { setPassword(e.target.value); if(errors.password) setErrors(p => ({...p, password: null})); }}
-                className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
-                placeholder="Admin password"
-                disabled={loading || locked}
-                autoComplete="current-password"
-              />
+              {/* Email */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Admin Email</label>
+                <div className={styles.inputContainer}>
+                  <img src={emailIcon} alt="" className={styles.inputIcon} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(p => ({ ...p, email: null })); }}
+                    className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
+                    placeholder="Admin email address"
+                    disabled={loading || locked}
+                    autoComplete="email"
+                    autoFocus
+                  />
+                </div>
+                {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+              </div>
+
+              {/* Password */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Admin Password</label>
+                <div className={styles.inputContainer}>
+                  <img src={lockIcon} alt="" className={styles.inputIcon} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => { setPassword(e.target.value); if (errors.password) setErrors(p => ({ ...p, password: null })); }}
+                    className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
+                    placeholder="Admin password"
+                    disabled={loading || locked}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={styles.eyeButton}
+                    tabIndex={-1}
+                    disabled={loading || locked}
+                  >
+                    <img
+                      src={showPassword ? hideIcon : eyeIcon}
+                      alt={showPassword ? 'hide' : 'show'}
+                      className={styles.eyeIcon}
+                    />
+                  </button>
+                </div>
+                {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+              </div>
+
+              {/* Attempts indicator */}
+              {attempts > 0 && !locked && (
+                <div className={styles.attemptsWarning}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  {3 - attempts} attempt{3 - attempts !== 1 ? 's' : ''} remaining before lockout
+                </div>
+              )}
+
+              {/* Submit */}
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className={styles.eyeButton}
-                tabIndex={-1}
+                type="submit"
                 disabled={loading || locked}
+                className={`${styles.submitButton} ${locked ? styles.submitButtonLocked : ''}`}
               >
-                <img
-                  src={showPassword ? hideIcon : eyeIcon}
-                  alt={showPassword ? 'hide' : 'show'}
-                  className={styles.eyeIcon}
-                />
+                {loading ? (
+                  <>
+                    <div className={styles.buttonSpinner}></div>
+                    Authenticating...
+                  </>
+                ) : locked ? (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                    Account Locked
+                  </>
+                ) : (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                    Access Admin Panel
+                  </>
+                )}
               </button>
-            </div>
-            {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+
+              <div className={styles.linksSection}>
+                <span className={styles.registerPrompt}>
+                  Not an admin?{' '}
+                  <a href="/login" className={styles.registerLink}>Go to user login</a>
+                </span>
+              </div>
+            </form>
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading || locked}
-            className={styles.submitButtonAdmin}
-          >
-            {loading ? (
-              <>
-                <div className={styles.buttonSpinner}></div>
-                Authenticating...
-              </>
-            ) : locked ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-                Account Locked
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-                Access Admin Panel
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      {/* Security Notice */}
-      <div className={styles.securityNotice}>
-        <img src={infoIcon} alt="info" className={styles.noticeIcon} />
-        <span>Secure access area. All activities are monitored and logged.</span>
+        </div>
       </div>
     </div>
   );

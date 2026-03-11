@@ -352,8 +352,8 @@
 }
 
 .cardLogo {
-  width: 74px;
-  height: 74px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   flex-shrink: 0;
 }
