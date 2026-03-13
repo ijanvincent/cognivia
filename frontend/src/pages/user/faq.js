@@ -117,19 +117,19 @@ export default function FAQ() {
       items: [
         {
           q: 'What is CogniVia?',
-          a: 'CogniVia is an AI-powered interactive learning companion that turns knowledge into an engaging, gamified experience. It combines adaptive trivia games, AI-powered document scanning, progress analytics, and multiplayer challenges to make learning fun and effective for students, professionals, and lifelong learners.',
+          a: 'CogniVia is an AI-powered interactive learning companion that turns knowledge into an engaging, gamified experience. It combines adaptive trivia games, smart flashcards with spaced repetition, progress analytics, and multiplayer challenges to make learning fun and effective for students, professionals, and lifelong learners.',
         },
         {
           q: 'How do I create an account?',
-          a: 'Click "Get Started Free" on any page and fill in your username, email, and password. Your account is activated instantly — no email verification wait time. You\'ll be taken directly to your learning dashboard where you can start your first trivia session right away.',
+          a: 'Click "Get Started Free" on any page and fill in your username, email, and password. Your account is activated instantly — no email verification wait. You\'ll land directly on your learning dashboard where you can start your first trivia session right away.',
         },
         {
           q: 'Is CogniVia free to use?',
-          a: 'Yes! CogniVia has a generous free plan that includes 50 topic categories, 5 AI scans per month, basic progress tracking, and access to public multiplayer rooms. For unlimited access, our Pro plan starts at $9/month. You can upgrade anytime from your account settings.',
+          a: 'Yes — CogniVia is completely free. You get full access to all core features including 500+ trivia topics, smart flashcard review, progress analytics, and multiplayer modes from the moment you sign up.',
         },
         {
           q: 'What devices and platforms does CogniVia support?',
-          a: 'CogniVia is fully web-based and works on any modern browser — Chrome, Firefox, Safari, and Edge — on desktop, tablet, and mobile. No app download is required. A native mobile app is on our roadmap for a future release.',
+          a: 'CogniVia is fully web-based and works on any modern browser — Chrome, Firefox, Safari, and Edge — on desktop, tablet, and mobile. No app download is required. A native mobile app is planned for a future release.',
         },
       ],
     },
@@ -143,19 +143,19 @@ export default function FAQ() {
       items: [
         {
           q: 'How does the adaptive difficulty system work?',
-          a: 'Our AI engine tracks your answer accuracy, response time, and topic history in real-time. If you answer correctly quickly, difficulty increases. If you struggle, it eases back and reinforces fundamentals. This keeps you in the optimal learning zone — challenged but never overwhelmed — maximizing knowledge retention.',
+          a: 'Our AI engine tracks your answer accuracy, response time, and topic history in real-time. If you answer correctly and quickly, difficulty increases. If you struggle, it eases back and reinforces fundamentals. This keeps you in the optimal learning zone — challenged but never overwhelmed.',
         },
         {
           q: 'What subjects and topics are available?',
-          a: 'Free users get access to 50 topic categories spanning science, history, geography, technology, arts, literature, and more. Pro users unlock 500+ categories including niche subjects, professional certifications, and specialized domains. We add new topic packs every month.',
+          a: 'CogniVia offers 500+ topic categories spanning science, history, geography, technology, arts, literature, mathematics, and more. We add new topic packs regularly based on learner requests and curriculum relevance.',
         },
         {
           q: 'Can I create my own custom question sets?',
-          a: 'Yes — Pro and Enterprise users can create unlimited custom question banks. You can write questions manually, import from spreadsheets, or use our AI Scanner to generate questions from your own materials. Custom sets can be kept private, shared with your team, or published to the community.',
+          a: 'Yes — you can create unlimited custom question banks. Write questions manually or build them from your own study notes. Custom sets can be kept private for solo study, shared with teammates, or published to the CogniVia community.',
         },
         {
-          q: 'How does the AI Scanner generate questions from my materials?',
-          a: 'Point your camera at any textbook, article, whiteboard, or handwritten notes — or upload a PDF or image. Our computer vision and NLP models read the content and automatically generate relevant trivia questions, multiple-choice options, and flashcards. Free users get 5 scans per month; Pro users get unlimited scans.',
+          q: 'What are Smart Flashcards and how do they work?',
+          a: 'Smart Flashcards are auto-generated from your trivia sessions. Questions you answered incorrectly or hesitated on become flashcards. These are then scheduled using spaced repetition — an evidence-based technique that surfaces cards right before you\'re likely to forget them, dramatically improving long-term retention.',
         },
       ],
     },
@@ -169,41 +169,37 @@ export default function FAQ() {
       items: [
         {
           q: 'How do live multiplayer trivia battles work?',
-          a: 'In a live battle, two players are matched in real-time and given the same questions simultaneously. Points are awarded for correct answers and speed. Matches typically last 5–10 minutes. Free users can join public rooms; Pro users can create private rooms and invite specific friends or teammates.',
+          a: 'In a live battle, two players are matched in real-time and given the same questions simultaneously. Points are awarded for correct answers and speed. Matches typically last 5–10 minutes. You can join public rooms or create private rooms to challenge specific friends.',
         },
         {
           q: 'How do leaderboards work?',
-          a: 'There are global, topic-specific, and friend leaderboards. Your rank is calculated from your cumulative XP earned across all trivia sessions, scans, and battles. Leaderboards reset monthly, giving everyone a fresh chance to climb. Pro users also get access to private team leaderboards.',
+          a: 'There are global, topic-specific, and friend leaderboards. Your rank is calculated from your cumulative XP earned across all trivia sessions and battles. Leaderboards reset monthly, giving everyone a fresh chance to climb.',
         },
         {
           q: 'Can I challenge a specific friend?',
-          a: 'Yes — on Pro and Enterprise plans you can send direct challenge invites to any CogniVia user via their username or a shareable link. Challenges can be set with a specific topic, difficulty, and question count. The result is shared to both players\' profiles automatically.',
+          a: 'Yes — you can send direct challenge invites to any CogniVia user via their username or a shareable link. Challenges can be set with a specific topic, difficulty, and question count. Results are posted to both players\' profiles automatically.',
         },
       ],
     },
     {
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          <path d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
-      title: 'Plans & Billing',
+      title: 'Progress & Analytics',
       items: [
         {
-          q: 'Can I switch or cancel my plan at any time?',
-          a: 'Absolutely. You can upgrade, downgrade, or cancel from your account settings at any time with no penalties. Upgrades take effect immediately and are prorated. Downgrades take effect at the end of your current billing period. Cancelled accounts retain access until the period ends.',
+          q: 'How is my progress tracked?',
+          a: 'Every session feeds your analytics dashboard in real-time. You can view accuracy by topic, daily and weekly streaks, total XP earned, badge milestones, and a full history of your improvement over time. The dashboard also highlights your weakest areas and recommends what to study next.',
         },
         {
-          q: 'Is there a free trial for Pro?',
-          a: 'Yes — Pro comes with a 14-day free trial, no credit card required. You get full access to all Pro features during the trial. After 14 days, you\'ll be prompted to enter payment details to continue. If you don\'t subscribe, your account reverts to the Free plan with no data loss.',
+          q: 'What are XP and badges?',
+          a: 'XP (experience points) are earned for completing trivia sessions, answering correctly, maintaining streaks, and winning multiplayer battles. Badges are milestone achievements — like "First Win," "7-Day Streak," or "Topic Master" — that appear on your public profile and showcase your expertise.',
         },
         {
-          q: 'Do you offer student or nonprofit discounts?',
-          a: 'Yes. We offer a 50% discount for verified students (with a valid .edu email or student ID) and registered nonprofit organizations. Contact our support team with proof of eligibility and the discount will be applied to your account within 24 hours.',
-        },
-        {
-          q: 'What payment methods do you accept?',
-          a: 'We accept all major credit and debit cards (Visa, Mastercard, American Express), PayPal, and bank transfers for Enterprise plans. All payments are processed securely through Stripe. We never store your full card details on our servers.',
+          q: 'Can I see where I\'m weakest?',
+          a: 'Yes — CogniVia automatically identifies topic areas where your accuracy is below average and surfaces them in your dashboard. The adaptive engine also naturally steers more questions toward your weak spots during sessions, reinforcing them until your score improves.',
         },
       ],
     },
@@ -217,11 +213,11 @@ export default function FAQ() {
       items: [
         {
           q: 'How is my personal data handled?',
-          a: 'Your data belongs to you. We collect only what\'s necessary to provide the service — your email, username, and learning activity. We never sell, rent, or share your personal data with third parties for advertising. All data is encrypted at rest and in transit using AES-256 and TLS 1.3.',
+          a: 'Your data belongs to you. We collect only what\'s necessary to provide the service — your email, username, and learning activity. We never sell, rent, or share your personal data with third parties. All data is encrypted at rest and in transit using AES-256 and TLS 1.3.',
         },
         {
           q: 'What happens to my data if I delete my account?',
-          a: 'When you delete your account, all personal data including your profile, progress, custom question sets, and payment history is permanently deleted within 30 days. Anonymized, aggregated usage statistics (which cannot identify you) may be retained for product analytics.',
+          a: 'When you delete your account, all personal data including your profile, progress, custom question sets, and activity history is permanently deleted within 30 days. Anonymized, aggregated usage statistics that cannot identify you may be retained for product improvement.',
         },
         {
           q: 'Is CogniVia GDPR and COPPA compliant?',
@@ -261,10 +257,10 @@ export default function FAQ() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <Link to="/about"     className={styles.navLink}>About</Link>
-          <Link to="/solutions" className={styles.navLink}>Solutions</Link>
-          <Link to="/pricing"   className={styles.navLink}>Pricing</Link>
-          <Link to="/faq"       className={`${styles.navLink} ${styles.navActive}`}>FAQ</Link>
+          <Link to="/about"      className={styles.navLink}>About</Link>
+          <Link to="/solutions"  className={styles.navLink}>Solutions</Link>
+          <Link to="/howitworks" className={styles.navLink}>How It Works</Link>
+          <Link to="/faq"        className={`${styles.navLink} ${styles.navActive}`}>FAQ</Link>
         </nav>
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
@@ -282,7 +278,7 @@ export default function FAQ() {
         </h1>
         <p className={styles.heroBody}>
           Everything you need to know about CogniVia — from getting started to
-          advanced features, billing, and privacy.
+          advanced features, progress tracking, and privacy.
         </p>
 
         {/* Search Bar */}
@@ -366,7 +362,7 @@ export default function FAQ() {
             </div>
             <div>
               <span className={styles.helpItemTitle}>Live Chat</span>
-              <span className={styles.helpItemDesc}>Available Mon–Fri, 9am–6pm EST for Pro users.</span>
+              <span className={styles.helpItemDesc}>Available Mon–Fri, 9am–6pm EST.</span>
             </div>
           </div>
           <div className={styles.helpDivider}></div>
@@ -401,7 +397,7 @@ export default function FAQ() {
           </p>
           <div className={styles.ctaActions}>
             <Link to="/register" className={styles.btnPrimary}>Get Started Free →</Link>
-            <Link to="/pricing"  className={styles.btnOutline}>View Pricing</Link>
+            <Link to="/howitworks"  className={styles.btnOutline}>How It Works</Link>
           </div>
         </div>
       </section>
