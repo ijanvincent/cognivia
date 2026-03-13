@@ -17,7 +17,7 @@ function useInView(threshold = 0.12) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background (same as all pages) ── */
+/* ── Wave SVG Background ── */
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -88,8 +88,7 @@ function getSolutionIcon(num) {
     ),
     '02': (
       <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-        <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-        <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
       </svg>
     ),
     '03': (
@@ -106,15 +105,15 @@ function getSolutionIcon(num) {
   return icons[num] || null;
 }
 
-/* ── Comparison Table Row ── */
-function CompareRow({ label, free, pro, enterprise, delay }) {
+/* ── Feature Comparison Row ── */
+function CompareRow({ label, starter, advanced, master, delay }) {
   const [ref, inView] = useInView();
   return (
     <div ref={ref} className={`${styles.compareRow} ${inView ? styles.visible : ''}`} style={{ transitionDelay: delay }}>
       <span className={styles.compareLabel}>{label}</span>
-      <span className={styles.compareCell}>{free}</span>
-      <span className={`${styles.compareCell} ${styles.compareCellPro}`}>{pro}</span>
-      <span className={styles.compareCell}>{enterprise}</span>
+      <span className={styles.compareCell}>{starter}</span>
+      <span className={`${styles.compareCell} ${styles.compareCellPro}`}>{advanced}</span>
+      <span className={styles.compareCell}>{master}</span>
     </div>
   );
 }
@@ -132,7 +131,7 @@ export default function Solutions() {
     learners: {
       title: 'For Individual Learners',
       desc: 'Whether you\'re a student, professional, or lifelong learner, CogniVia adapts to your pace and goals — turning any free moment into a productive learning session.',
-      points: ['Self-paced trivia across 500+ topics', 'AI-generated quizzes from your own materials', 'Daily streaks and XP rewards', 'Personal progress dashboard'],
+      points: ['Self-paced trivia across 500+ topics', 'Smart flashcard review with spaced repetition', 'Daily streaks and XP rewards', 'Personal progress dashboard'],
     },
     educators: {
       title: 'For Educators & Teachers',
@@ -141,8 +140,8 @@ export default function Solutions() {
     },
     teams: {
       title: 'For Teams & Organizations',
-      desc: 'Deploy CogniVia across your organization to reinforce training, onboarding knowledge, and compliance understanding through engaging, measurable trivia.',
-      points: ['Team leaderboards & competitions', 'Custom branding & white-labeling', 'Admin controls & reporting', 'SSO & enterprise integrations'],
+      desc: 'Deploy CogniVia across your organization to reinforce training, onboarding knowledge, and team learning through engaging, measurable trivia.',
+      points: ['Team leaderboards & competitions', 'Collaborative learning sessions', 'Admin controls & reporting', 'Shared progress dashboards'],
     },
   };
 
@@ -154,10 +153,10 @@ export default function Solutions() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <Link to="/about"     className={styles.navLink}>About</Link>
-          <Link to="/solutions" className={`${styles.navLink} ${styles.navActive}`}>Solutions</Link>
-          <Link to="/pricing"   className={styles.navLink}>Pricing</Link>
-          <Link to="/faq"       className={styles.navLink}>FAQ</Link>
+          <Link to="/about"       className={styles.navLink}>About</Link>
+          <Link to="/solutions"   className={`${styles.navLink} ${styles.navActive}`}>Solutions</Link>
+          <Link to="/howitworks"  className={styles.navLink}>How It Works</Link>
+          <Link to="/faq"         className={styles.navLink}>FAQ</Link>
         </nav>
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
@@ -175,7 +174,7 @@ export default function Solutions() {
         </h1>
         <p className={styles.heroBody}>
           CogniVia delivers a full suite of AI-powered learning tools — from gamified trivia
-          and intelligent scanning to deep analytics and team competitions.
+          and smart flashcards to deep analytics and team competitions.
         </p>
       </section>
 
@@ -246,10 +245,10 @@ export default function Solutions() {
           <SolutionCard
             number="02" delay="0.05s" flip={true}
             accent="rgba(232,121,249,0.9)"
-            title="AI Scanner & Generator"
-            subtitle="Scan Anything. Learn Instantly."
-            body="Point your camera at any textbook, article, whiteboard, or handwritten note. Our AI reads the content and instantly generates relevant trivia questions, flash cards, and learning exercises — turning any resource into a quiz."
-            features={['Image & document scanning', 'Multi-language support', 'Auto-generated flashcards', 'PDF & photo import']}
+            title="Smart Flashcard System"
+            subtitle="Review Smarter. Remember Longer."
+            body="Powered by spaced repetition science, CogniVia automatically generates flashcards from your trivia sessions and quiz history. Cards surface at the perfect moment before you forget — dramatically improving long-term retention with less effort."
+            features={['Auto-generated from your sessions', 'Spaced repetition scheduling', 'Topic-based card collections', 'Confidence self-rating system']}
           />
           <SolutionCard
             number="03" delay="0.05s" flip={false}
@@ -271,40 +270,46 @@ export default function Solutions() {
       </section>
 
       {/* ═══════════════════════════════════════
-          COMPARISON TABLE
+          FEATURE COMPARISON TABLE
+          (replaces billing comparison — now shows
+           feature depth across learning modes)
       ═══════════════════════════════════════ */}
       <section ref={compareRef} className={`${styles.compareSection} ${compareIn ? styles.visible : ''}`}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionEyebrow}>Compare Plans</span>
+          <span className={styles.sectionEyebrow}>Learning Modes</span>
           <h2 className={styles.sectionTitle}>
-            Find the Right <span className={styles.gradientText}>Fit for You</span>
+            Find Your <span className={styles.gradientText}>Learning Style</span>
           </h2>
+          <p style={{ fontSize: '15px', color: 'rgba(241,245,249,0.55)', fontWeight: 300, lineHeight: 1.75 }}>
+            CogniVia adapts to how you learn best. Whether you prefer solo deep dives, flashcard
+            review, or competitive play — there's a mode built for you.
+          </p>
         </div>
 
         <div className={styles.compareTable}>
           {/* Header */}
           <div className={`${styles.compareRow} ${styles.compareHeader}`}>
             <span className={styles.compareLabel}>Feature</span>
-            <span className={styles.compareCell}>Free</span>
+            <span className={styles.compareCell}>Solo Mode</span>
             <span className={`${styles.compareCell} ${styles.compareCellPro}`}>
-              Pro
-              <span className={styles.proTag}>Popular</span>
+              Study Mode
+              <span className={styles.proTag}>Recommended</span>
             </span>
-            <span className={styles.compareCell}>Enterprise</span>
+            <span className={styles.compareCell}>Battle Mode</span>
           </div>
 
-          <CompareRow label="Trivia Topics"          free="50 topics"      pro="500+ topics"    enterprise="Unlimited"     delay="0s"    />
-          <CompareRow label="AI Scanner"             free="5 scans/mo"     pro="Unlimited"      enterprise="Unlimited"     delay="0.05s" />
-          <CompareRow label="Progress Analytics"     free="Basic"          pro="Advanced"       enterprise="Full Suite"    delay="0.1s"  />
-          <CompareRow label="Multiplayer"            free="Public rooms"   pro="Private rooms"  enterprise="Custom rooms"  delay="0.15s" />
-          <CompareRow label="Custom Question Sets"   free="—"              pro="✓"              enterprise="✓"             delay="0.2s"  />
-          <CompareRow label="Team Management"        free="—"              pro="Up to 5"        enterprise="Unlimited"     delay="0.25s" />
-          <CompareRow label="Admin Dashboard"        free="—"              pro="—"              enterprise="✓"             delay="0.3s"  />
-          <CompareRow label="Priority Support"       free="—"              pro="Email"          enterprise="Dedicated"     delay="0.35s" />
+          <CompareRow label="Trivia Questions"       starter="All topics"        advanced="All topics"          master="All topics"        delay="0s"    />
+          <CompareRow label="Smart Flashcards"       starter="Basic review"      advanced="Spaced repetition"   master="Quick review"      delay="0.05s" />
+          <CompareRow label="Progress Tracking"      starter="Basic stats"       advanced="Full analytics"      master="Battle history"    delay="0.1s"  />
+          <CompareRow label="Difficulty Scaling"     starter="Manual"            advanced="AI-adaptive"         master="Opponent-matched"  delay="0.15s" />
+          <CompareRow label="Leaderboards"           starter="—"                 advanced="Topic boards"        master="Global boards"     delay="0.2s"  />
+          <CompareRow label="XP & Rewards"           starter="✓"                 advanced="✓"                   master="Bonus XP"          delay="0.25s" />
+          <CompareRow label="Study Streaks"          starter="✓"                 advanced="✓"                   master="✓"                 delay="0.3s"  />
+          <CompareRow label="Best For"               starter="Casual learning"   advanced="Deep retention"      master="Competitive fun"   delay="0.35s" />
         </div>
 
         <div className={styles.compareActions}>
-          <Link to="/pricing"  className={styles.btnOutline}>View Full Pricing</Link>
+          <Link to="/about"    className={styles.btnOutline}>Learn More</Link>
           <Link to="/register" className={styles.btnPrimary}>Start for Free →</Link>
         </div>
       </section>
