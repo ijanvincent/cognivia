@@ -21,7 +21,6 @@ function AdminLogin() {
   const [attempts, setAttempts]         = useState(0);
   const [locked, setLocked]             = useState(false);
 
-  // ── Use a ref so handleSubmit always reads the latest count synchronously
   const attemptsRef = useRef(0);
   const MAX_ATTEMPTS = 3;
 
@@ -47,7 +46,6 @@ function AdminLogin() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    // Guard: already locked
     if (locked) {
       setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
       return;
@@ -66,13 +64,11 @@ function AdminLogin() {
       const response = await api.post('/admin/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      // Reset on success
       attemptsRef.current = 0;
       setAttempts(0);
       setRedirect(true);
 
     } catch (err) {
-      // ── Increment ref first (synchronous), then sync state
       attemptsRef.current += 1;
       const currentAttempts = attemptsRef.current;
       setAttempts(currentAttempts);
@@ -134,10 +130,10 @@ function AdminLogin() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-          <Link to="/about"     className={styles.navLink}>About</Link>
-          <Link to="/solutions" className={styles.navLink}>Solutions</Link>
-          <Link to="/pricing"   className={styles.navLink}>Pricing</Link>
-          <Link to="/faq"       className={styles.navLink}>FAQ</Link>
+          <Link to="/about"      className={styles.navLink}>About</Link>
+          <Link to="/solutions"  className={styles.navLink}>Solutions</Link>
+          <Link to="/howitworks" className={styles.navLink}>How It Works</Link>
+          <Link to="/faq"        className={styles.navLink}>FAQ</Link>
         </nav>
       </div>
 
@@ -239,7 +235,7 @@ function AdminLogin() {
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
 
-              {/* Attempts warning — only show after first failure, before lockout */}
+              {/* Attempts warning */}
               {attempts > 0 && !locked && (
                 <div className={styles.attemptsWarning}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">

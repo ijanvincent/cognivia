@@ -51,20 +51,18 @@ function StepCard({ step, icon, title, body, accent, delay }) {
   return (
     <div
       ref={ref}
-      className={`${styles.pricingCard} ${inView ? styles.visible : ''}`}
+      className={`${styles.stepCard} ${inView ? styles.visible : ''}`}
       style={{ '--accent': accent, transitionDelay: delay }}
     >
-      <div className={styles.cardTop}>
-        <div className={styles.planIconWrap} style={{ background: `${accent}18`, borderColor: `${accent}33` }}>
+      <div className={styles.stepTop}>
+        <div className={styles.stepIconWrap} style={{ background: `${accent}18`, borderColor: `${accent}33`, color: accent }}>
           {icon}
         </div>
-        <span className={styles.planName}>{title}</span>
-        <p className={styles.planDesc}>{body}</p>
+        <span className={styles.stepNum}>{step}</span>
       </div>
-      <div className={styles.priceRow}>
-        <span className={styles.priceAmount}>{step}</span>
-      </div>
-      <div className={styles.divider} style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}></div>
+      <h3 className={styles.stepTitle}>{title}</h3>
+      <p className={styles.stepBody}>{body}</p>
+      <div className={styles.stepAccentLine} style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }}></div>
     </div>
   );
 }
@@ -196,14 +194,14 @@ export default function HowItWorks() {
       {/* ═══════════════════════════════════════
           3-STEP FLOW
       ═══════════════════════════════════════ */}
-      <section className={styles.plansSection}>
+      <section className={styles.stepsSection}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Your Journey</span>
           <h2 className={styles.sectionTitle}>
             Up & Running in <span className={styles.gradientText}>3 Steps</span>
           </h2>
         </div>
-        <div className={styles.plansGrid}>
+        <div className={styles.stepsGrid}>
           {steps.map((s, i) => (
             <StepCard key={i} {...s} delay={`${i * 0.1}s`} />
           ))}
