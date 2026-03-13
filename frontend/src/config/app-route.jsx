@@ -15,12 +15,11 @@ import UserDashboard from './../pages/user/dashboard.js';
 import UserLogin from './../pages/user/login.js';
 import UserRegister from './../pages/user/register.js';
 import About from './../pages/user/about.js';
-import Solutions from './../pages/user/solutions.js'; 
-import Pricing from './../pages/user/pricing.js'; 
+import Solutions from './../pages/user/solutions.js';
+import HowItWorks from './../pages/user/howitworks.js';
 import FAQ from './../pages/user/faq.js';
 import Legal from './../pages/user/legal.js';
 import Contact from './../pages/user/contact.js';
-
 
 import EmailInbox from './../pages/email/email-inbox.js';
 import EmailCompose from './../pages/email/email-compose.js';
@@ -98,17 +97,17 @@ const AppRoute = [
     path: '/',
     element: <UserLayout />,
     children: [
-      { path: '',          element: <Navigate to='/login' replace /> },
-      { path: 'login',     element: <UserLogin /> },
-      { path: 'register',  element: <UserRegister /> },
-      { path: 'about',     element: <About /> },
-      { path: 'solutions', element: <Solutions /> }, 
-      { path: 'pricing',   element: <Pricing /> },
-      { path: 'faq', element: <FAQ /> },
-      { path: 'privacy', element: <Legal /> },
-      { path: 'terms',   element: <Legal /> },
-      { path: 'contact', element: <Contact /> },
-      { path: 'dashboard', element: <PrivateRoute><UserDashboard /></PrivateRoute> },
+      { path: '',           element: <Navigate to='/login' replace /> },
+      { path: 'login',      element: <UserLogin /> },
+      { path: 'register',   element: <UserRegister /> },
+      { path: 'about',      element: <About /> },
+      { path: 'solutions',  element: <Solutions /> },
+      { path: 'howitworks', element: <HowItWorks /> },
+      { path: 'faq',        element: <FAQ /> },
+      { path: 'privacy',    element: <Legal /> },
+      { path: 'terms',      element: <Legal /> },
+      { path: 'contact',    element: <Contact /> },
+      { path: 'dashboard',  element: <PrivateRoute><UserDashboard /></PrivateRoute> },
     ]
   },
   {
