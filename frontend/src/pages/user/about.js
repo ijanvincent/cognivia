@@ -92,10 +92,10 @@ export default function About() {
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
-                    <Link to="/about"className={styles.navLink}>About</Link>
-                    <Link to="/solutions"className={styles.navLink}>Solutions</Link>
-                    <Link to="/pricing"className={styles.navLink}>Pricing</Link>
-                    <Link to="/faq"className={styles.navLink}>FAQ</Link>
+          <Link to="/about" className={styles.navLink}>About</Link>
+          <Link to="/solutions" className={styles.navLink}>Solutions</Link>
+          <Link to="/howitworks" className={styles.navLink}>How It Works</Link>
+          <Link to="/faq" className={styles.navLink}>FAQ</Link>
         </nav>
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
@@ -118,10 +118,10 @@ export default function About() {
 
         {/* Stats row */}
         <div className={styles.statsRow}>
-          <StatCard value={500}  suffix="+"  label="Topics Covered"      delay="0s"    />
-          <StatCard value={10}   suffix="K+" label="Active Learners"     delay="0.12s" />
-          <StatCard value={98}   suffix="%"  label="Satisfaction Rate"   delay="0.24s" />
-          <StatCard value={3}    suffix="x"  label="Faster Retention"    delay="0.36s" />
+          <StatCard value={500}  suffix="+"  label="Topics Covered"    delay="0s"    />
+          <StatCard value={10}   suffix="K+" label="Active Learners"   delay="0.12s" />
+          <StatCard value={98}   suffix="%"  label="Satisfaction Rate" delay="0.24s" />
+          <StatCard value={3}    suffix="x"  label="Faster Retention"  delay="0.36s" />
         </div>
       </section>
 
@@ -185,7 +185,7 @@ export default function About() {
         </div>
 
         <div className={styles.featuresGrid}>
-          <FeatureCard delay="0s"    accent="rgba(34,211,238,0.7)"
+          <FeatureCard delay="0s" accent="rgba(34,211,238,0.7)"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -194,17 +194,16 @@ export default function About() {
             title="Trivia Game Engine"
             body="Thousands of curated questions across science, history, tech, and more. Difficulty adapts in real-time to keep you in the optimal learning zone."
           />
-          <FeatureCard delay="0.1s"  accent="rgba(232,121,249,0.7)"
+          <FeatureCard delay="0.1s" accent="rgba(232,121,249,0.7)"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
               </svg>
             }
-            title="AI Scanner"
-            body="Point your camera at any textbook, article, or handwritten note. Our AI instantly generates relevant trivia, quizzes, and flash-cards from the content."
+            title="Smart Flashcards"
+            body="Auto-generated flashcards from your trivia sessions using spaced repetition science. Review the right material at the right time for maximum retention."
           />
-          <FeatureCard delay="0.2s"  accent="rgba(168,85,247,0.7)"
+          <FeatureCard delay="0.2s" accent="rgba(168,85,247,0.7)"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -213,7 +212,7 @@ export default function About() {
             title="Progress Analytics"
             body="Detailed dashboards show your strengths, knowledge gaps, and streaks. See exactly how your cognitive skills improve over time."
           />
-          <FeatureCard delay="0.3s"  accent="rgba(34,211,238,0.7)"
+          <FeatureCard delay="0.3s" accent="rgba(34,211,238,0.7)"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
@@ -222,7 +221,7 @@ export default function About() {
             title="Personalized Learning"
             body="Your skill profile evolves with every session. CogniVia recommends the right topics at the right time, maximizing retention with minimal effort."
           />
-          <FeatureCard delay="0.4s"  accent="rgba(232,121,249,0.7)"
+          <FeatureCard delay="0.4s" accent="rgba(232,121,249,0.7)"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -231,7 +230,7 @@ export default function About() {
             title="Multiplayer Challenges"
             body="Compete with friends or learners worldwide in live trivia battles. Climb global leaderboards and prove your knowledge under pressure."
           />
-          <FeatureCard delay="0.5s"  accent="rgba(168,85,247,0.7)"
+          <FeatureCard delay="0.5s" accent="rgba(168,85,247,0.7)"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
@@ -259,7 +258,7 @@ export default function About() {
             { num: '01', title: 'Expand Knowledge',       body: 'Encourage users to explore new topics and deepen understanding through fun, interactive trivia experiences across diverse subjects.' },
             { num: '02', title: 'Sharpen Cognition',      body: 'Improve memory, problem-solving, and critical thinking through carefully designed challenges that push cognitive boundaries.' },
             { num: '03', title: 'Personalize Learning',   body: 'Deliver experiences that adapt to each user\'s skill level, learning style, and pace — because no two learners are alike.' },
-            { num: '04', title: 'AI-Powered Scanning',    body: 'Turn any physical or digital resource into instant learning material with our intelligent document and image scanner.' },
+            { num: '04', title: 'Smart Flashcard Review', body: 'Reinforce knowledge with auto-generated flashcards powered by spaced repetition — the most scientifically proven study method available.' },
             { num: '05', title: 'Track Progress',         body: 'Give learners full visibility into their journey with detailed analytics, streaks, and measurable milestones.' },
             { num: '06', title: 'Make Studying Joyful',   body: 'Be the learning companion that makes education feel like a reward — blending knowledge with entertainment seamlessly.' },
           ].map((g, i) => (
@@ -309,4 +308,4 @@ export default function About() {
 
     </div>
   );
-}
+} 
