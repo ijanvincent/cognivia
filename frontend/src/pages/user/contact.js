@@ -116,7 +116,7 @@ export default function Contact() {
         </svg>
       ),
       label: 'Office',
-      value: 'Metro Manila, PH',
+      value: 'Ubay Bohol, PH',
       sub: 'CogniVia Inc., Philippines',
       accent: 'rgba(168,85,247,0.9)',
     },
