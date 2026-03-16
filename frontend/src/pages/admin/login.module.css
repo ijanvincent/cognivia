@@ -45,10 +45,7 @@
   pointer-events: none;
 }
 
-.bgSvg {
-  width: 100%;
-  height: 100%;
-}
+.bgSvg { width: 100%; height: 100%; }
 
 .wavePath {
   stroke: var(--wave-color);
@@ -103,7 +100,19 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.topBarLogo { display: flex; align-items: center; }
+.topBarLogo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.topBarBrand {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
 
 .topBarNav {
   display: flex;
@@ -279,13 +288,6 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
-}
-
-.cardLogo {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -530,10 +532,8 @@
 }
 
 .submitButton:active:not(:disabled) { transform: translateY(0); }
-
 .submitButton:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-/* Locked state override */
 .submitButtonLocked {
   background: linear-gradient(135deg, rgba(248,113,113,0.4), rgba(248,113,113,0.2)) !important;
   color: var(--error) !important;
@@ -567,6 +567,14 @@
 
 .registerLink:hover { opacity: 0.8; text-decoration: underline; }
 
+/* ── Focus Visible ── */
+.inputField:focus-visible,
+.submitButton:focus-visible,
+.eyeButton:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .topBarNav { display: none; }
@@ -580,12 +588,4 @@
   .loginCard { padding: 28px 22px; }
   .heroTitle { font-size: 32px; letter-spacing: -1px; }
   .inputField { font-size: 16px; }
-}
-
-/* ── Focus Visible ── */
-.inputField:focus-visible,
-.submitButton:focus-visible,
-.eyeButton:focus-visible {
-  outline: 2px solid var(--accent-cyan);
-  outline-offset: 2px;
 }

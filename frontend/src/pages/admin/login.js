@@ -127,7 +127,9 @@ function AdminLogin() {
 
       {/* Top Navigation Bar */}
       <div className={styles.topBar}>
-        <div className={styles.topBarLogo}></div>
+        <Link to="/" className={styles.topBarLogo}>
+          <span className={styles.topBarBrand}>CogniVia</span>
+        </Link>
         <nav className={styles.topBarNav}>
           <Link to="/about"      className={styles.navLink}>About</Link>
           <Link to="/solutions"  className={styles.navLink}>Solutions</Link>
@@ -166,7 +168,6 @@ function AdminLogin() {
                   <h2 className={styles.cardTitle}>Admin Portal</h2>
                   <p className={styles.cardSubtitle}>Authorized personnel only</p>
                 </div>
-      
               </div>
               <div className={styles.securityBadge}>
                 <span className={styles.securityDot}></span>
