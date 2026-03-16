@@ -9,14 +9,14 @@ import hideIcon from './../../assets/hide.png';
 
 function UserLogin() {
   const [redirect, setRedirect]         = useState(false);
-  const [formData, setFormData]         = useState({ email: '', password: '' });
+  const [formData, setFormData]         = useState({ email: '', password: '', rememberMe: false });
   const [errors, setErrors]             = useState({});
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
@@ -35,11 +35,13 @@ function UserLogin() {
     setErrors({});
     try {
       const response = await api.post('/auth/login', {
-        email: formData.email,
-        password: formData.password
+        email:      formData.email,
+        password:   formData.password,
+        rememberMe: formData.rememberMe,
       });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const storage = formData.rememberMe ? localStorage : sessionStorage;
+      storage.setItem('token', response.data.token);
+      storage.setItem('user', JSON.stringify(response.data.user));
       setRedirect(true);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -132,7 +134,6 @@ function UserLogin() {
                   <h2 className={styles.cardTitle}>Welcome back</h2>
                   <p className={styles.cardSubtitle}>Sign in to your account to continue</p>
                 </div>
-                
               </div>
             </div>
 
@@ -192,6 +193,24 @@ function UserLogin() {
                   </button>
                 </div>
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+              </div>
+
+              {/* Remember Me & Forgot Password */}
+              <div className={styles.rememberRow}>
+                <label className={styles.rememberLabel}>
+                  <input
+                    type="checkbox"
+                    name="rememberMe"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className={styles.rememberCheckbox}
+                  />
+                  Remember me
+                </label>
+                <Link to="/forgot-password" className={styles.forgotLink}>
+                  Forgot password?
+                </Link>
               </div>
 
               {/* Submit */}
