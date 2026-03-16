@@ -168,9 +168,7 @@
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.navLink:hover {
-  color: var(--text-primary);
-}
+.navLink:hover { color: var(--text-primary); }
 
 .navLink:hover::after {
   width: 100%;
@@ -205,9 +203,7 @@
   transition: transform 0.2s ease;
 }
 
-.heroBtnPrimary:hover::after {
-  transform: translateX(3px);
-}
+.heroBtnPrimary:hover::after { transform: translateX(3px); }
 
 /* ── Main Content Split Layout ── */
 .mainContent {
@@ -234,7 +230,6 @@
   from { opacity: 0; transform: translateX(-24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
 
 .heroTitle {
   font-family: var(--font-display);
@@ -340,22 +335,13 @@
     0 0 80px rgba(34, 211, 238, 0.04);
 }
 
-.cardHeader {
-  margin-bottom: 32px;
-}
+.cardHeader { margin-bottom: 32px; }
 
 .cardHeaderRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.cardLogo {
-  width: 79x;
-  height: 79px;
-  object-fit: contain;
-  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -397,9 +383,7 @@
   font-weight: 500;
 }
 
-.formGroup {
-  margin-bottom: 20px;
-}
+.formGroup { margin-bottom: 20px; }
 
 .formGroup:focus-within .label {
   color: var(--accent-cyan);
@@ -423,7 +407,6 @@
   align-items: center;
 }
 
-/* Animated bottom-line accent bar */
 .inputContainer::after {
   content: '';
   position: absolute;
@@ -455,7 +438,6 @@
   transition: opacity 0.25s ease, filter 0.25s ease;
 }
 
-/* Icon lights up on focus */
 .inputContainer:focus-within .inputIcon {
   opacity: 0.85;
   filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg);
@@ -528,9 +510,7 @@
   transition: background 0.2s;
 }
 
-.eyeButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
-}
+.eyeButton:hover:not(:disabled) { background: rgba(255, 255, 255, 0.07); }
 
 .eyeButton:disabled {
   opacity: 0.4;
@@ -545,9 +525,7 @@
   filter: invert(1);
 }
 
-.eyeButton:hover .eyeIcon {
-  opacity: 0.9;
-}
+.eyeButton:hover .eyeIcon { opacity: 0.9; }
 
 .errorText {
   display: block;
@@ -557,6 +535,79 @@
   font-weight: 500;
   padding-left: 2px;
 }
+
+/* ── Remember Me & Forgot Password ── */
+.rememberRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.rememberLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.rememberLabel:hover { color: var(--text-primary); }
+
+.rememberCheckbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.rememberCheckbox:hover {
+  border-color: rgba(34, 211, 238, 0.5);
+}
+
+.rememberCheckbox:checked {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  border-color: transparent;
+}
+
+.rememberCheckbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 7px;
+  border: 2px solid #07080f;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.rememberCheckbox:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+.forgotLink {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgotLink:hover { color: var(--accent-cyan); }
 
 /* ── Submit Button ── */
 .submitButton {
@@ -586,9 +637,7 @@
   box-shadow: 0 6px 24px rgba(34, 211, 238, 0.3);
 }
 
-.submitButton:active:not(:disabled) {
-  transform: translateY(0);
-}
+.submitButton:active:not(:disabled) { transform: translateY(0); }
 
 .submitButton:disabled {
   opacity: 0.6;
@@ -649,7 +698,6 @@
   }
 
   .heroSection { max-width: 100%; }
-
   .heroTitle { font-size: 40px; }
 
   .cardWrapper {
@@ -661,10 +709,7 @@
 
 @media (max-width: 540px) {
   .topBar { padding: 16px 24px; }
-
   .loginCard { padding: 30px 24px; }
-
   .heroTitle { font-size: 32px; letter-spacing: -1px; }
-
   .inputField { font-size: 16px; }
 }
