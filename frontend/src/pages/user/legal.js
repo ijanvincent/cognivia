@@ -65,7 +65,6 @@ function PrivacyContent() {
         <ul>
           <li><strong>Account Information:</strong> Username, email address, and password when you register.</li>
           <li><strong>Usage Data:</strong> Trivia session history, scores, streaks, topic preferences, and learning progress.</li>
-          <li><strong>Scanned Content:</strong> Images or documents you upload to the AI Scanner. These are processed transiently and not stored beyond the session unless you explicitly save the generated content.</li>
           <li><strong>Device & Log Data:</strong> IP address, browser type, operating system, referring URLs, and timestamps of your interactions.</li>
         </ul>
       </LegalSection>
@@ -75,7 +74,6 @@ function PrivacyContent() {
         <ul>
           <li>Provide, maintain, and improve CogniVia's features and services.</li>
           <li>Personalize your learning experience and adapt content to your skill level.</li>
-          <li>Process payments and manage your subscription plan.</li>
           <li>Send you product updates, security alerts, and support messages.</li>
           <li>Analyze aggregate, anonymized usage patterns to improve the platform.</li>
           <li>Comply with legal obligations and enforce our Terms of Service.</li>
@@ -85,7 +83,7 @@ function PrivacyContent() {
       <LegalSection title="3. Sharing of Information" delay="0.08s">
         <p>We do not sell, rent, or trade your personal information to third parties. We may share your information only in the following limited circumstances:</p>
         <ul>
-          <li><strong>Service Providers:</strong> Trusted third-party vendors who assist in operating our platform (e.g., payment processors, cloud hosting, analytics), bound by strict data processing agreements.</li>
+          <li><strong>Service Providers:</strong> Trusted third-party vendors who assist in operating our platform (e.g., cloud hosting, analytics), bound by strict data processing agreements.</li>
           <li><strong>Legal Requirements:</strong> When required by law, court order, or government authority.</li>
           <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets, your data may be transferred — we will notify you beforehand.</li>
           <li><strong>With Your Consent:</strong> Any other sharing will only occur with your explicit permission.</li>
@@ -173,39 +171,30 @@ function TermsContent() {
 
       <LegalSection title="5. Intellectual Property" delay="0.16s">
         <p>All content, features, and functionality of CogniVia — including but not limited to text, graphics, logos, question databases, AI models, and software — are the exclusive property of CogniVia Inc. and are protected by copyright, trademark, and other intellectual property laws.</p>
-        <p>You retain ownership of any content you upload (e.g., custom questions, scanned materials). By uploading content, you grant CogniVia a limited, non-exclusive license to use, process, and display that content solely to provide the Service to you.</p>
+        <p>You retain ownership of any content you upload (e.g., custom questions). By uploading content, you grant CogniVia a limited, non-exclusive license to use, process, and display that content solely to provide the Service to you.</p>
       </LegalSection>
 
-      <LegalSection title="6. Subscription & Payments" delay="0.2s">
-        <p>Paid plans (Pro, Enterprise) are billed on a monthly or annual basis. By subscribing, you authorize CogniVia to charge your payment method on a recurring basis. All fees are non-refundable except as required by law or as stated in our refund policy.</p>
-        <ul>
-          <li><strong>Free Trial:</strong> Pro plans include a 14-day free trial. You will not be charged until the trial ends.</li>
-          <li><strong>Cancellation:</strong> You may cancel at any time. Access continues until the end of the current billing period.</li>
-          <li><strong>Price Changes:</strong> We will notify you at least 30 days before any price changes take effect.</li>
-        </ul>
-      </LegalSection>
-
-      <LegalSection title="7. Disclaimer of Warranties" delay="0.24s">
+      <LegalSection title="6. Disclaimer of Warranties" delay="0.2s">
         <p>CogniVia is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not warrant that the Service will be uninterrupted, error-free, or completely secure. We make no guarantees regarding the accuracy or completeness of any content or learning outcomes.</p>
       </LegalSection>
 
-      <LegalSection title="8. Limitation of Liability" delay="0.28s">
+      <LegalSection title="7. Limitation of Liability" delay="0.24s">
         <p>To the maximum extent permitted by law, CogniVia Inc. shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service. Our total liability to you for any claim arising from these Terms shall not exceed the amount you paid us in the 12 months preceding the claim.</p>
       </LegalSection>
 
-      <LegalSection title="9. Termination" delay="0.32s">
+      <LegalSection title="8. Termination" delay="0.28s">
         <p>We reserve the right to suspend or terminate your account and access to the Service at our sole discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties. You may terminate your account at any time by contacting us or using the account deletion option in your settings.</p>
       </LegalSection>
 
-      <LegalSection title="10. Governing Law" delay="0.36s">
+      <LegalSection title="9. Governing Law" delay="0.32s">
         <p>These Terms shall be governed by and construed in accordance with the laws of the Republic of the Philippines, without regard to its conflict of law provisions. Any disputes arising under these Terms shall be resolved through binding arbitration or in the courts of Ubay Bohol, Philippines.</p>
       </LegalSection>
 
-      <LegalSection title="11. Changes to Terms" delay="0.4s">
+      <LegalSection title="10. Changes to Terms" delay="0.36s">
         <p>We may revise these Terms at any time. We will notify you of material changes via email or in-app notification at least 14 days before the new Terms take effect. Your continued use of CogniVia after the effective date constitutes your acceptance of the revised Terms.</p>
       </LegalSection>
 
-      <LegalSection title="12. Contact Us" delay="0.44s">
+      <LegalSection title="11. Contact Us" delay="0.4s">
         <p>For questions about these Terms of Service, please contact us at:</p>
         <p><strong>Email:</strong> legal@cognivia.com<br /><strong>Address:</strong> CogniVia Inc., Ubay Bohol, Philippines</p>
       </LegalSection>
