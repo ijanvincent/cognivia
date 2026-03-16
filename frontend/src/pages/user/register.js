@@ -8,7 +8,6 @@ import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 import userIcon from './../../assets/user.png';
 import confirmPassIcon from './../../assets/confirm-pass.png';
-import finalLogo from './../../assets/final-remove.png';
 
 function UserRegister() {
   const [redirect, setRedirect] = useState(false);
@@ -159,7 +158,7 @@ function UserRegister() {
                   <h2 className={styles.cardTitle}>Create account</h2>
                   <p className={styles.cardSubtitle}>Fill in your details to get started</p>
                 </div>
-                <img src={finalLogo} alt="Cognivia" className={styles.cardLogo} />
+              
               </div>
             </div>
 
