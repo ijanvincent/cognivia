@@ -6,7 +6,6 @@ import emailIcon from './../../assets/email.png';
 import lockIcon from './../../assets/lock.png';
 import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
-import finalLogo from './../../assets/final-remove.png';
 
 function UserLogin() {
   const [redirect, setRedirect]         = useState(false);
@@ -133,7 +132,7 @@ function UserLogin() {
                   <h2 className={styles.cardTitle}>Welcome back</h2>
                   <p className={styles.cardSubtitle}>Sign in to your account to continue</p>
                 </div>
-                <img src={finalLogo} alt="Cognivia" className={styles.cardLogo} />
+                
               </div>
             </div>
 
