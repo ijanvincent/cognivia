@@ -120,7 +120,9 @@ function UserRegister() {
 
       {/* Top Navigation Bar */}
       <div className={styles.topBar}>
-        <div className={styles.topBarLogo}></div>
+        <Link to="/" className={styles.topBarLogo}>
+          <span className={styles.topBarBrand}>CogniVia</span>
+        </Link>
         <nav className={styles.topBarNav}>
           <Link to="/about"      className={styles.navLink}>About</Link>
           <Link to="/solutions"  className={styles.navLink}>Solutions</Link>
@@ -158,7 +160,6 @@ function UserRegister() {
                   <h2 className={styles.cardTitle}>Create account</h2>
                   <p className={styles.cardSubtitle}>Fill in your details to get started</p>
                 </div>
-              
               </div>
             </div>
 
