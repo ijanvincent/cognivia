@@ -46,6 +46,7 @@ services:
 networks:
   cognivia_network:
     driver: bridge
+    name: cognivia_network
 
 volumes:
   cognivia_mysql_data:
