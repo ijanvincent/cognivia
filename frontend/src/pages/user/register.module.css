@@ -107,6 +107,15 @@
 .topBarLogo {
   display: flex;
   align-items: center;
+  text-decoration: none;
+}
+
+.topBarBrand {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
 }
 
 .topBarNav {
@@ -280,22 +289,13 @@
     0 0 80px rgba(34, 211, 238, 0.04);
 }
 
-.cardHeader {
-  margin-bottom: 28px;
-}
+.cardHeader { margin-bottom: 28px; }
 
 .cardHeaderRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.cardLogo {
-  width:56px;
-  height:56px;
-  object-fit: contain;
-  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -344,9 +344,7 @@
   gap: 14px;
 }
 
-.formGroup {
-  margin-bottom: 16px;
-}
+.formGroup { margin-bottom: 16px; }
 
 .formGroup:focus-within .label {
   color: var(--accent-cyan);
@@ -472,9 +470,7 @@
   transition: background 0.2s;
 }
 
-.eyeButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
-}
+.eyeButton:hover:not(:disabled) { background: rgba(255, 255, 255, 0.07); }
 
 .eyeButton:disabled {
   opacity: 0.4;
@@ -594,9 +590,7 @@
     align-self: center;
   }
 
-  .formRow {
-    grid-template-columns: 1fr;
-  }
+  .formRow { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 540px) {
