@@ -8,7 +8,6 @@ import lockIcon from './../../assets/lock.png';
 import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 import infoIcon from './../../assets/info.png';
-import finalLogo from './../../assets/final-remove.png';
 
 function AdminLogin() {
   const context = useContext(AppSettings);
@@ -167,7 +166,7 @@ function AdminLogin() {
                   <h2 className={styles.cardTitle}>Admin Portal</h2>
                   <p className={styles.cardSubtitle}>Authorized personnel only</p>
                 </div>
-                <img src={finalLogo} alt="CogniVia" className={styles.cardLogo} />
+      
               </div>
               <div className={styles.securityBadge}>
                 <span className={styles.securityDot}></span>
