@@ -6,8 +6,10 @@ function AdminPrivateRoute({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const user = JSON.parse(
+            localStorage.getItem('user') || sessionStorage.getItem('user') || '{}'
+        );
         setIsAuthenticated(!!token && user.role === 'admin');
         setIsChecking(false);
     }, []);
