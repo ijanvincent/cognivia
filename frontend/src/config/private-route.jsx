@@ -6,8 +6,10 @@ function PrivateRoute({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const user = JSON.parse(
+            localStorage.getItem('user') || sessionStorage.getItem('user') || '{}'
+        );
         // Golden Rule #1 — must have token AND role must be 'user'
         // Admin cannot access user routes and vice versa!
         setIsAuthenticated(!!token && user.role === 'user');
