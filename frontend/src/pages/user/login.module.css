@@ -763,17 +763,25 @@
 /* ── Mobile Animation Performance Fix ── */
 @media (max-width: 768px) {
   .wavePath {
-    animation-duration: 12s;
-    will-change: transform;
+    animation: none;
+    display: none;
   }
 
   .bgCanvas {
-    position: absolute;
+    display: none;
+  }
+
+  .pageContainer {
+    background: linear-gradient(
+      135deg,
+      #07080f 0%,
+      #0d0f1f 50%,
+      #07080f 100%
+    );
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wavePath {
-    animation: none;
-  }
+  .wavePath { animation: none; }
+  .bgCanvas { display: none; }
 }
