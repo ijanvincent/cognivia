@@ -5,7 +5,7 @@ import { QRCodeSVG as QRCode } from 'qrcode.react';
 import api from '../../services/api.js';
 
 // ── Placeholder app URL — replace when app is ready ──
-const APP_DOWNLOAD_URL = 'https://cognivia.app/download';
+const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 
 // ── Custom SVG Icons ──
 
