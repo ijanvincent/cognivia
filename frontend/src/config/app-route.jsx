@@ -20,6 +20,9 @@ import HowItWorks from './../pages/user/howitworks.js';
 import FAQ from './../pages/user/faq.js';
 import Legal from './../pages/user/legal.js';
 import Contact from './../pages/user/contact.js';
+import ForgotPassword from './../pages/user/ForgotPassword.jsx';
+import ResetPassword  from './../pages/user/ResetPassword.jsx';
+
 
 import EmailInbox from './../pages/email/email-inbox.js';
 import EmailCompose from './../pages/email/email-compose.js';
@@ -97,18 +100,20 @@ const AppRoute = [
     path: '/',
     element: <UserLayout />,
     children: [
-      { path: '',           element: <Navigate to='/login' replace /> },
-      { path: 'login',      element: <UserLogin /> },
-      { path: 'register',   element: <UserRegister /> },
-      { path: 'about',      element: <About /> },
-      { path: 'solutions',  element: <Solutions /> },
-      { path: 'howitworks', element: <HowItWorks /> },
-      { path: 'faq',        element: <FAQ /> },
-      { path: 'privacy',    element: <Legal /> },
-      { path: 'terms',      element: <Legal /> },
-      { path: 'contact',    element: <Contact /> },
-      { path: 'dashboard',  element: <PrivateRoute><UserDashboard /></PrivateRoute> },
-    ]
+  { path: '',               element: <Navigate to='/login' replace /> },
+  { path: 'login',          element: <UserLogin /> },
+  { path: 'register',       element: <UserRegister /> },
+  { path: 'forgot-password',element: <ForgotPassword /> },
+  { path: 'reset-password', element: <ResetPassword /> },
+  { path: 'about',          element: <About /> },
+  { path: 'solutions',      element: <Solutions /> },
+  { path: 'howitworks',     element: <HowItWorks /> },
+  { path: 'faq',            element: <FAQ /> },
+  { path: 'privacy',        element: <Legal /> },
+  { path: 'terms',          element: <Legal /> },
+  { path: 'contact',        element: <Contact /> },
+  { path: 'dashboard',      element: <PrivateRoute><UserDashboard /></PrivateRoute> },
+]
   },
   {
     path: '*',
