@@ -7,6 +7,8 @@ import lockIcon from './../../assets/lock.png';
 import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 
+const isMobile = window.innerWidth <= 768;
+
 function UserLogin() {
   const [redirect, setRedirect]         = useState(false);
   const [formData, setFormData]         = useState({ email: '', password: '', rememberMe: false });
@@ -66,32 +68,34 @@ function UserLogin() {
         </div>
       )}
 
-      {/* Animated SVG Background */}
-      <div className={styles.bgCanvas}>
-        <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          {[...Array(18)].map((_, i) => (
-            <path key={`pink-${i}`} className={styles.wavePath}
-              style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
-              d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
-              fill="none" strokeWidth="1.2"
-            />
-          ))}
-          {[...Array(18)].map((_, i) => (
-            <path key={`cyan-${i}`} className={styles.wavePath}
-              style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
-              d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
-              fill="none" strokeWidth="1.2"
-            />
-          ))}
-          {[...Array(10)].map((_, i) => (
-            <path key={`purple-${i}`} className={styles.wavePath}
-              style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
-              d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
-              fill="none" strokeWidth="1"
-            />
-          ))}
-        </svg>
-      </div>
+      {/* Animated SVG Background — desktop only */}
+      {!isMobile && (
+        <div className={styles.bgCanvas}>
+          <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            {[...Array(18)].map((_, i) => (
+              <path key={`pink-${i}`} className={styles.wavePath}
+                style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
+                d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
+                fill="none" strokeWidth="1.2"
+              />
+            ))}
+            {[...Array(18)].map((_, i) => (
+              <path key={`cyan-${i}`} className={styles.wavePath}
+                style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
+                d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
+                fill="none" strokeWidth="1.2"
+              />
+            ))}
+            {[...Array(10)].map((_, i) => (
+              <path key={`purple-${i}`} className={styles.wavePath}
+                style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
+                d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
+                fill="none" strokeWidth="1"
+              />
+            ))}
+          </svg>
+        </div>
+      )}
 
       {/* Top Navigation Bar */}
       <div className={styles.topBar}>
