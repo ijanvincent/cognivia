@@ -128,4 +128,25 @@ class AuthService
         // Revoke all existing tokens — force re-login everywhere
         $user->tokens()->delete();
     }
+    public function updateProfile(User $user, array $data): User
+{
+    $updateData = [];
+
+    if (!empty($data['username'])) {
+        // Check username not taken by another user
+        $existing = $this->authRepository->findByUsername($data['username']);
+        if ($existing && $existing->id !== $user->id) {
+            throw ValidationException::withMessages([
+                'username' => ['Username is already taken.'],
+            ]);
+        }
+        $updateData['username'] = $data['username'];
+    }
+
+    if (!empty($data['avatar'])) {
+        $updateData['avatar'] = $data['avatar'];
+    }
+
+    return $this->authRepository->updateUser($user->id, $updateData);
+}
 }

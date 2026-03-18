@@ -64,4 +64,10 @@ class AuthRepository
             ->where('email', $email)
             ->delete();
     }
+    public function updateUser(int $id, array $data): User
+{
+    $user = $this->findById($id);
+    $user->update($data);
+    return $user->fresh();
+}
 }
