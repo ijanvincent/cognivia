@@ -92,4 +92,21 @@ class AuthController extends Controller
             'message' => 'Password reset successfully. Please log in with your new password.',
         ]);
     }
+    public function updateProfile(Request $request): JsonResponse
+{
+    $request->validate([
+        'username' => ['sometimes', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_]+$/'],
+        'avatar'   => ['sometimes', 'string', 'url', 'max:500'],
+    ]);
+
+    $user = $this->authService->updateProfile(
+        $request->user(),
+        $request->only(['username', 'avatar'])
+    );
+
+    return response()->json([
+        'message' => 'Profile updated successfully.',
+        'user'    => new UserResource($user),
+    ]);
+}
 }
