@@ -7,7 +7,7 @@ import lockIcon from './../../assets/lock.png';
 import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 
-const isMobile = window.innerWidth <= 768;
+const isMobile = window.innerWidth <=768;
 
 function UserLogin() {
   const [redirect, setRedirect]         = useState(false);
