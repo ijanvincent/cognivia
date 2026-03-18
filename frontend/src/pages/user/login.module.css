@@ -3,7 +3,6 @@
    ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&...');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 
 :root {
@@ -53,15 +52,18 @@
   height: 100%;
 }
 
+/* ── FIXED: Smooth GPU-accelerated animation — no blinking ── */
 .wavePath {
   stroke: var(--wave-color);
-  animation: waveFloat 8s ease-in-out infinite alternate;
+  animation: waveFloat 16s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 @keyframes waveFloat {
-  0%   { transform: translateY(0px) scaleX(1); }
-  50%  { transform: translateY(-18px) scaleX(1.02); }
-  100% { transform: translateY(8px) scaleX(0.98); }
+  0%   { transform: translateZ(0) translateY(0px); }
+  100% { transform: translateZ(0) translateY(-12px); }
 }
 
 /* ── Loading Overlay ── */
@@ -345,6 +347,7 @@
   justify-content: space-between;
   gap: 12px;
 }
+
 .cardTitle {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
@@ -355,6 +358,7 @@
   letter-spacing: -0.3px;
   line-height: 1.2;
 }
+
 .cardSubtitle {
   font-size: 14px;
   color: var(--text-secondary);
@@ -687,32 +691,6 @@
   outline-offset: 2px;
 }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .topBarNav { display: none; }
-
-  .mainContent {
-    flex-direction: column;
-    padding: 40px 24px;
-    align-items: flex-start;
-  }
-
-  .heroSection { max-width: 100%; }
-  .heroTitle { font-size: 40px; }
-
-  .cardWrapper {
-    width: 100%;
-    max-width: 480px;
-    align-self: center;
-  }
-}
-
-@media (max-width: 540px) {
-  .topBar { padding: 16px 24px; }
-  .loginCard { padding: 30px 24px; }
-  .heroTitle { font-size: 32px; letter-spacing: -1px; }
-  .inputField { font-size: 16px; }
-}
 /* ── Success Alert ── */
 .successAlert {
   background: rgba(52, 211, 153, 0.08);
@@ -760,7 +738,35 @@
   transition: color 0.3s ease;
   min-width: 44px;
 }
-/* ── Mobile Animation Performance Fix ── */
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .topBarNav { display: none; }
+
+  .mainContent {
+    flex-direction: column;
+    padding: 40px 24px;
+    align-items: flex-start;
+  }
+
+  .heroSection { max-width: 100%; }
+  .heroTitle { font-size: 40px; }
+
+  .cardWrapper {
+    width: 100%;
+    max-width: 480px;
+    align-self: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .topBar { padding: 16px 24px; }
+  .loginCard { padding: 30px 24px; }
+  .heroTitle { font-size: 32px; letter-spacing: -1px; }
+  .inputField { font-size: 16px; }
+}
+
+/* ── Mobile — disable animation entirely ── */
 @media (max-width: 768px) {
   .wavePath {
     animation: none;
