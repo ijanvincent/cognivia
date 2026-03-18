@@ -53,4 +53,43 @@ class AuthController extends Controller
             'user' => new UserResource($request->user()),
         ]);
     }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $this->authService->sendPasswordResetLink($request->email);
+
+        return response()->json([
+            'message' => 'If that email is registered, a reset link has been sent.',
+        ]);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'                 => ['required', 'string'],
+            'email'                 => ['required', 'email'],
+            'password'              => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            ],
+            'password_confirmation' => ['required'],
+        ]);
+
+        $this->authService->resetPassword($request->only([
+            'token',
+            'email',
+            'password',
+        ]));
+
+        return response()->json([
+            'message' => 'Password reset successfully. Please log in with your new password.',
+        ]);
+    }
 }
