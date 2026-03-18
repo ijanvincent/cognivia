@@ -1,11 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api',
-    headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-    }
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  }
 });
 
 // Attach token to every request
