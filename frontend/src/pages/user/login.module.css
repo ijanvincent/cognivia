@@ -760,3 +760,20 @@
   transition: color 0.3s ease;
   min-width: 44px;
 }
+/* ── Mobile Animation Performance Fix ── */
+@media (max-width: 768px) {
+  .wavePath {
+    animation-duration: 12s;
+    will-change: transform;
+  }
+
+  .bgCanvas {
+    position: absolute;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wavePath {
+    animation: none;
+  }
+}
