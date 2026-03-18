@@ -22,6 +22,7 @@ import Legal from './../pages/user/legal.js';
 import Contact from './../pages/user/contact.js';
 import ForgotPassword from './../pages/user/ForgotPassword.jsx';
 import ResetPassword  from './../pages/user/ResetPassword.jsx';
+import EditProfile from './../pages/user/EditProfile.jsx';
 
 
 import EmailInbox from './../pages/email/email-inbox.js';
@@ -112,6 +113,7 @@ const AppRoute = [
   { path: 'privacy',        element: <Legal /> },
   { path: 'terms',          element: <Legal /> },
   { path: 'contact',        element: <Contact /> },
+  { path: 'profile', element: <PrivateRoute><EditProfile /></PrivateRoute> },
   { path: 'dashboard',      element: <PrivateRoute><UserDashboard /></PrivateRoute> },
 ]
   },
