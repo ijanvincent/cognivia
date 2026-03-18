@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Mail\PasswordResetMail;
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
 use Illuminate\Support\Facades\Hash;
@@ -48,10 +49,10 @@ class AuthService
         }
 
         $user->tokens()->delete();
-        
+
         // Remember Me — longer expiration if checked
-        $tokenName     = 'user_token';
-        $expiresAt     = isset($data['remember_me']) && $data['remember_me']
+        $tokenName = 'user_token';
+        $expiresAt = isset($data['remember_me']) && $data['remember_me']
             ? now()->addDays(30)
             : now()->addHours(24);
 
@@ -82,13 +83,13 @@ class AuthService
         // Store hashed token in database
         $this->authRepository->storeResetToken($email, $token);
 
-        // Send email with reset link
-        $resetUrl = config('app.frontend_url') . '/reset-password?token=' . $token . '&email=' . urlencode($email);
+        // Build reset URL
+        $resetUrl = config('app.frontend_url')
+            . '/reset-password?token=' . $token
+            . '&email=' . urlencode($email);
 
-        Mail::send('emails.password-reset', ['resetUrl' => $resetUrl, 'user' => $user], function ($message) use ($email) {
-            $message->to($email)
-                    ->subject('CogniVia — Reset Your Password');
-        });
+        // Send using Mailable class — clean and professional
+        Mail::to($email)->send(new PasswordResetMail($resetUrl, $user->username));
     }
 
     public function resetPassword(array $data): void
