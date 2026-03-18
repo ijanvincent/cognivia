@@ -31,11 +31,13 @@ const IconChart = () => (
 // Podium steps — Leaderboards (more unique than crown)
 const IconCrown = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 9H4.5a2.5 2.5 0 000 5H6"/>
-    <path d="M18 9h1.5a2.5 2.5 0 010 5H18"/>
-    <path d="M6 9l1 9h10l1-9"/>
-    <path d="M9 9V6.5a3 3 0 016 0V9"/>
-    <path d="M9 18h6"/>
+    <path d="M12 3C9 3 6 5 5 7.5"/>
+    <path d="M12 3C15 3 18 5 19 7.5"/>
+    <path d="M5 7.5C4 9 3.5 10.5 4 12c.5 1.5 1.5 2.5 2.5 3"/>
+    <path d="M19 7.5C20 9 20.5 10.5 20 12c-.5 1.5-1.5 2.5-2.5 3"/>
+    <path d="M6.5 15C8 17 10 18 12 18c2 0 4-1 5.5-3"/>
+    <line x1="12" y1="18" x2="12" y2="21"/>
+    <line x1="9"  y1="21" x2="15" y2="21"/>
   </svg>
 );
 
