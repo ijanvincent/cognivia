@@ -53,17 +53,17 @@
 
 .wavePath {
   stroke: var(--wave-color);
-  animation: waveFloat 16s ease-in-out infinite alternate;
+  animation: waveFloat 6s ease-in-out infinite alternate;
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
 @keyframes waveFloat {
-  0%   { transform: translateZ(0) translateY(0px); }
-  100% { transform: translateZ(0) translateY(-12px); }
+  0%   { transform: translateZ(0) translateY(0px) scaleX(1); }
+  50%  { transform: translateZ(0) translateY(-14px) scaleX(1.01); }
+  100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
-
 /* ── Loading Overlay ── */
 .loadingOverlay {
   position: fixed;
