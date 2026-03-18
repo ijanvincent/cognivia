@@ -39,12 +39,15 @@
 .bgSvg { width: 100%; height: 100%; }
 .wavePath {
   stroke: var(--wave-color);
-  animation: waveFloat 8s ease-in-out infinite alternate;
+  animation: waveFloat 16s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
+
 @keyframes waveFloat {
-  0%   { transform: translateY(0px) scaleX(1); }
-  50%  { transform: translateY(-18px) scaleX(1.02); }
-  100% { transform: translateY(8px) scaleX(0.98); }
+  0%   { transform: translateZ(0) translateY(0px); }
+  100% { transform: translateZ(0) translateY(-12px); }
 }
 
 /* ── Top Bar ── */
@@ -421,4 +424,17 @@
   .faqQ { padding: 16px 18px; }
   .faqA p { padding: 0 18px 16px; margin-left: 18px; }
   .categoryItems { border-radius: 12px; }
+}
+/* ── Mobile — disable animation entirely ── */
+@media (max-width: 768px) {
+  .wavePath { animation: none; display: none; }
+  .bgCanvas { display: none; }
+  .pageContainer {
+    background: linear-gradient(135deg, #07080f 0%, #0d0f1f 50%, #07080f 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wavePath { animation: none; }
+  .bgCanvas { display: none; }
 }
