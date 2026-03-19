@@ -42,8 +42,15 @@ function UserLogin() {
         rememberMe: formData.rememberMe,
       });
       const storage = formData.rememberMe ? localStorage : sessionStorage;
-      storage.setItem('token', response.data.token);
-      storage.setItem('user', JSON.stringify(response.data.user));
+const user = response.data.user;
+
+// Resolve avatar URL at login time so dashboard always has a full URL
+if (user.avatar && !user.avatar.startsWith('http')) {
+  user.avatar = `http://localhost:3000${user.avatar.startsWith('/') ? '' : '/storage/'}${user.avatar}`;
+}
+
+storage.setItem('token', response.data.token);
+storage.setItem('user', JSON.stringify(user));
       setRedirect(true);
     } catch (error) {
       if (error.response?.status === 401) {
