@@ -64,10 +64,6 @@ const IconChevron = () => (
   </svg>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// getStoredUser — reads from the storage that has the active token
-// Mirrors the same logic in EditProfile so both always read the same user
-// ─────────────────────────────────────────────────────────────────────────────
 function getStoredUser() {
   try {
     if (localStorage.getItem('token')) {
@@ -84,59 +80,25 @@ function getStoredUser() {
 function UserDashboard() {
   const [mounted, setMounted]           = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // FIX: Initialize from storage via lazy useState — this runs on every fresh
-  // mount (including after navigating back from EditProfile). Since EditProfile
-  // now writes to BOTH storages before navigating, this always picks up the
-  // latest user including the new avatar.
-  const [user, setUser] = useState(() => getStoredUser());
-
-  const dropdownRef = useRef(null);
-  const navigate    = useNavigate();
+  const [user, setUser]                 = useState(() => getStoredUser());
+  const navigate                        = useNavigate();
 
   const userName    = user.name || user.username || 'Learner';
   const userInitial = userName.charAt(0).toUpperCase();
 
-  // FIX: Re-read from storage on mount via useEffect as a safety net.
-  // WHY: The lazy useState init captures storage at first render. If React
-  // batches renders or the storage write in EditProfile races with the mount,
-  // this useEffect re-reads and corrects it.
   useEffect(() => {
-    const freshUser = getStoredUser();
-    setUser(freshUser);
+    setUser(getStoredUser());
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  // Listen for profile updates when Dashboard is already mounted (no remount).
-  // This handles: Edit Profile opened in same SPA session without unmounting Dashboard.
   useEffect(() => {
-    const handleUserUpdated = (e) => {
-      setUser(e.detail || getStoredUser());
-    };
+    const handleUserUpdated = (e) => setUser(e.detail || getStoredUser());
     window.addEventListener('cognivia:userUpdated', handleUserUpdated);
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
 
-  // Outside-click uses 'click' (not 'mousedown') so dropdown buttons fire first
-useEffect(() => {
-  if (!dropdownOpen) return;
-  const handleOutsideClick = (e) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-      setDropdownOpen(false);
-    }
-  };
-  // Delay adding listener so the opening click doesn't immediately close it
-  const timer = setTimeout(() => {
-    document.addEventListener('click', handleOutsideClick);
-  }, 10);
-  return () => {
-    clearTimeout(timer);
-    document.removeEventListener('click', handleOutsideClick);
-  };
-}, [dropdownOpen]);
   const handleLogout = async () => {
-    setDropdownOpen(false);
     try { await api.post('/auth/logout'); } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -162,7 +124,9 @@ useEffect(() => {
           </p>
         </div>
 
-        <div className={styles.avatarWrapper} ref={dropdownRef}>
+        {/* ── Avatar + Dropdown ── */}
+        <div className={styles.avatarWrapper}>
+
           <button
             className={`${styles.avatarChip} ${dropdownOpen ? styles.avatarChipActive : ''}`}
             onClick={() => setDropdownOpen(prev => !prev)}
@@ -171,18 +135,14 @@ useEffect(() => {
               {user.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={`${userName} avatar`}
+                  alt={userName}
                   className={styles.avatarImg}
-                  // If image fails to load (e.g. wrong URL), fall back to initial
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    // Show the parent's text content (initial) by removing img
                     e.currentTarget.parentElement.textContent = userInitial;
                   }}
                 />
-              ) : (
-                userInitial
-              )}
+              ) : userInitial}
             </div>
             <div>
               <div className={styles.avatarName}>{userName}</div>
@@ -194,20 +154,34 @@ useEffect(() => {
           </button>
 
           {dropdownOpen && (
-            <div className={styles.dropdown}>
-              <button className={styles.dropdownItem} onClick={handleEditProfile}>
-                <span className={styles.dropdownIcon}><IconUser /></span>
-                Edit Profile
-              </button>
-              <div className={styles.dropdownDivider} />
-              <button
-                className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                onClick={handleLogout}
-              >
-                <span className={styles.dropdownIcon}><IconLogout /></span>
-                Log out
-              </button>
-            </div>
+            <>
+              {/* Full-screen overlay — closes dropdown when clicking outside */}
+              <div
+                style={{ position: 'fixed', inset: 0, zIndex: 98 }}
+                onClick={() => setDropdownOpen(false)}
+              />
+
+              {/* Dropdown — above overlay */}
+              <div className={styles.dropdown}>
+                <button
+                  className={styles.dropdownItem}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleEditProfile}
+                >
+                  <span className={styles.dropdownIcon}><IconUser /></span>
+                  Edit Profile
+                </button>
+                <div className={styles.dropdownDivider} />
+                <button
+                  className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleLogout}
+                >
+                  <span className={styles.dropdownIcon}><IconLogout /></span>
+                  Log out
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -251,10 +225,10 @@ useEffect(() => {
 
         <div className={styles.featuresRow}>
           {[
-            { icon: <IconGrid />,  label: 'Trivia Games'     },
-            { icon: <IconChart />, label: 'Progress Tracking' },
-            { icon: <IconCrown />, label: 'Leaderboards'      },
-            { icon: <IconFlame />, label: 'Daily Streaks'     },
+            { icon: <IconGrid />,  label: 'Trivia Games'      },
+            { icon: <IconChart />, label: 'Progress Tracking'  },
+            { icon: <IconCrown />, label: 'Leaderboards'       },
+            { icon: <IconFlame />, label: 'Daily Streaks'      },
           ].map((f, i) => (
             <div key={i} className={styles.featureChip} style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
               <span className={styles.featureIcon}>{f.icon}</span>
