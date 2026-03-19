@@ -4,12 +4,9 @@ import styles from './dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import api from '../../services/api.js';
 
-// ── Placeholder app URL — replace when app is ready ──
-const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
+const APP_DOWNLOAD_URL = import.meta.env.VITE_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 
-// ── Custom SVG Icons ──
-
-// Lightning bolt — Trivia Games (keep as is)
+// ── Icons ──
 const IconGrid = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" rx="1.5"/>
@@ -19,7 +16,6 @@ const IconGrid = () => (
   </svg>
 );
 
-// Circular progress ring — Progress Tracking
 const IconChart = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="9" strokeOpacity="0.25"/>
@@ -28,7 +24,6 @@ const IconChart = () => (
   </svg>
 );
 
-// Podium steps — Leaderboards (more unique than crown)
 const IconCrown = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 3C9 3 6 5 5 7.5"/>
@@ -41,7 +36,6 @@ const IconCrown = () => (
   </svg>
 );
 
-// Sparkle streak — Daily Streaks (more premium than flame)
 const IconFlame = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
@@ -49,7 +43,6 @@ const IconFlame = () => (
   </svg>
 );
 
-// User — Edit Profile
 const IconUser = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="8" r="4"/>
@@ -57,7 +50,6 @@ const IconUser = () => (
   </svg>
 );
 
-// Logout arrow
 const IconLogout = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -66,26 +58,37 @@ const IconLogout = () => (
   </svg>
 );
 
-// Chevron
 const IconChevron = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="6 9 12 15 18 9"/>
   </svg>
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX: getStoredUser moved to module-level helper (same pattern as EditProfile)
+// WHY: Consistent, reusable, avoids duplicated try/catch inline
+// ─────────────────────────────────────────────────────────────────────────────
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
+    return JSON.parse(raw) || {};
+  } catch { return {}; }
+}
+
 function UserDashboard() {
   const [mounted, setMounted]           = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef                     = useRef(null);
-  const navigate                        = useNavigate();
 
-  const storedUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user')) || {};
-    } catch { return {}; }
-  })();
+  // ── FIX: user is now state, not a one-time read ──────────────────────────
+  // WHY: If stored as a plain const from localStorage, React never re-renders
+  //      when the user returns from EditProfile with a new avatar.
+  //      Storing as state + listening to our custom event fixes this.
+  const [user, setUser]                 = useState(() => getStoredUser());
 
-  const userName    = storedUser.name || storedUser.username || 'Learner';
+  const dropdownRef = useRef(null);
+  const navigate    = useNavigate();
+
+  const userName    = user.name || user.username || 'Learner';
   const userInitial = userName.charAt(0).toUpperCase();
 
   useEffect(() => {
@@ -93,7 +96,19 @@ function UserDashboard() {
     return () => clearTimeout(t);
   }, []);
 
-  // Close dropdown when clicking outside
+  // ── FIX: Listen for profile updates dispatched by EditProfile ────────────
+  // WHY: localStorage 'storage' event doesn't fire on the same tab.
+  //      EditProfile dispatches 'cognivia:userUpdated' after saving,
+  //      so we catch it here and update React state immediately.
+  useEffect(() => {
+    const handleUserUpdated = (e) => {
+      setUser(e.detail || getStoredUser());
+    };
+    window.addEventListener('cognivia:userUpdated', handleUserUpdated);
+    return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
+  }, []);
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -113,9 +128,12 @@ function UserDashboard() {
     navigate('/login');
   };
 
+  // ── FIX: Route was '/profile' — corrected to '/profile/edit' ────────────
+  // WHY: Route defined in router is '/profile/edit'; mismatched route caused
+  //      navigation to a blank/404 page instead of the edit form.
   const handleEditProfile = () => {
     setDropdownOpen(false);
-    navigate('/profile');
+    navigate('/profile/edit');
   };
 
   return (
@@ -136,17 +154,38 @@ function UserDashboard() {
             className={`${styles.avatarChip} ${dropdownOpen ? styles.avatarChipActive : ''}`}
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
-            <div className={styles.avatar}>{userInitial}</div>
+            {/* ── FIX: Render avatar image when available ──────────────────
+                WHY: Original code only showed the text initial (userInitial)
+                     inside .avatar div — the .avatarImg CSS class existed but
+                     was never used. Now we show the image if user.avatar exists,
+                     with onError fallback to initials. */}
+            <div className={styles.avatar}>
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={`${userName} avatar`}
+                  className={styles.avatarImg}
+                  onError={(e) => {
+                    // Hide broken image, show initials div instead
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement.dataset.fallback = 'true';
+                  }}
+                />
+              ) : (
+                userInitial
+              )}
+            </div>
+
             <div>
               <div className={styles.avatarName}>{userName}</div>
-              <div className={styles.avatarRole}>Member</div>
+              <div className={styles.avatarRole}>{user.role || 'Member'}</div>
             </div>
+
             <span className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`}>
               <IconChevron />
             </span>
           </button>
 
-          {/* Dropdown */}
           {dropdownOpen && (
             <div className={styles.dropdown}>
               <button className={styles.dropdownItem} onClick={handleEditProfile}>
@@ -169,7 +208,6 @@ function UserDashboard() {
       {/* ── QR Code Center ── */}
       <div className={styles.qrWrapper}>
         <div className={styles.qrCard}>
-
           <div className={styles.qrBadge}>Mobile App</div>
 
           <div className={styles.qrCodeBox}>
@@ -202,16 +240,15 @@ function UserDashboard() {
             <span className={styles.qrNoticeDot} />
             Web version is currently under development
           </div>
-
         </div>
 
         {/* Feature chips */}
         <div className={styles.featuresRow}>
           {[
-            { icon: <IconGrid />,  label: 'Trivia Games'      },
-            { icon: <IconChart />, label: 'Progress Tracking'  },
-            { icon: <IconCrown />, label: 'Leaderboards'       },
-            { icon: <IconFlame />, label: 'Daily Streaks'      },
+            { icon: <IconGrid />,  label: 'Trivia Games'     },
+            { icon: <IconChart />, label: 'Progress Tracking' },
+            { icon: <IconCrown />, label: 'Leaderboards'      },
+            { icon: <IconFlame />, label: 'Daily Streaks'     },
           ].map((f, i) => (
             <div key={i} className={styles.featureChip} style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
               <span className={styles.featureIcon}>{f.icon}</span>
@@ -219,7 +256,6 @@ function UserDashboard() {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );

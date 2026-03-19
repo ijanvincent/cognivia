@@ -31,29 +31,71 @@ const IconCheck = () => (
   </svg>
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX: resolveAvatarUrl
+// WHY: Laravel Storage::url() may return "/storage/avatars/5_xxx.jpg" (relative)
+//      or the raw path "avatars/5_xxx.jpg". Either way, <img src> needs a full URL.
+//      We normalize all cases here in one place.
+// ─────────────────────────────────────────────────────────────────────────────
+function resolveAvatarUrl(avatar) {
+  if (!avatar) return null;
+  if (avatar.startsWith('blob:'))   return avatar; // local preview, already usable
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
+  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+  if (avatar.startsWith('/')) return `${base}${avatar}`;
+  return `${base}/storage/${avatar}`; // raw path e.g. "avatars/5_xxx.jpg"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX: getStoredUser / getStorageTarget
+// WHY: Reading storedUser at module scope creates a stale closure — the value
+//      is captured once at import time and never updates. Reading inside
+//      useEffect picks up the latest value after navigation.
+//      getStorageTarget() checks both storages so we write to the right one.
+// ─────────────────────────────────────────────────────────────────────────────
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
+    return JSON.parse(raw) || {};
+  } catch { return {}; }
+}
+
+function getStorageTarget() {
+  return localStorage.getItem('token') ? localStorage : sessionStorage;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function EditProfile() {
-  const navigate                        = useNavigate();
-  const fileInputRef                    = useRef(null);
-  const [mounted, setMounted]           = useState(false);
-  const [loading, setLoading]           = useState(false);
-  const [success, setSuccess]           = useState(false);
-  const [errors, setErrors]             = useState({});
+  const navigate     = useNavigate();
+  const fileInputRef = useRef(null);
+  const objectUrlRef = useRef(null); // track blob URL for cleanup
+
+  const [mounted, setMounted]             = useState(false);
+  const [loading, setLoading]             = useState(false);
+  const [success, setSuccess]             = useState(false);
+  const [errors, setErrors]               = useState({});
   const [avatarPreview, setAvatarPreview] = useState(null);
-  const [avatarFile, setAvatarFile]     = useState(null);
-  const [formData, setFormData]         = useState({ username: '' });
+  const [avatarFile, setAvatarFile]       = useState(null);
+  const [storedUser, setStoredUser]       = useState({});
+  const [formData, setFormData]           = useState({ username: '' });
 
-  // Load current user
-  const storedUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user')) || {};
-    } catch { return {}; }
-  })();
-
+  // ── Load user fresh inside useEffect ────────────────────────────────────
   useEffect(() => {
-    setFormData({ username: storedUser.username || '' });
-    if (storedUser.avatar) setAvatarPreview(storedUser.avatar);
+    const user = getStoredUser();
+    setStoredUser(user);
+    setFormData({ username: user.username || '' });
+    // FIX: resolve raw avatar path → full URL before setting as preview
+    if (user.avatar) setAvatarPreview(resolveAvatarUrl(user.avatar));
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
+  }, []);
+
+  // ── Revoke blob URLs on unmount to prevent memory leaks ─────────────────
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -63,35 +105,40 @@ function EditProfile() {
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
+  // ── FIX: Use URL.createObjectURL instead of FileReader ──────────────────
+  // WHY: FileReader is async and introduces a race condition where the user
+  //      could select another file before the first read completes.
+  //      createObjectURL is synchronous and immediate.
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
       setErrors(prev => ({ ...prev, avatar: 'Image must be less than 2MB' }));
       return;
     }
-
-    // Validate file type
     if (!['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(file.type)) {
       setErrors(prev => ({ ...prev, avatar: 'Only JPEG, PNG or WebP images allowed' }));
       return;
     }
 
+    // Revoke previous blob URL before creating a new one
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+
+    const blobUrl = URL.createObjectURL(file);
+    objectUrlRef.current = blobUrl;
+
     setAvatarFile(file);
+    setAvatarPreview(blobUrl);
     setErrors(prev => ({ ...prev, avatar: null }));
 
-    // Preview
-    const reader = new FileReader();
-    reader.onload = (e) => setAvatarPreview(e.target.result);
-    reader.readAsDataURL(file);
+    // Reset so same file can be selected again
+    e.target.value = '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate username
     const newErrors = {};
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
@@ -100,14 +147,12 @@ function EditProfile() {
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
       newErrors.username = 'Only letters, numbers and underscores allowed';
     }
-
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
     setLoading(true);
     setErrors({});
 
     try {
-      // Use FormData for file upload
       const form = new FormData();
       form.append('username', formData.username.trim());
       if (avatarFile) form.append('avatar', avatarFile);
@@ -116,13 +161,27 @@ function EditProfile() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // Update stored user
       const updatedUser = response.data.user;
-      const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
-      storage.setItem('user', JSON.stringify(updatedUser));
+
+      // ── FIX: Normalize avatar URL before persisting ──────────────────────
+      // WHY: API returns raw path or relative URL — normalize to full URL
+      //      so every future read from storage is display-ready
+      if (updatedUser.avatar) {
+        updatedUser.avatar = resolveAvatarUrl(updatedUser.avatar);
+      }
+
+      // ── FIX: Write to correct storage ────────────────────────────────────
+      getStorageTarget().setItem('user', JSON.stringify(updatedUser));
+
+      // ── FIX: Notify Dashboard on same tab ────────────────────────────────
+      // WHY: The 'storage' event doesn't fire on the same tab that wrote the
+      //      change. We dispatch a custom event so Dashboard can re-read user
+      //      and update the avatar chip without a full page reload.
+      window.dispatchEvent(new CustomEvent('cognivia:userUpdated', { detail: updatedUser }));
 
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1800);
+
     } catch (error) {
       if (error.response?.data?.errors) {
         const apiErrors = {};
@@ -145,34 +204,25 @@ function EditProfile() {
   return (
     <div className={`${styles.page} ${mounted ? styles.mounted : ''}`}>
 
-      {/* ── Back button ── */}
       <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>
         <IconArrowLeft />
         Back to Dashboard
       </button>
 
-      {/* ── Card ── */}
       <div className={styles.card}>
-
-        {/* Header */}
         <div className={styles.cardHeader}>
           <h1 className={styles.cardTitle}>Edit Profile</h1>
           <p className={styles.cardSubtitle}>Update your username and profile picture</p>
         </div>
 
-        {/* Success state */}
         {success && (
           <div className={styles.successAlert}>
             <IconCheck />
             Profile updated successfully! Redirecting...
           </div>
         )}
-
-        {/* Error */}
         {errors.general && (
-          <div className={styles.errorAlert}>
-            {errors.general}
-          </div>
+          <div className={styles.errorAlert}>{errors.general}</div>
         )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -181,7 +231,13 @@ function EditProfile() {
           <div className={styles.avatarSection}>
             <div className={styles.avatarWrap} onClick={handleAvatarClick}>
               {avatarPreview ? (
-                <img src={avatarPreview} alt="Avatar" className={styles.avatarImg} />
+                <img
+                  src={avatarPreview}
+                  alt="Profile avatar"
+                  className={styles.avatarImg}
+                  // FIX: onError fallback — broken img shows initials instead
+                  onError={() => setAvatarPreview(null)}
+                />
               ) : (
                 <div className={styles.avatarPlaceholder}>{userInitial}</div>
               )}
@@ -189,6 +245,7 @@ function EditProfile() {
                 <IconCamera />
               </div>
             </div>
+
             <input
               ref={fileInputRef}
               type="file"
