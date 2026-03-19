@@ -4,7 +4,7 @@ import styles from './dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import api from '../../services/api.js';
 
-const APP_DOWNLOAD_URL = import.meta.env.VITE_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
+const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 
 // ── Icons ──
 const IconGrid = () => (
