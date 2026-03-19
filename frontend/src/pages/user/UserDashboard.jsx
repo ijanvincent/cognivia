@@ -65,13 +65,19 @@ const IconChevron = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX: getStoredUser moved to module-level helper (same pattern as EditProfile)
-// WHY: Consistent, reusable, avoids duplicated try/catch inline
+// getStoredUser — reads from the storage that has the active token
+// Mirrors the same logic in EditProfile so both always read the same user
 // ─────────────────────────────────────────────────────────────────────────────
 function getStoredUser() {
   try {
+    if (localStorage.getItem('token')) {
+      return JSON.parse(localStorage.getItem('user') || 'null') || {};
+    }
+    if (sessionStorage.getItem('token')) {
+      return JSON.parse(sessionStorage.getItem('user') || 'null') || {};
+    }
     const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return JSON.parse(raw) || {};
+    return JSON.parse(raw || 'null') || {};
   } catch { return {}; }
 }
 
@@ -79,11 +85,11 @@ function UserDashboard() {
   const [mounted, setMounted]           = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // ── FIX: user is now state, not a one-time read ──────────────────────────
-  // WHY: If stored as a plain const from localStorage, React never re-renders
-  //      when the user returns from EditProfile with a new avatar.
-  //      Storing as state + listening to our custom event fixes this.
-  const [user, setUser]                 = useState(() => getStoredUser());
+  // FIX: Initialize from storage via lazy useState — this runs on every fresh
+  // mount (including after navigating back from EditProfile). Since EditProfile
+  // now writes to BOTH storages before navigating, this always picks up the
+  // latest user including the new avatar.
+  const [user, setUser] = useState(() => getStoredUser());
 
   const dropdownRef = useRef(null);
   const navigate    = useNavigate();
@@ -91,15 +97,19 @@ function UserDashboard() {
   const userName    = user.name || user.username || 'Learner';
   const userInitial = userName.charAt(0).toUpperCase();
 
+  // FIX: Re-read from storage on mount via useEffect as a safety net.
+  // WHY: The lazy useState init captures storage at first render. If React
+  // batches renders or the storage write in EditProfile races with the mount,
+  // this useEffect re-reads and corrects it.
   useEffect(() => {
+    const freshUser = getStoredUser();
+    setUser(freshUser);
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  // ── FIX: Listen for profile updates dispatched by EditProfile ────────────
-  // WHY: localStorage 'storage' event doesn't fire on the same tab.
-  //      EditProfile dispatches 'cognivia:userUpdated' after saving,
-  //      so we catch it here and update React state immediately.
+  // Listen for profile updates when Dashboard is already mounted (no remount).
+  // This handles: Edit Profile opened in same SPA session without unmounting Dashboard.
   useEffect(() => {
     const handleUserUpdated = (e) => {
       setUser(e.detail || getStoredUser());
@@ -108,18 +118,19 @@ function UserDashboard() {
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
 
-  // Close dropdown on outside click
+  // Outside-click uses 'click' (not 'mousedown') so dropdown buttons fire first
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
   }, []);
 
   const handleLogout = async () => {
+    setDropdownOpen(false);
     try { await api.post('/auth/logout'); } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -128,12 +139,9 @@ function UserDashboard() {
     navigate('/login');
   };
 
-  // ── FIX: Route was '/profile' — corrected to '/profile/edit' ────────────
-  // WHY: Route defined in router is '/profile/edit'; mismatched route caused
-  //      navigation to a blank/404 page instead of the edit form.
   const handleEditProfile = () => {
     setDropdownOpen(false);
-    navigate('/profile/edit');
+    navigate('/profile');
   };
 
   return (
@@ -148,39 +156,32 @@ function UserDashboard() {
           </p>
         </div>
 
-        {/* Avatar chip with dropdown */}
         <div className={styles.avatarWrapper} ref={dropdownRef}>
           <button
             className={`${styles.avatarChip} ${dropdownOpen ? styles.avatarChipActive : ''}`}
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onClick={() => setDropdownOpen(prev => !prev)}
           >
-            {/* ── FIX: Render avatar image when available ──────────────────
-                WHY: Original code only showed the text initial (userInitial)
-                     inside .avatar div — the .avatarImg CSS class existed but
-                     was never used. Now we show the image if user.avatar exists,
-                     with onError fallback to initials. */}
             <div className={styles.avatar}>
               {user.avatar ? (
                 <img
                   src={user.avatar}
                   alt={`${userName} avatar`}
                   className={styles.avatarImg}
+                  // If image fails to load (e.g. wrong URL), fall back to initial
                   onError={(e) => {
-                    // Hide broken image, show initials div instead
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement.dataset.fallback = 'true';
+                    // Show the parent's text content (initial) by removing img
+                    e.currentTarget.parentElement.textContent = userInitial;
                   }}
                 />
               ) : (
                 userInitial
               )}
             </div>
-
             <div>
               <div className={styles.avatarName}>{userName}</div>
               <div className={styles.avatarRole}>{user.role || 'Member'}</div>
             </div>
-
             <span className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`}>
               <IconChevron />
             </span>
@@ -242,7 +243,6 @@ function UserDashboard() {
           </div>
         </div>
 
-        {/* Feature chips */}
         <div className={styles.featuresRow}>
           {[
             { icon: <IconGrid />,  label: 'Trivia Games'     },

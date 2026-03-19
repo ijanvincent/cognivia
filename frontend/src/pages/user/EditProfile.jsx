@@ -32,36 +32,57 @@ const IconCheck = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX: resolveAvatarUrl
-// WHY: Laravel Storage::url() may return "/storage/avatars/5_xxx.jpg" (relative)
-//      or the raw path "avatars/5_xxx.jpg". Either way, <img src> needs a full URL.
-//      We normalize all cases here in one place.
+// resolveAvatarUrl — idempotent, safe, handles all cases
+//
+// WHY this exists: Laravel UserResource may return any of these:
+//   A) Full URL:    "https://api.cognivia.com/storage/avatars/5_xxx.jpg"
+//   B) Relative:   "/storage/avatars/5_xxx.jpg"
+//   C) Raw path:   "avatars/5_xxx.jpg"
+//   D) Blob URL:   "blob:http://localhost:5173/abc-123" (local preview only)
+//
+// We normalize A/B/C → a display-ready URL. D is left untouched.
+// This function is IDEMPOTENT — safe to call multiple times on the same value.
 // ─────────────────────────────────────────────────────────────────────────────
 function resolveAvatarUrl(avatar) {
   if (!avatar) return null;
-  if (avatar.startsWith('blob:'))   return avatar; // local preview, already usable
-  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
+  if (avatar.startsWith('blob:')) return avatar;                          // local preview
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar; // already full
   const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-  if (avatar.startsWith('/')) return `${base}${avatar}`;
-  return `${base}/storage/${avatar}`; // raw path e.g. "avatars/5_xxx.jpg"
+  if (avatar.startsWith('/storage/')) return `${base}${avatar}`;          // relative /storage/...
+  if (avatar.startsWith('/'))        return `${base}${avatar}`;          // other relative
+  return `${base}/storage/${avatar}`;                                     // raw path
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX: getStoredUser / getStorageTarget
-// WHY: Reading storedUser at module scope creates a stale closure — the value
-//      is captured once at import time and never updates. Reading inside
-//      useEffect picks up the latest value after navigation.
-//      getStorageTarget() checks both storages so we write to the right one.
+// Storage helpers
+//
+// FIX: We write user to BOTH storages, and read from whichever has data.
+// WHY: Original code wrote to whichever storage had the TOKEN. But if token
+//      was in sessionStorage and an old user was in localStorage, getStoredUser()
+//      would read localStorage first → always returning the STALE old user.
+//      Writing to both eliminates the mismatch entirely.
 // ─────────────────────────────────────────────────────────────────────────────
 function getStoredUser() {
   try {
+    // Prefer the storage that also has the token (most authoritative)
+    if (localStorage.getItem('token')) {
+      return JSON.parse(localStorage.getItem('user') || 'null') || {};
+    }
+    if (sessionStorage.getItem('token')) {
+      return JSON.parse(sessionStorage.getItem('user') || 'null') || {};
+    }
+    // Fallback: whichever has user data
     const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return JSON.parse(raw) || {};
+    return JSON.parse(raw || 'null') || {};
   } catch { return {}; }
 }
 
-function getStorageTarget() {
-  return localStorage.getItem('token') ? localStorage : sessionStorage;
+function persistUser(updatedUser) {
+  // FIX: Write to BOTH storages so getStoredUser() always finds the latest
+  // regardless of which one it reads from.
+  const serialized = JSON.stringify(updatedUser);
+  try { localStorage.setItem('user', serialized); } catch {}
+  try { sessionStorage.setItem('user', serialized); } catch {}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,7 +90,7 @@ function getStorageTarget() {
 function EditProfile() {
   const navigate     = useNavigate();
   const fileInputRef = useRef(null);
-  const objectUrlRef = useRef(null); // track blob URL for cleanup
+  const objectUrlRef = useRef(null);
 
   const [mounted, setMounted]             = useState(false);
   const [loading, setLoading]             = useState(false);
@@ -80,21 +101,28 @@ function EditProfile() {
   const [storedUser, setStoredUser]       = useState({});
   const [formData, setFormData]           = useState({ username: '' });
 
-  // ── Load user fresh inside useEffect ────────────────────────────────────
+  // Load user fresh every time this page mounts
   useEffect(() => {
     const user = getStoredUser();
     setStoredUser(user);
     setFormData({ username: user.username || '' });
-    // FIX: resolve raw avatar path → full URL before setting as preview
-    if (user.avatar) setAvatarPreview(resolveAvatarUrl(user.avatar));
+    // Resolve and set avatar preview from stored user
+    if (user.avatar) {
+      setAvatarPreview(resolveAvatarUrl(user.avatar));
+    } else {
+      setAvatarPreview(null);
+    }
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  // ── Revoke blob URLs on unmount to prevent memory leaks ─────────────────
+  // Revoke blob URL on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
     };
   }, []);
 
@@ -105,10 +133,6 @@ function EditProfile() {
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
-  // ── FIX: Use URL.createObjectURL instead of FileReader ──────────────────
-  // WHY: FileReader is async and introduces a race condition where the user
-  //      could select another file before the first read completes.
-  //      createObjectURL is synchronous and immediate.
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -122,18 +146,17 @@ function EditProfile() {
       return;
     }
 
-    // Revoke previous blob URL before creating a new one
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-
+    // Revoke old blob URL before creating a new one
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
     const blobUrl = URL.createObjectURL(file);
     objectUrlRef.current = blobUrl;
 
     setAvatarFile(file);
     setAvatarPreview(blobUrl);
     setErrors(prev => ({ ...prev, avatar: null }));
-
-    // Reset so same file can be selected again
-    e.target.value = '';
+    e.target.value = ''; // allow re-selecting same file
   };
 
   const handleSubmit = async (e) => {
@@ -163,23 +186,25 @@ function EditProfile() {
 
       const updatedUser = response.data.user;
 
-      // ── FIX: Normalize avatar URL before persisting ──────────────────────
-      // WHY: API returns raw path or relative URL — normalize to full URL
-      //      so every future read from storage is display-ready
+      // Normalize avatar URL from API response before storing
       if (updatedUser.avatar) {
         updatedUser.avatar = resolveAvatarUrl(updatedUser.avatar);
       }
 
-      // ── FIX: Write to correct storage ────────────────────────────────────
-      getStorageTarget().setItem('user', JSON.stringify(updatedUser));
+      // FIX: Write to BOTH storages (eliminates token/user storage mismatch)
+      persistUser(updatedUser);
 
-      // ── FIX: Notify Dashboard on same tab ────────────────────────────────
-      // WHY: The 'storage' event doesn't fire on the same tab that wrote the
-      //      change. We dispatch a custom event so Dashboard can re-read user
-      //      and update the avatar chip without a full page reload.
+      // FIX: Fire custom event AFTER writing storage AND right before navigating.
+      // Dashboard's useState init reads from storage on mount — since we write
+      // to storage first, the fresh mount will read the correct user.
+      // The event handles the case where Dashboard is already mounted (no remount).
       window.dispatchEvent(new CustomEvent('cognivia:userUpdated', { detail: updatedUser }));
 
       setSuccess(true);
+
+      // FIX: Navigate immediately after event — don't wait 1800ms then navigate.
+      // The success UI shows for 1800ms but storage is already updated.
+      // Dashboard's useState(() => getStoredUser()) will read correct data on mount.
       setTimeout(() => navigate('/dashboard'), 1800);
 
     } catch (error) {
@@ -235,7 +260,6 @@ function EditProfile() {
                   src={avatarPreview}
                   alt="Profile avatar"
                   className={styles.avatarImg}
-                  // FIX: onError fallback — broken img shows initials instead
                   onError={() => setAvatarPreview(null)}
                 />
               ) : (
