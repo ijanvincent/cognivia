@@ -11,7 +11,7 @@ import AdminUsers from './../pages/admin/users.js';
 import AdminUsersAnalytics from './../pages/admin/users-analytics.js';
 import AdminLogin from './../pages/admin/login.js';
 
-import UserDashboard from './../pages/user/dashboard.js';
+import UserDashboard from '../pages/user/UserDashboard.jsx';
 import UserLogin from './../pages/user/login.js';
 import UserRegister from './../pages/user/register.js';
 import About from './../pages/user/about.js';
