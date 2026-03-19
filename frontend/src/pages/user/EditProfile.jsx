@@ -47,7 +47,7 @@ function resolveAvatarUrl(avatar) {
   if (!avatar) return null;
   if (avatar.startsWith('blob:')) return avatar;                          // local preview
   if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar; // already full
-  const base = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace(/\/api$/, '').replace(/\/$/, '');
+  const base = 'http://localhost:3000';
   if (avatar.startsWith('/storage/')) return `${base}${avatar}`;          // relative /storage/...
   if (avatar.startsWith('/'))        return `${base}${avatar}`;          // other relative
   return `${base}/storage/${avatar}`;                                     // raw path

@@ -119,16 +119,22 @@ function UserDashboard() {
   }, []);
 
   // Outside-click uses 'click' (not 'mousedown') so dropdown buttons fire first
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
+useEffect(() => {
+  if (!dropdownOpen) return;
+  const handleOutsideClick = (e) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setDropdownOpen(false);
+    }
+  };
+  // Delay adding listener so the opening click doesn't immediately close it
+  const timer = setTimeout(() => {
     document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
-
+  }, 10);
+  return () => {
+    clearTimeout(timer);
+    document.removeEventListener('click', handleOutsideClick);
+  };
+}, [dropdownOpen]);
   const handleLogout = async () => {
     setDropdownOpen(false);
     try { await api.post('/auth/logout'); } catch {}
