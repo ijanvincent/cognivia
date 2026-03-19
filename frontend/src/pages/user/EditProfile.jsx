@@ -47,7 +47,7 @@ function resolveAvatarUrl(avatar) {
   if (!avatar) return null;
   if (avatar.startsWith('blob:')) return avatar;                          // local preview
   if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar; // already full
-  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+  const base = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace(/\/api$/, '').replace(/\/$/, '');
   if (avatar.startsWith('/storage/')) return `${base}${avatar}`;          // relative /storage/...
   if (avatar.startsWith('/'))        return `${base}${avatar}`;          // other relative
   return `${base}/storage/${avatar}`;                                     // raw path
