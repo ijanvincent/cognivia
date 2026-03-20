@@ -187,8 +187,7 @@ function UserDashboard() {
       {/* ── QR Code Center ── */}
       <div className={styles.qrWrapper}>
         <div className={styles.qrCard}>
-          <div className={styles.qrBadge}>Mobile App</div>
-
+  
           <div className={styles.qrCodeBox}>
             <QRCode
               value={APP_DOWNLOAD_URL}
@@ -201,24 +200,14 @@ function UserDashboard() {
 
           <h2 className={styles.qrTitle}>Please Scan for the full experience</h2>
           <p className={styles.qrSubtitle}>
-            Point your phone camera at the QR code<br />
-            to download the CogniVia mobile app.
+             Scan the QR code with your phone camera<br />
+             to download CogniVia and start learning.
           </p>
 
-          <div className={styles.qrDivider}>
-            <span className={styles.qrDividerLine} />
-            <span className={styles.qrDividerText}>or</span>
-            <span className={styles.qrDividerLine} />
-          </div>
-
-          <a href={APP_DOWNLOAD_URL} className={styles.qrLink} target="_blank" rel="noopener noreferrer">
-            Download manually →
-          </a>
-
           <div className={styles.qrNotice}>
-            <span className={styles.qrNoticeDot} />
-            Web version is currently under development
-          </div>
+          <span className={styles.qrNoticeDot} />
+           Full web experience coming soon
+        </div>
         </div>
       </div>
     </div>
