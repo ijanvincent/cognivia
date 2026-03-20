@@ -222,20 +222,6 @@ function UserDashboard() {
             Web version is currently under development
           </div>
         </div>
-
-        <div className={styles.featuresRow}>
-          {[
-            { icon: <IconGrid />,  label: 'Trivia Games'      },
-            { icon: <IconChart />, label: 'Progress Tracking'  },
-            { icon: <IconCrown />, label: 'Leaderboards'       },
-            { icon: <IconFlame />, label: 'Daily Streaks'      },
-          ].map((f, i) => (
-            <div key={i} className={styles.featureChip} style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
-              <span className={styles.featureIcon}>{f.icon}</span>
-              <span className={styles.featureLabel}>{f.label}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
