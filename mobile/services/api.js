@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'https://prologlike-everleigh-veneratively.ngrok-free.dev/api'; // ← YOUR LOCAL IP!
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.100.220.52:3000/api';
 
 const api = axios.create({
     baseURL: API_URL,

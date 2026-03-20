@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from './firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './services/api';
 
 export const DeckContext = createContext({
     decks: [],
@@ -11,91 +10,72 @@ export const DeckContext = createContext({
 });
 
 export const DeckProvider = ({ children }) => {
-    const [decks, setDecks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [decks, setDecks]         = useState([]);
+    const [loading, setLoading]     = useState(true);
     const [currentUser, setCurrentUser] = useState(null);
 
-    // Listen to authentication state changes
+    // Load user from AsyncStorage on mount
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-            if (!user) {
-                // User logged out - clear decks immediately
-                setDecks([]);
-                setLoading(false);
+        const loadUser = async () => {
+            try {
+                const userStr = await AsyncStorage.getItem('user');
+                if (userStr) {
+                    setCurrentUser(JSON.parse(userStr));
+                }
+            } catch (e) {
+                console.error('Error loading user:', e);
             }
-        });
-
-        return () => unsubscribeAuth();
+        };
+        loadUser();
     }, []);
 
-    // Listen to real-time updates from Firestore
+    // Fetch decks from Laravel API when user is available
     useEffect(() => {
-        // Only set up listener if user is authenticated
         if (!currentUser) {
             setDecks([]);
             setLoading(false);
             return;
         }
+        fetchDecks();
+    }, [currentUser]);
 
-        const decksRef = collection(db, 'decks');
-        const q = query(
-            decksRef, 
-            where('userId', '==', currentUser.uid),
-            orderBy('createdAt', 'desc')
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const decksList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setDecks(decksList);
-            setLoading(false);
-        }, (error) => {
+    const fetchDecks = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/decks');
+            setDecks(response.data.decks || []);
+        } catch (error) {
             console.error('Error fetching decks:', error);
-            if (error.code === 'permission-denied') {
-                setDecks([]);
-            }
+            setDecks([]);
+        } finally {
             setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [currentUser]); // Re-run when currentUser changes
+        }
+    };
 
     const addDeck = async (newDeckData) => {
         try {
-            if (!currentUser) {
-                throw new Error('User not authenticated');
-            }
+            const response = await api.post('/decks', {
+                title:      newDeckData.deckName,
+                source:     newDeckData.fileName,
+                card_count: parseInt(newDeckData.numberOfCards),
+                mastery:    0,
+                progress:   0,
+                status:     newDeckData.status || 'New',
+            });
 
-            const newDeck = {
-                userId: currentUser.uid,
-                title: newDeckData.deckName,
-                source: newDeckData.fileName,
-                cardCount: parseInt(newDeckData.numberOfCards),
-                mastery: 0,
-                progress: 0,
-                status: newDeckData.status || 'New',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-
-            const docRef = await addDoc(collection(db, 'decks'), newDeck);
-            
-            return {
-                id: docRef.id,
-                ...newDeck
-            };
+            const newDeck = response.data.deck;
+            setDecks(prev => [newDeck, ...prev]);
+            return newDeck;
         } catch (error) {
             console.error('Error adding deck:', error);
             throw error;
         }
     };
-    
+
     const removeDeck = async (deckId) => {
         try {
-            await deleteDoc(doc(db, 'decks', deckId));
+            await api.delete(`/decks/${deckId}`);
+            setDecks(prev => prev.filter(d => d.id !== deckId));
         } catch (error) {
             console.error('Error removing deck:', error);
             throw error;
@@ -103,12 +83,10 @@ export const DeckProvider = ({ children }) => {
     };
 
     return (
-        <DeckContext.Provider value={{ decks, addDeck, removeDeck, loading }}>
+        <DeckContext.Provider value={{ decks, addDeck, removeDeck, loading, refreshDecks: fetchDecks }}>
             {children}
         </DeckContext.Provider>
     );
 };
 
-export const useDecks = () => {
-    return useContext(DeckContext);
-};
+export const useDecks = () => useContext(DeckContext);
