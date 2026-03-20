@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
@@ -6,42 +6,6 @@ import api from '../../services/api.js';
 
 const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 
-// ── Icons ──
-const IconGrid = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-  </svg>
-);
-
-const IconChart = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" strokeOpacity="0.25"/>
-    <path d="M12 3a9 9 0 0 1 9 9" strokeLinecap="round"/>
-    <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
-  </svg>
-);
-
-const IconCrown = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3C9 3 6 5 5 7.5"/>
-    <path d="M12 3C15 3 18 5 19 7.5"/>
-    <path d="M5 7.5C4 9 3.5 10.5 4 12c.5 1.5 1.5 2.5 2.5 3"/>
-    <path d="M19 7.5C20 9 20.5 10.5 20 12c-.5 1.5-1.5 2.5-2.5 3"/>
-    <path d="M6.5 15C8 17 10 18 12 18c2 0 4-1 5.5-3"/>
-    <line x1="12" y1="18" x2="12" y2="21"/>
-    <line x1="9"  y1="21" x2="15" y2="21"/>
-  </svg>
-);
-
-const IconFlame = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-  </svg>
-);
 
 const IconUser = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
