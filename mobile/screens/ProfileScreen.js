@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    TouchableOpacity, 
-    Switch, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Switch,
     TextInput,
     Alert,
     Platform,
@@ -14,216 +14,126 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { auth, db } from '../firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../ThemeContext';
+import api from '../services/api';
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
     const { theme, colors, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
 
-    const [inputLink, setInputLink] = useState('');
+    const [inputLink, setInputLink]       = useState('');
     const [profileImage, setProfileImage] = useState(null);
-    const [isImporting, setIsImporting] = useState(false);
-    const [userData, setUserData] = useState({
+    const [isImporting, setIsImporting]   = useState(false);
+    const [userData, setUserData]         = useState({
         name: 'Loading...',
         email: 'Loading...',
     });
 
-    // Fetch user data from Firestore
+    // Load user from AsyncStorage
     useEffect(() => {
-        const fetchUserData = async () => {
+        const loadUser = async () => {
             try {
-                if (auth.currentUser) {
-                    const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-                    if (userDoc.exists()) {
-                        const data = userDoc.data();
-                        setUserData({
-                            name: data.name || auth.currentUser.displayName || 'User',
-                            email: data.email || auth.currentUser.email,
-                        });
-                        if (data.profileImage) {
-                            setProfileImage(data.profileImage);
-                        }
-                    } else {
-                        setUserData({
-                            name: auth.currentUser.displayName || 'User',
-                            email: auth.currentUser.email,
-                        });
+                const userStr = await AsyncStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    setUserData({
+                        name:  user.username || user.name || 'User',
+                        email: user.email || '',
+                    });
+                    if (user.avatar) {
+                        setProfileImage(user.avatar);
                     }
                 }
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error('Error loading user:', error);
             }
         };
-
-        fetchUserData();
+        loadUser();
     }, []);
 
     const handleEditProfile = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert(
-                "Permission Denied",
-                "Sorry, we need camera roll permissions to change the profile picture."
-            );
+            Alert.alert('Permission Denied', 'We need camera roll permissions to change your profile picture.');
             return;
         }
 
-        let result = await ImagePicker.launchImageLibraryAsync({
+        const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
-            quality: 1,
+            quality: 0.8,
         });
 
         if (!result.canceled) {
-            setProfileImage(result.assets[0].uri);
-            
+            const uri = result.assets[0].uri;
+            setProfileImage(uri);
+
             try {
-                await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-                    profileImage: result.assets[0].uri
+                const formData = new FormData();
+                formData.append('avatar', {
+                    uri,
+                    name: 'avatar.jpg',
+                    type: 'image/jpeg',
                 });
+
+                const response = await api.post('/auth/profile/update', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+
+                const userStr = await AsyncStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    user.avatar = response.data.user.avatar;
+                    await AsyncStorage.setItem('user', JSON.stringify(user));
+                }
+
+                Alert.alert('Success', 'Profile picture updated!');
             } catch (error) {
-                console.error('Error updating profile image:', error);
+                console.error('Error updating avatar:', error);
+                Alert.alert('Error', 'Could not update profile picture.');
             }
         }
     };
 
     const handleInputLink = async () => {
         if (!inputLink.trim()) {
-            Alert.alert("Empty Code", "Please enter a deck code to import.");
+            Alert.alert('Empty Code', 'Please enter a deck code to import.');
             return;
         }
-
         const shareCodeMatch = inputLink.trim().match(/FC-([A-Z0-9]{8})/i);
-        
         if (shareCodeMatch) {
             await importDeckFromCode(inputLink.trim());
         } else {
-            Alert.alert("Invalid Code", "Please enter a valid deck code (format: FC-XXXXXXXX)");
+            Alert.alert('Invalid Code', 'Please enter a valid deck code (format: FC-XXXXXXXX)');
         }
     };
 
     const importDeckFromCode = async (shareCode) => {
         setIsImporting(true);
-
         try {
-            const deckIdPrefix = shareCode.replace('FC-', '').toLowerCase();
-            
-            console.log("Searching for deck with prefix:", deckIdPrefix);
-
-            const decksRef = collection(db, 'decks');
-            const querySnapshot = await getDocs(decksRef);
-            
-            let foundDeck = null;
-            querySnapshot.forEach((doc) => {
-                if (doc.id.toLowerCase().startsWith(deckIdPrefix)) {
-                    foundDeck = { id: doc.id, ...doc.data() };
-                }
-            });
-
-            if (!foundDeck) {
-                Alert.alert("Not Found", "Could not find a deck with this code. Please check the code and try again.");
-                setIsImporting(false);
-                return;
-            }
-
-            console.log("Found deck:", foundDeck.title);
-
-            // Check if already imported
-            const userDecksQuery = query(
-                collection(db, 'decks'),
-                where('userId', '==', auth.currentUser.uid)
-            );
-            const userDeckSnapshot = await getDocs(userDecksQuery);
-            
-            let alreadyImported = false;
-            userDeckSnapshot.forEach(doc => {
-                if (doc.data().originalDeckId === foundDeck.id) {
-                    alreadyImported = true;
-                }
-            });
-            
-            if (alreadyImported) {
-                Alert.alert("Already Imported", `You already have "${foundDeck.title}" in your library.`);
-                setIsImporting(false);
-                return;
-            }
-
-            // Import the deck
-            const newDeckData = {
-                userId: auth.currentUser.uid,
-                title: foundDeck.title,
-                source: foundDeck.source,
-                cardCount: foundDeck.cardCount,
-                mastery: 0,
-                progress: 0,
-                status: 'Imported',
-                originalDeckId: foundDeck.id,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-
-            const newDeckRef = await addDoc(collection(db, 'decks'), newDeckData);
-
-            // Copy flashcards
-            const flashcardsQuery = query(
-                collection(db, 'flashcards'),
-                where('deckId', '==', foundDeck.id)
-            );
-            const flashcardsSnapshot = await getDocs(flashcardsQuery);
-            
-            console.log(`Copying ${flashcardsSnapshot.docs.length} flashcards...`);
-
-            const flashcardPromises = flashcardsSnapshot.docs.map(doc => {
-                const cardData = doc.data();
-                return addDoc(collection(db, 'flashcards'), {
-                    deckId: newDeckRef.id,
-                    userId: auth.currentUser.uid,
-                    question: cardData.question,
-                    answer: cardData.answer,
-                    mastered: false,
-                    reviewCount: 0,
-                    createdAt: new Date().toISOString(),
-                });
-            });
-
-            await Promise.all(flashcardPromises);
-
+            const response = await api.post('/decks/import', { code: shareCode });
             Alert.alert(
-                "Success! 🎉",
-                `"${foundDeck.title}" has been imported with ${foundDeck.cardCount} cards!`,
-                [
-                    { text: "OK", onPress: () => {
-                        setInputLink('');
-                        navigation.navigate('HomeTabs', { screen: 'Home' });
-                    }}
-                ]
+                'Success! 🎉',
+                `"${response.data.deck.title}" has been imported!`,
+                [{ text: 'OK', onPress: () => {
+                    setInputLink('');
+                    navigation.navigate('HomeTabs', { screen: 'Home' });
+                }}]
             );
-
         } catch (error) {
-            console.error("Import error:", error);
-            Alert.alert("Import Failed", error.message || "Could not import the deck. Please try again.");
+            const message = error.response?.data?.message || 'Could not import the deck. Please try again.';
+            Alert.alert('Import Failed', message);
         } finally {
             setIsImporting(false);
         }
     };
 
-    const handleToggleAppTheme = async () => {
+    const handleToggleAppTheme = () => {
         toggleTheme();
-        
-        try {
-            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-                theme: !isDarkMode ? 'dark' : 'light'
-            });
-        } catch (error) {
-            console.error('Error updating theme preference:', error);
-        }
-        
-        Alert.alert("Theme Change", `App Theme changed to ${!isDarkMode ? 'Dark' : 'Light'} Mode.`);
+        Alert.alert('Theme Change', `App Theme changed to ${!isDarkMode ? 'Dark' : 'Light'} Mode.`);
     };
 
     const handleAboutUs = () => {
@@ -232,19 +142,21 @@ const ProfileScreen = () => {
 
     const handleLogout = () => {
         Alert.alert(
-            "Logout",
-            "Are you sure you want to log out?",
+            'Logout',
+            'Are you sure you want to log out?',
             [
-                { text: "Cancel", style: "cancel" },
-                { 
-                    text: "Logout", 
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Logout',
                     onPress: async () => {
                         try {
-                            await signOut(auth);
+                            await api.post('/auth/logout');
+                        } catch (e) {
+                            // ignore logout API errors
+                        } finally {
+                            await AsyncStorage.removeItem('token');
+                            await AsyncStorage.removeItem('user');
                             navigation.replace('Login');
-                        } catch (error) {
-                            console.error('Logout error:', error);
-                            Alert.alert('Error', 'Could not log out. Please try again.');
                         }
                     }
                 }
@@ -261,14 +173,13 @@ const ProfileScreen = () => {
                 <Text style={[styles.headerTitle, { color: colors.text }]}>Your Profile</Text>
                 <View style={{ width: 24 }} />
             </View>
-            
+
             <View style={styles.profileInfo}>
                 {profileImage ? (
                     <Image source={{ uri: profileImage }} style={styles.profileImage} />
                 ) : (
                     <MaterialCommunityIcons name="account-circle" size={100} color={isDarkMode ? colors.subtext : '#ccc'} />
                 )}
-                
                 <TouchableOpacity onPress={handleEditProfile} style={[styles.editButton, { backgroundColor: colors.primary }]}>
                     <Text style={[styles.editButtonText, { color: 'black' }]}>Edit</Text>
                 </TouchableOpacity>
@@ -289,13 +200,9 @@ const ProfileScreen = () => {
                         autoCorrect={false}
                         editable={!isImporting}
                     />
-                    <TouchableOpacity 
-                        onPress={handleInputLink} 
-                        style={[
-                            styles.linkSubmitButton, 
-                            { backgroundColor: colors.primary },
-                            isImporting && styles.linkSubmitButtonDisabled
-                        ]}
+                    <TouchableOpacity
+                        onPress={handleInputLink}
+                        style={[styles.linkSubmitButton, { backgroundColor: colors.primary }, isImporting && styles.linkSubmitButtonDisabled]}
                         disabled={isImporting}
                     >
                         {isImporting ? (
@@ -306,10 +213,7 @@ const ProfileScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity 
-                    onPress={handleAboutUs} 
-                    style={[styles.settingItem, { borderBottomColor: colors.border }]}
-                >
+                <TouchableOpacity onPress={handleAboutUs} style={[styles.settingItem, { borderBottomColor: colors.border }]}>
                     <View style={styles.settingItemLeft}>
                         <MaterialCommunityIcons name="information-outline" size={24} color={colors.subtext} style={styles.settingIcon} />
                         <Text style={[styles.settingText, { color: colors.text }]}>About Us</Text>
@@ -340,136 +244,29 @@ const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 20,
-        paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-        marginTop: Platform.OS === 'ios' ? 60 : 40,
-    },
-    backButton: {
-        padding: 5,
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-    },
-    profileInfo: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: '#E0E0E0',
-    },
-    editButton: {
-        position: 'absolute',
-        bottom: 50,
-        right: '35%',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-        elevation: 2,
-    },
-    editButtonText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    userName: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginTop: 10,
-    },
-    userEmail: {
-        fontSize: 16,
-    },
-    settingsSection: {
-        borderRadius: 12,
-        marginBottom: 25,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        paddingVertical: 10,
-    },
-    settingItemContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 15,
-        borderBottomWidth: 1,
-    },
-    linkInput: {
-        flex: 1,
-        fontSize: 12,
-        marginLeft: 10,
-    },
-    linkSubmitButton: {
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        borderRadius: 8,
-        marginLeft: 10,
-        minWidth: 70,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    linkSubmitButtonDisabled: {
-        opacity: 0.6,
-    },
-    linkSubmitButtonText: {
-        fontWeight: '600',
-        fontSize: 15,
-    },
-    settingItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 12,
-        paddingHorizontal: 15,
-        borderBottomWidth: 1,
-    },
-    settingItemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    settingIcon: {
-        marginRight: 15,
-    },
-    settingText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    settingSwitch: {
-        transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-    },
-    logoutButton: {
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 3,
-    },
-    logoutButtonText: {
-        fontSize: 18,
-        fontWeight: '600',
-    },
+    container: { flex: 1, paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 30 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, marginTop: Platform.OS === 'ios' ? 60 : 40 },
+    backButton: { padding: 5 },
+    headerTitle: { fontSize: 24, fontWeight: 'bold' },
+    profileInfo: { alignItems: 'center', marginBottom: 30 },
+    profileImage: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E0E0E0' },
+    editButton: { position: 'absolute', bottom: 50, right: '35%', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 2 },
+    editButtonText: { fontSize: 12, fontWeight: '600' },
+    userName: { fontSize: 22, fontWeight: 'bold', marginTop: 10 },
+    userEmail: { fontSize: 16 },
+    settingsSection: { borderRadius: 12, marginBottom: 25, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3, paddingVertical: 10 },
+    settingItemContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
+    linkInput: { flex: 1, fontSize: 12, marginLeft: 10 },
+    linkSubmitButton: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8, marginLeft: 10, minWidth: 70, alignItems: 'center', justifyContent: 'center' },
+    linkSubmitButtonDisabled: { opacity: 0.6 },
+    linkSubmitButtonText: { fontWeight: '600', fontSize: 15 },
+    settingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
+    settingItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    settingIcon: { marginRight: 15 },
+    settingText: { fontSize: 16, fontWeight: '500' },
+    settingSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
+    logoutButton: { padding: 15, borderRadius: 10, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
+    logoutButtonText: { fontSize: 18, fontWeight: '600' },
 });
 
 export default ProfileScreen;
