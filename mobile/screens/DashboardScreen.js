@@ -1,29 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    ScrollView, 
-    TextInput, 
-    TouchableOpacity, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TextInput,
+    TouchableOpacity,
     Dimensions,
-    Alert, 
+    Alert,
     Share,
     ActivityIndicator
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
-import { auth } from '../firebaseConfig';
 
 const ProgressBar = ({ progress, color, themeColors }) => {
     return (
         <View style={[styles.progressBarContainer, { backgroundColor: themeColors.border }]}>
-            <View 
+            <View
                 style={[
-                    styles.progressBarFill, 
+                    styles.progressBarFill,
                     { width: `${progress}%`, backgroundColor: color }
-                ]} 
+                ]}
             />
         </View>
     );
@@ -33,70 +33,77 @@ const DashboardScreen = ({ navigation }) => {
     const { decks, removeDeck, loading } = useDecks();
     const { colors } = useTheme();
     const [searchText, setSearchText] = React.useState('');
-    const [userName, setUserName] = useState('User');
+    const [userName, setUserName]     = useState('User');
 
     useEffect(() => {
-        // Get user name from Firebase Auth
-        if (auth.currentUser) {
-            setUserName(auth.currentUser.displayName || 'User');
-        }
+        // Get user from AsyncStorage instead of Firebase Auth
+        const loadUser = async () => {
+            try {
+                const userStr = await AsyncStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    setUserName(user.username || user.name || 'User');
+                }
+            } catch (e) {
+                console.error('Error loading user:', e);
+            }
+        };
+        loadUser();
     }, []);
 
     const DeckCard = ({ deck }) => {
         const masteryColor = deck.mastery >= 75 ? '#4CAF50' : deck.mastery >= 50 ? '#FFC107' : '#F44336';
 
         const handleOptions = (deck, event) => {
-    if (event) {
-        event.stopPropagation();
-    }
-    
-    // Generate a unique share code based on deck ID
-    const shareCode = `FC-${deck.id.substring(0, 8).toUpperCase()}`;
+            if (event) event.stopPropagation();
 
-    Alert.alert(
-        deck.title,
-        "Choose an action:",
-        [
-            {
-                text: "Share Deck",
-                onPress: async () => {
-                    try {
-                        await Share.share({
-                            message: `🎓 Check out my flashcard deck: "${deck.title}"\n\n` +
-                                    `📚 ${deck.cardCount} cards to help you study!\n\n` +
-                                    `Use this code to import: ${shareCode}\n\n` +
-                                    `Open FlashGenius app → Profile → Enter code`,
-                        });
-                    } catch (error) {
-                        console.error('Error sharing:', error);
-                    }
-                }
-            },
-            {
-                text: "Remove Deck",
-                style: 'destructive',
-                onPress: () => {
-                    Alert.alert(
-                        "Confirm Removal",
-                        `Are you sure you want to remove ${deck.title}? This cannot be undone.`,
-                        [
-                            { text: "Cancel", style: 'cancel' },
-                            { 
-                                text: "Remove", 
-                                style: 'destructive', 
-                                onPress: () => removeDeck(deck.id)
+            const shareCode = `FC-${deck.id.toString().substring(0, 8).toUpperCase()}`;
+
+            Alert.alert(
+                deck.title,
+                "Choose an action:",
+                [
+                    {
+                        text: "Share Deck",
+                        onPress: async () => {
+                            try {
+                                await Share.share({
+                                    message: `🎓 Check out my flashcard deck: "${deck.title}"\n\n` +
+                                        `📚 ${deck.card_count || deck.cardCount} cards to help you study!\n\n` +
+                                        `Use this code to import: ${shareCode}\n\n` +
+                                        `Open CogniVia app → Profile → Enter code`,
+                                });
+                            } catch (error) {
+                                console.error('Error sharing:', error);
                             }
-                        ]
-                    );
-                }
-            },
-            { text: "Cancel", style: 'cancel' }
-        ]
-    );
-};
+                        }
+                    },
+                    {
+                        text: "Remove Deck",
+                        style: 'destructive',
+                        onPress: () => {
+                            Alert.alert(
+                                "Confirm Removal",
+                                `Are you sure you want to remove ${deck.title}? This cannot be undone.`,
+                                [
+                                    { text: "Cancel", style: 'cancel' },
+                                    {
+                                        text: "Remove",
+                                        style: 'destructive',
+                                        onPress: () => removeDeck(deck.id)
+                                    }
+                                ]
+                            );
+                        }
+                    },
+                    { text: "Cancel", style: 'cancel' }
+                ]
+            );
+        };
+
         return (
-            <TouchableOpacity 
-                style={[styles.card, { 
+            <TouchableOpacity
+                style={[styles.card, {
                     backgroundColor: colors.card,
                     borderLeftColor: masteryColor,
                     shadowColor: colors.shadow,
@@ -111,36 +118,37 @@ const DashboardScreen = ({ navigation }) => {
                         </Text>
                     </View>
 
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={(e) => {
                             e.stopPropagation();
                             handleOptions(deck, e);
-                        }} 
+                        }}
                         style={styles.optionsButton}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.subtext} />
                     </TouchableOpacity>
                 </View>
-                
+
                 <View style={styles.cardDetailsRow}>
-                    <Text style={[styles.cardDetailText, { color: colors.subtext }]}>{deck.cardCount} Cards</Text>
-                    
+                    <Text style={[styles.cardDetailText, { color: colors.subtext }]}>
+                        {deck.card_count || deck.cardCount} Cards
+                    </Text>
+
                     <View style={styles.masteryContainer}>
                         <Text style={[styles.masteryText, { color: masteryColor }]}>
                             {deck.mastery}% Mastered
                         </Text>
-                        
                         <ProgressBar progress={deck.mastery} color={masteryColor} themeColors={colors} />
                     </View>
                 </View>
 
                 <View style={[styles.progressRow, { borderTopColor: colors.border }]}>
                     <View style={styles.progressLeft}>
-                        <MaterialCommunityIcons 
-                            name={deck.status === 'Needs Review' ? 'alert-circle' : 'progress-check'} 
-                            size={18} 
-                            color={colors.primary} 
+                        <MaterialCommunityIcons
+                            name={deck.status === 'Needs Review' ? 'alert-circle' : 'progress-check'}
+                            size={18}
+                            color={colors.primary}
                             style={styles.progressIcon}
                         />
                         <Text style={[styles.progressText, { color: colors.primary }]}>
@@ -153,7 +161,7 @@ const DashboardScreen = ({ navigation }) => {
         );
     };
 
-    const filteredDecks = decks.filter(deck => 
+    const filteredDecks = decks.filter(deck =>
         deck.title.toLowerCase().includes(searchText.toLowerCase())
     );
 
@@ -346,9 +354,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    progressValue: {
-        fontSize: 14,
-    }
 });
 
 export default DashboardScreen;
