@@ -162,7 +162,7 @@ function UserDashboard() {
               />
 
               {/* Dropdown — above overlay */}
-              <div className={styles.dropdown}>
+              <div className={styles.dropdown} style={{ zIndex: 100 }}>
                 <button
                   className={styles.dropdownItem}
                   onMouseDown={(e) => e.preventDefault()}
@@ -171,13 +171,11 @@ function UserDashboard() {
                   <span className={styles.dropdownIcon}><IconUser /></span>
                   Edit Profile
                 </button>
-                <div className={styles.dropdownDivider} />
-                <button
-                  className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={handleLogout}
-                >
-                  <span className={styles.dropdownIcon}><IconLogout /></span>
+                <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.06)', margin: '4px 6px', pointerEvents: 'none' }} />
+               <button
+                 className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                     onClick={handleLogout}
+                    >  <span className={styles.dropdownIcon}><IconLogout /></span>
                   Log out
                 </button>
               </div>
