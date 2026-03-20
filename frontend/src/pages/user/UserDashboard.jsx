@@ -99,13 +99,13 @@ function UserDashboard() {
   }, []);
 
   const handleLogout = async () => {
-    try { await api.post('/auth/logout'); } catch {}
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-    navigate('/login');
-  };
+  try { await api.post('/auth/logout'); } catch {}
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  window.location.replace('/login');
+};
 
   const handleEditProfile = () => {
     setDropdownOpen(false);
@@ -201,7 +201,7 @@ function UserDashboard() {
             />
           </div>
 
-          <h2 className={styles.qrTitle}>Scan for the full experience</h2>
+          <h2 className={styles.qrTitle}>Please Scan for the full experience</h2>
           <p className={styles.qrSubtitle}>
             Point your phone camera at the QR code<br />
             to download the CogniVia mobile app.

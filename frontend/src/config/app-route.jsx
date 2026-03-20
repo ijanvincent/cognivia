@@ -23,6 +23,7 @@ import Contact from './../pages/user/contact.js';
 import ForgotPassword from './../pages/user/ForgotPassword.jsx';
 import ResetPassword  from './../pages/user/ResetPassword.jsx';
 import EditProfile from './../pages/user/EditProfile.jsx';
+import PublicRoute from './../config/public-route.jsx';
 
 
 import EmailInbox from './../pages/email/email-inbox.js';
@@ -102,8 +103,8 @@ const AppRoute = [
     element: <UserLayout />,
     children: [
   { path: '',               element: <Navigate to='/login' replace /> },
-  { path: 'login',          element: <UserLogin /> },
-  { path: 'register',       element: <UserRegister /> },
+  { path: 'login',          element: <PublicRoute><UserLogin /></PublicRoute> },
+  { path: 'register',       element: <PublicRoute><UserRegister /></PublicRoute> },
   { path: 'forgot-password',element: <ForgotPassword /> },
   { path: 'reset-password', element: <ResetPassword /> },
   { path: 'about',          element: <About /> },
