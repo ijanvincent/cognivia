@@ -10,11 +10,14 @@ import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
-import { generateFlashcardsWithGemini } from '../geminiService';
+import { generateFlashcardsWithGemini } from '../services/geminiService';
 import api from '../services/api';
 
 const GenerateScreen = () => {
-    const { colors, theme } = useTheme();
+    const { colors, theme }                         = useTheme();
+    const { refreshDecks }                          = useDecks();
+    const navigation                                = useNavigation();
+
     const [deckName, setDeckName]                   = useState('');
     const [simpleDefinition, setSimpleDefinition]   = useState(false);
     const [numberOfCards, setNumberOfCards]         = useState(35);
@@ -24,99 +27,100 @@ const GenerateScreen = () => {
     const [isLoading, setIsLoading]                 = useState(false);
     const [loadingMessage, setLoadingMessage]       = useState('');
 
-    const navigation = useNavigation();
-    const { addDeck } = useDecks();
-
+    // ── File selection ────────────────────────────────────────
     const handleSelectFile = async () => {
         if (isLoading) return;
+
         try {
             const result = await DocumentPicker.getDocumentAsync({
                 type: ['text/plain'],
                 copyToCacheDirectory: true,
             });
 
-            if (!result.canceled) {
-                const file     = result.assets[0];
-                const fileName = file.name;
-                const fileUri  = file.uri;
+            if (result.canceled) return;
 
-                setSelectedFileName(fileName);
-                setSelectedFileUri(fileUri);
-                setDeckName(fileName.replace(/\.[^/.]+$/, ""));
+            const file = result.assets[0];
 
-                setLoadingMessage('Reading file...');
-                setIsLoading(true);
-
-                try {
-                    if (fileName.endsWith('.txt')) {
-                        const content = await FileSystem.readAsStringAsync(fileUri);
-                        setFileContent(content);
-                        Alert.alert("File Selected", `Ready to generate flashcards from ${fileName}`);
-                    } else {
-                        Alert.alert(
-                            "Unsupported Format",
-                            `Only .txt files are supported.\n\nPlease convert your file to plain text (.txt) first.`,
-                            [
-                                { text: "Cancel", onPress: () => {
-                                    setSelectedFileName('No file selected');
-                                    setSelectedFileUri(null);
-                                    setFileContent('');
-                                }},
-                            ]
-                        );
-                    }
-                } catch (readError) {
-                    console.error('Error reading file:', readError);
-                    setFileContent('');
-                } finally {
-                    setIsLoading(false);
-                    setLoadingMessage('');
-                }
+            if (!file.name.endsWith('.txt')) {
+                Alert.alert(
+                    'Unsupported Format',
+                    'Only .txt files are supported.\n\nPlease convert your file to plain text (.txt) first.',
+                    [{ text: 'OK' }]
+                );
+                return;
             }
-        } catch (err) {
-            Alert.alert("Error", "Could not select file. Please try again.");
+
+            setIsLoading(true);
+            setLoadingMessage('Reading file...');
+
+            try {
+                const content = await FileSystem.readAsStringAsync(file.uri);
+
+                setSelectedFileName(file.name);
+                setSelectedFileUri(file.uri);
+                setFileContent(content);
+                setDeckName(file.name.replace(/\.[^/.]+$/, ''));
+
+                Alert.alert('File Ready', `"${file.name}" is ready for flashcard generation.`);
+            } catch {
+                Alert.alert('Error', 'Could not read the file. Please try again.');
+                resetFileState();
+            } finally {
+                setIsLoading(false);
+                setLoadingMessage('');
+            }
+
+        } catch {
+            Alert.alert('Error', 'Could not select file. Please try again.');
             setIsLoading(false);
         }
     };
 
+    // ── Generation ────────────────────────────────────────────
     const handleGenerateFlashcards = async () => {
-        if (!deckName || selectedFileName === 'No file selected') {
-            Alert.alert("Error", "Please select a file and enter a deck name.");
+        if (!deckName.trim()) {
+            Alert.alert('Missing Deck Name', 'Please enter a name for your deck.');
             return;
         }
-        if (!fileContent || fileContent.length < 100) {
+        if (selectedFileName === 'No file selected' || !fileContent) {
+            Alert.alert('No File Selected', 'Please select a .txt file first.');
+            return;
+        }
+        if (fileContent.length < 100) {
             Alert.alert(
-                "Limited Content",
-                "The file appears to have very little text. Continue anyway?",
+                'Limited Content',
+                'The file appears to have very little text. Continue anyway?',
                 [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "Continue", onPress: () => proceedWithGeneration() }
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Continue', onPress: proceedWithGeneration },
                 ]
             );
             return;
         }
+
         await proceedWithGeneration();
     };
 
     const proceedWithGeneration = async () => {
         setIsLoading(true);
-        setLoadingMessage('AI is analyzing your document...');
 
         try {
-            setLoadingMessage('Generating flashcards with AI...');
+            // Step 1 — Generate flashcards with Gemini AI
+            setLoadingMessage('AI is analyzing your document...');
             const flashcards = await generateFlashcardsWithGemini(
-                fileContent, numberOfCards, simpleDefinition
+                fileContent,
+                numberOfCards,
+                simpleDefinition
             );
 
             if (!flashcards || flashcards.length === 0) {
-                throw new Error('No flashcards were generated');
+                throw new Error('No flashcards were generated. Please try again.');
             }
 
-            setLoadingMessage('Saving to database...');
-
-            // Step 1 — Create deck via Laravel API
+            // Step 2 — Create deck in database
+            setLoadingMessage('Saving deck...');
             const deckResponse = await api.post('/decks', {
-                title:      deckName,
+                title:      deckName.trim(),
                 source:     selectedFileName,
                 card_count: flashcards.length,
                 mastery:    0,
@@ -126,7 +130,8 @@ const GenerateScreen = () => {
 
             const newDeck = deckResponse.data.deck;
 
-            // Step 2 — Save flashcards via Laravel API
+            // Step 3 — Save flashcards to database
+            setLoadingMessage('Saving flashcards...');
             await api.post(`/decks/${newDeck.id}/flashcards`, {
                 flashcards: flashcards.map(card => ({
                     question: card.question,
@@ -134,47 +139,51 @@ const GenerateScreen = () => {
                 })),
             });
 
-            // Step 3 — Update local deck context
-            addDeck({
-                deckName:      deckName,
-                fileName:      selectedFileName,
-                numberOfCards: flashcards.length,
-                status:        'New',
-            }).catch(() => {}); // non-blocking
+            // Step 4 — Refresh deck list from API (single source of truth)
+            setLoadingMessage('Finishing up...');
+            await refreshDecks();
 
             Alert.alert(
-                "Success!",
-                `Generated ${flashcards.length} flashcards for "${deckName}"`,
-                [{ text: "OK", onPress: () => navigation.navigate('Home') }]
+                'Success!',
+                `Generated ${flashcards.length} flashcards for "${deckName.trim()}".`,
+                [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
             );
 
-            // Reset form
-            setDeckName('');
-            setSelectedFileName('No file selected');
-            setSelectedFileUri(null);
-            setFileContent('');
-            setNumberOfCards(35);
+            resetFileState();
 
         } catch (error) {
-            console.error("Generation Error:", error);
-            let msg = "An error occurred while generating flashcards.";
-            if (error.message.includes('API key'))   msg = "Invalid API key. Check your Gemini API configuration.";
-            else if (error.message.includes('quota')) msg = "API quota exceeded. Please try again later.";
-            else if (error.message)                  msg = error.message;
-            Alert.alert("Generation Failed", msg);
+            Alert.alert(
+                'Generation Failed',
+                error.message || 'An error occurred. Please try again.'
+            );
         } finally {
             setIsLoading(false);
             setLoadingMessage('');
         }
     };
 
+    // ── Helpers ───────────────────────────────────────────────
+    const resetFileState = () => {
+        setDeckName('');
+        setSelectedFileName('No file selected');
+        setSelectedFileUri(null);
+        setFileContent('');
+        setNumberOfCards(35);
+    };
+
+    const isGenerateDisabled = isLoading || selectedFileName === 'No file selected' || !deckName.trim();
+
+    // ── Render ────────────────────────────────────────────────
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+
             {isLoading && (
                 <View style={styles.loadingOverlay}>
                     <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
                         <ActivityIndicator size="large" color={colors.primary} />
-                        <Text style={[styles.loadingText, { color: colors.text }]}>{loadingMessage}</Text>
+                        <Text style={[styles.loadingText, { color: colors.text }]}>
+                            {loadingMessage}
+                        </Text>
                     </View>
                 </View>
             )}
@@ -199,7 +208,9 @@ const GenerateScreen = () => {
             />
 
             <Text style={[styles.generatedFromFileText, { color: colors.subtext }]}>
-                {selectedFileName === 'No file selected' ? 'No file selected yet' : `Generate from "${selectedFileName}"`}
+                {selectedFileName === 'No file selected'
+                    ? 'No file selected yet'
+                    : `Generate from "${selectedFileName}"`}
             </Text>
 
             <View style={[styles.optionRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -213,7 +224,9 @@ const GenerateScreen = () => {
                 />
             </View>
 
-            <Text style={[styles.label, { color: colors.text }]}>Number of Cards ({Math.round(numberOfCards)} / 60)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+                Number of Cards ({Math.round(numberOfCards)} / 60)
+            </Text>
             <Slider
                 style={styles.slider}
                 minimumValue={10}
@@ -226,51 +239,55 @@ const GenerateScreen = () => {
                 thumbTintColor={colors.primary}
                 disabled={isLoading}
             />
-            <Text style={[styles.sliderValueText, { color: colors.text }]}>{Math.round(numberOfCards)}</Text>
+            <Text style={[styles.sliderValueText, { color: colors.text }]}>
+                {Math.round(numberOfCards)}
+            </Text>
 
             <TouchableOpacity
-                style={[styles.generateButton, { backgroundColor: colors.primary },
-                    (isLoading || selectedFileName === 'No file selected') && styles.disabled]}
+                style={[styles.generateButton, { backgroundColor: colors.primary }, isGenerateDisabled && styles.disabled]}
                 onPress={handleGenerateFlashcards}
-                disabled={isLoading || selectedFileName === 'No file selected'}
+                disabled={isGenerateDisabled}
             >
                 <Text style={styles.generateButtonText}>
                     {isLoading ? 'Generating...' : 'Generate Flashcards with AI'}
                 </Text>
             </TouchableOpacity>
 
-            <Text style={[styles.footerNote, { color: colors.subtext }]}>⚡ Powered by Google Gemini AI</Text>
+            <Text style={[styles.footerNote, { color: colors.subtext }]}>
+                ⚡ Powered by Google Gemini AI
+            </Text>
 
             <View style={styles.banner}>
                 <Text style={styles.bannerTitle}>⚠️ System Notice</Text>
                 <Text style={styles.bannerMsg}>Only .txt files are supported for flashcard generation.</Text>
                 <Text style={styles.bannerMsg}>Convert PDF or Word files to plain text (.txt) using WPS or any text editor.</Text>
             </View>
+
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, paddingTop: 40 },
-    loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
-    loadingBox: { padding: 30, borderRadius: 15, alignItems: 'center', minWidth: 200 },
-    loadingText: { marginTop: 15, fontSize: 16, textAlign: 'center' },
-    selectFileButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 10, marginBottom: 30, marginTop: 20, elevation: 3 },
+    container:            { flex: 1, padding: 20, paddingTop: 40 },
+    loadingOverlay:       { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
+    loadingBox:           { padding: 30, borderRadius: 15, alignItems: 'center', minWidth: 200 },
+    loadingText:          { marginTop: 15, fontSize: 16, textAlign: 'center' },
+    selectFileButton:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 10, marginBottom: 30, marginTop: 20, elevation: 3 },
     selectFileButtonText: { color: 'black', fontSize: 18, fontWeight: '600', marginLeft: 10 },
-    label: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
-    textInput: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 20, elevation: 1 },
-    generatedFromFileText: { fontSize: 14, marginBottom: 25, fontStyle: 'italic' },
-    optionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 8, padding: 15, marginBottom: 20, elevation: 1 },
-    optionLabel: { fontSize: 16, fontWeight: '500' },
-    slider: { width: '100%', height: 40, marginTop: 10, marginBottom: 5 },
-    sliderValueText: { fontSize: 16, textAlign: 'center', marginBottom: 30 },
-    generateButton: { padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 5, elevation: 3 },
-    generateButtonText: { color: 'black', fontSize: 18, fontWeight: '600' },
-    footerNote: { textAlign: 'center', fontSize: 12, marginTop: 15, fontStyle: 'italic' },
-    disabled: { opacity: 0.5 },
-    banner: { backgroundColor: '#fff3cd', borderColor: '#ffeeba', borderWidth: 1, borderRadius: 8, padding: 15, margin: 10 },
-    bannerTitle: { fontWeight: 'bold', fontSize: 16, color: '#856404', marginBottom: 8 },
-    bannerMsg: { fontSize: 14, color: '#856404', marginBottom: 4 },
+    label:                { fontSize: 16, fontWeight: '600', marginBottom: 8 },
+    textInput:            { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 20, elevation: 1 },
+    generatedFromFileText:{ fontSize: 14, marginBottom: 25, fontStyle: 'italic' },
+    optionRow:            { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 8, padding: 15, marginBottom: 20, elevation: 1 },
+    optionLabel:          { fontSize: 16, fontWeight: '500' },
+    slider:               { width: '100%', height: 40, marginTop: 10, marginBottom: 5 },
+    sliderValueText:      { fontSize: 16, textAlign: 'center', marginBottom: 30 },
+    generateButton:       { padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 5, elevation: 3 },
+    generateButtonText:   { color: 'black', fontSize: 18, fontWeight: '600' },
+    footerNote:           { textAlign: 'center', fontSize: 12, marginTop: 15, fontStyle: 'italic' },
+    disabled:             { opacity: 0.5 },
+    banner:               { backgroundColor: '#fff3cd', borderColor: '#ffeeba', borderWidth: 1, borderRadius: 8, padding: 15, margin: 10 },
+    bannerTitle:          { fontWeight: 'bold', fontSize: 16, color: '#856404', marginBottom: 8 },
+    bannerMsg:            { fontSize: 14, color: '#856404', marginBottom: 4 },
 });
 
 export default GenerateScreen;
