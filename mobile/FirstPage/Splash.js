@@ -1,90 +1,52 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Animated, StatusBar, Easing } from 'react-native';
 
 export default function Splash({ navigation }) {
-    const fadeAnim  = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.8)).current;
+    const opacity    = useRef(new Animated.Value(0)).current;
+    const scale      = useRef(new Animated.Value(0.85)).current;
+    const exitOpacity = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
+        // Fade + scale in
         Animated.parallel([
-            Animated.timing(fadeAnim,  { toValue: 1, duration: 800, useNativeDriver: true }),
-            Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }),
-        ]).start();
-
-        const timer = setTimeout(() => {
-            navigation.replace('Login');
-        }, 2500);
-
-        return () => clearTimeout(timer);
-    }, [navigation]);
+            Animated.timing(opacity, {
+                toValue:         1,
+                duration:        700,
+                easing:          Easing.out(Easing.cubic),
+                useNativeDriver: true,
+            }),
+            Animated.timing(scale, {
+                toValue:         1,
+                duration:        800,
+                easing:          Easing.out(Easing.back(1.3)),
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            // Hold then fade out
+            setTimeout(() => {
+                Animated.timing(exitOpacity, {
+                    toValue:         0,
+                    duration:        500,
+                    easing:          Easing.in(Easing.cubic),
+                    useNativeDriver: true,
+                }).start(() => navigation.replace('Login'));
+            }, 1200);
+        });
+    }, []);
 
     return (
-        <View style={styles.container}>
-            <Animated.View style={[styles.logoWrap, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-                {/* Gradient ring */}
-                <View style={styles.ring}>
-                    <View style={styles.ringInner} />
-                </View>
-                <Text style={styles.logoText}>
-                    Cogni<Text style={styles.logoAccent}>Via</Text>
-                </Text>
-                <Text style={styles.tagline}>Where Learning Meets Play.</Text>
-            </Animated.View>
-        </View>
+        <Animated.View style={[styles.container, { opacity: exitOpacity }]}>
+            <StatusBar barStyle="light-content" backgroundColor="#07080f" />
+            <Animated.Image
+                source={require('../assets/icon.png')}
+                style={[styles.logo, { opacity, transform: [{ scale }] }]}
+                resizeMode="contain"
+            />
+        </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000000',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    logoWrap: {
-        alignItems: 'center',
-    },
-    ring: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderWidth: 6,
-        borderColor: '#00E5FF',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 30,
-        shadowColor: '#00E5FF',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 20,
-        elevation: 10,
-    },
-    ringInner: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-        borderWidth: 4,
-        borderColor: '#E040FB',
-        shadowColor: '#E040FB',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 15,
-        elevation: 8,
-    },
-    logoText: {
-        fontSize: 42,
-        fontWeight: '900',
-        color: '#FFFFFF',
-        letterSpacing: -1,
-    },
-    logoAccent: {
-        color: '#00E5FF',
-    },
-    tagline: {
-        fontSize: 14,
-        color: '#AAAAAA',
-        marginTop: 10,
-        letterSpacing: 0.5,
-        fontStyle: 'italic',
-    },
+    container: { flex: 1, backgroundColor: '#07080f', alignItems: 'center', justifyContent: 'center' },
+    logo:      { width: 160, height: 160 },
 });
