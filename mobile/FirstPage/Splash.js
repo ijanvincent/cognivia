@@ -29,7 +29,7 @@ export default function Splash({ navigation }) {
                     duration:        500,
                     easing:          Easing.in(Easing.cubic),
                     useNativeDriver: true,
-                }).start(() => navigation.replace('Login'));
+                }).start(() => navigation.replace('Onboarding'));
             }, 1200);
         });
     }, []);
