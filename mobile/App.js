@@ -1,6 +1,9 @@
 import * as React from 'react';
+import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useFonts, Syne_700Bold, Syne_400Regular } from '@expo-google-fonts/syne';
+import * as SplashScreen from 'expo-splash-screen';
 import ProfileScreen from './screens/ProfileScreen';
 import AboutScreen from './screens/AboutScreen';
 import TabNavigator from './TabNavigator';
@@ -13,6 +16,8 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import { DeckProvider } from './DeckContext';
 import { ThemeProvider } from './ThemeContext';
 
+SplashScreen.preventAutoHideAsync();
+
 const Stack = createStackNavigator();
 
 const HomeTabsWithContext = () => (
@@ -22,6 +27,17 @@ const HomeTabsWithContext = () => (
 );
 
 function App() {
+    const [fontsLoaded] = useFonts({
+        Syne_700Bold,
+        Syne_400Regular,
+    });
+
+    useEffect(() => {
+        if (fontsLoaded) SplashScreen.hideAsync();
+    }, [fontsLoaded]);
+
+    if (!fontsLoaded) return null;
+
     return (
         <ThemeProvider>
             <NavigationContainer>
