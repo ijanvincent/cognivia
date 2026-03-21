@@ -144,7 +144,7 @@ storage.setItem('user', JSON.stringify(user));
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderRow}>
                 <div>
-                  <h2 className={styles.cardTitle}>Welcome back</h2>
+                  <h2 className={styles.cardTitle}>Welcome back </h2>
                   <p className={styles.cardSubtitle}>Sign in to your account to continue</p>
                 </div>
               </div>
@@ -238,7 +238,7 @@ storage.setItem('user', JSON.stringify(user));
               <div className={styles.linksSection}>
                 <span className={styles.registerPrompt}>
                   Don't have an account?{' '}
-                  <Link to="/register" className={styles.registerLink}>Register here</Link>
+                  <Link to="/register" className={styles.registerLink}>Sign Up</Link>
                 </span>
               </div>
             </form>

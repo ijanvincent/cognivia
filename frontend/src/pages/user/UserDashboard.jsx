@@ -168,10 +168,7 @@ function UserDashboard() {
              to download CogniVia and start learning.
           </p>
 
-          <div className={styles.qrNotice}>
-          <span className={styles.qrNoticeDot} />
-           Full web experience coming soon
-        </div>
+        
         </div>
       </div>
     </div>

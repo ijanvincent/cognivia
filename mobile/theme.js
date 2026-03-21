@@ -1,0 +1,18 @@
+export const COLORS = {
+    bg:            '#07080f',
+    bgCard:        'rgba(255,255,255,0.04)',
+    bgCardBorder:  'rgba(255,255,255,0.09)',
+    inputBg:       'rgba(255,255,255,0.05)',
+    inputBorder:   'rgba(255,255,255,0.10)',
+    inputFocus:    'rgba(34,211,238,0.45)',
+    cyan:          '#22d3ee',
+    pink:          '#e879f9',
+    purple:        '#a855f7',
+    textPrimary:   '#f1f5f9',
+    textSecondary: 'rgba(241,245,249,0.55)',
+    textMuted:     'rgba(241,245,249,0.35)',
+    error:         '#f87171',
+    errorBg:       'rgba(248,113,113,0.08)',
+    successBg:     'rgba(52,211,153,0.08)',
+    successBorder: '#34d399',
+};
