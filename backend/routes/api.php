@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\DeckController;
+use App\Http\Controllers\User\FlashcardController;
 use Illuminate\Support\Facades\Route;
 
 // ─── User Auth ───────────────────────────────────────────────
@@ -25,12 +26,16 @@ Route::middleware(['auth:sanctum', 'user'])->group(function () {
     Route::post('/auth/logout',         [AuthController::class, 'logout']);
     Route::get('/auth/me',              [AuthController::class, 'me']);
     Route::post('/auth/profile/update', [AuthController::class, 'updateProfile']);
-
+    
     // ─── Decks ────────────────────────────────────────────────
     Route::get('/decks',         [DeckController::class, 'index']);
     Route::post('/decks',        [DeckController::class, 'store']);
     Route::put('/decks/{id}',    [DeckController::class, 'update']);
     Route::delete('/decks/{id}', [DeckController::class, 'destroy']);
+
+    // ─── Flashcards ───────────────────────────────────────────
+    Route::get('/decks/{deckId}/flashcards',  [FlashcardController::class, 'index']);
+    Route::post('/decks/{deckId}/flashcards', [FlashcardController::class, 'store']);
 });
 
 // ─── Authenticated Admin Routes ───────────────────────────────
