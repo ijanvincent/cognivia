@@ -1,21 +1,103 @@
 import React, { useState } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator,
-    StyleSheet, StatusBar, KeyboardAvoidingView,
-    Platform, ScrollView,
+    StyleSheet, KeyboardAvoidingView, Platform,
+    ScrollView, TextInput, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AuthInput from './components/AuthInput';
-import { COLORS } from './theme';
+import Svg, { Path } from 'react-native-svg';
+import { COLORS } from './components/AuthInput';
 import api from './services/api';
 
+const { height: H } = Dimensions.get('window');
+
+// ── Wave background ───────────────────────────────────────────
+const WaveBackground = () => (
+    <Svg
+        style={StyleSheet.absoluteFill}
+        viewBox="0 0 400 800"
+        preserveAspectRatio="xMidYMid slice"
+    >
+        {[...Array(8)].map((_, i) => (
+            <Path
+                key={`pink-${i}`}
+                d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
+                fill="none"
+                stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
+                strokeWidth="1.2"
+            />
+        ))}
+        {[...Array(8)].map((_, i) => (
+            <Path
+                key={`cyan-${i}`}
+                d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
+                fill="none"
+                stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
+                strokeWidth="1.2"
+            />
+        ))}
+        {[...Array(5)].map((_, i) => (
+            <Path
+                key={`purple-${i}`}
+                d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
+                fill="none"
+                stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
+                strokeWidth="1"
+            />
+        ))}
+    </Svg>
+);
+
+// ── Input ─────────────────────────────────────────────────────
+const Input = ({ value, onChangeText, placeholder, secureTextEntry,
+    keyboardType, icon, rightIcon, onRightIconPress, editable }) => {
+    const [focused, setFocused] = useState(false);
+    return (
+        <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
+            <MaterialCommunityIcons
+                name={icon}
+                size={20}
+                color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                style={styles.inputIcon}
+            />
+            <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={onChangeText}
+                placeholder={placeholder}
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                secureTextEntry={secureTextEntry}
+                keyboardType={keyboardType || 'default'}
+                autoCapitalize="none"
+                autoCorrect={false}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                editable={editable !== false}
+            />
+            {rightIcon && (
+                <TouchableOpacity
+                    onPress={onRightIconPress}
+                    style={styles.eyeBtn}
+                    disabled={editable === false}
+                >
+                    <MaterialCommunityIcons
+                        name={rightIcon}
+                        size={20}
+                        color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                    />
+                </TouchableOpacity>
+            )}
+        </View>
+    );
+};
+
+// ── Main ──────────────────────────────────────────────────────
 const LoginScreen = () => {
     const navigation = useNavigation();
-
     const [formData, setFormData]         = useState({ email: '', password: '' });
     const [errors, setErrors]             = useState({});
     const [isLoading, setIsLoading]       = useState(false);
@@ -23,8 +105,8 @@ const LoginScreen = () => {
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field])   setErrors(prev => ({ ...prev, [field]: null }));
-        if (errors.general)  setErrors(prev => ({ ...prev, general: null }));
+        if (errors[field])  setErrors(prev => ({ ...prev, [field]: null }));
+        if (errors.general) setErrors(prev => ({ ...prev, general: null }));
     };
 
     const validate = () => {
@@ -65,7 +147,10 @@ const LoginScreen = () => {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-            <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+            <StatusBar style="light" backgroundColor={COLORS.bg} translucent={false} />
+            <WaveBackground />
+            <View style={styles.overlay} />
+
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -77,108 +162,83 @@ const LoginScreen = () => {
                 >
                     {/* ── Brand ── */}
                     <View style={styles.brandSection}>
-                        <LinearGradient
-                            colors={[COLORS.cyan, COLORS.pink]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.accentBar}
-                        />
-                        <Text style={styles.brandName}>CogniVia</Text>
-                        <Text style={styles.brandTagline}>
-                            Intelligent <Text style={styles.brandAccent}>Clarity.</Text>
-                            {'\n'}Your AI learning companion.
+                        <Text style={styles.brandSub}>
+                            Sign in to your account to continue
                         </Text>
                     </View>
 
-                    {/* ── Card ── */}
-                    <View style={styles.card}>
+                    {/* ── Form ── */}
+                    <View style={styles.formSection}>
 
-                        <View style={styles.cardHeader}>
-                            <View style={styles.cardIconWrap}>
-                                <MaterialCommunityIcons name="brain" size={22} color={COLORS.cyan} />
-                            </View>
-                            <View>
-                                <Text style={styles.cardTitle}>Welcome back</Text>
-                                <Text style={styles.cardSubtitle}>Sign in to continue learning</Text>
-                            </View>
-                        </View>
-
-                        {/* General error */}
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
-                                <MaterialCommunityIcons name="alert-circle-outline" size={16} color={COLORS.error} />
+                                <MaterialCommunityIcons
+                                    name="alert-circle-outline"
+                                    size={16}
+                                    color={COLORS.error}
+                                />
                                 <Text style={styles.errorAlertText}>{errors.general}</Text>
                             </View>
                         )}
 
-                        <AuthInput
-                            label="Email Address"
+                        <Input
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
-                            placeholder="you@example.com"
+                            placeholder="Email"
                             keyboardType="email-address"
                             icon="email-outline"
-                            error={errors.email}
                             editable={!isLoading}
                         />
+                        {!!errors.email && (
+                            <Text style={styles.fieldError}>{errors.email}</Text>
+                        )}
 
-                        <AuthInput
-                            label="Password"
+                        <Input
                             value={formData.password}
                             onChangeText={v => updateField('password', v)}
-                            placeholder="Enter your password"
+                            placeholder="Password"
                             secureTextEntry={!showPassword}
                             icon="lock-outline"
                             rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
                             onRightIconPress={() => setShowPassword(p => !p)}
-                            error={errors.password}
                             editable={!isLoading}
                         />
+                        {!!errors.password && (
+                            <Text style={styles.fieldError}>{errors.password}</Text>
+                        )}
 
-                        {/* Forgot password */}
+                        {/* Forgot */}
                         <TouchableOpacity
                             onPress={() => navigation.navigate('ForgotPassword')}
                             disabled={isLoading}
                             style={styles.forgotRow}
                         >
-                            <Text style={styles.forgotLink}>Forgot password?</Text>
+                            <Text style={styles.forgotLink}>Forgot your password?</Text>
                         </TouchableOpacity>
 
-                        {/* Submit */}
+                        {/* Sign In */}
                         <TouchableOpacity
                             onPress={handleLogin}
                             disabled={isLoading}
-                            activeOpacity={0.85}
-                            style={styles.submitWrapper}
+                            activeOpacity={0.88}
+                            style={[styles.btnSignIn, isLoading && styles.btnDisabled]}
                         >
-                            <LinearGradient
-                                colors={[COLORS.cyan, COLORS.purple]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={[styles.submitButton, isLoading && styles.submitDisabled]}
-                            >
-                                {isLoading
-                                    ? <ActivityIndicator color="#07080f" />
-                                    : <Text style={styles.submitText}>Sign In</Text>
-                                }
-                            </LinearGradient>
+                            {isLoading
+                                ? <ActivityIndicator color="#07080f" />
+                                : <Text style={styles.btnSignInText}>Sign in</Text>
+                            }
                         </TouchableOpacity>
-
-                        {/* Divider */}
-                        <View style={styles.divider}>
-                            <View style={styles.dividerLine} />
-                            <Text style={styles.dividerText}>or</Text>
-                            <View style={styles.dividerLine} />
-                        </View>
 
                         {/* Register */}
                         <View style={styles.registerRow}>
-                            <Text style={styles.registerPrompt}>Don't have an account? </Text>
+                            <Text style={styles.registerPrompt}>
+                                Don't have an account?{' '}
+                            </Text>
                             <TouchableOpacity
                                 onPress={() => navigation.navigate('Register')}
                                 disabled={isLoading}
                             >
-                                <Text style={styles.registerLink}>Register here</Text>
+                                <Text style={styles.registerLink}>Sign up</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -189,45 +249,86 @@ const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    safeArea:              { flex: 1, backgroundColor: COLORS.bg },
-    flex:                  { flex: 1 },
-    scrollContent:         { flexGrow: 1, paddingHorizontal: 24, paddingTop: 52, paddingBottom: 32 },
+    safeArea:        { flex: 1, backgroundColor: COLORS.bg },
+    flex:            { flex: 1 },
+    overlay:         { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+
+    scrollContent:   {
+        flexGrow:          1,
+        paddingHorizontal: 28,
+        paddingVertical:   40,
+        justifyContent:    'center',
+        minHeight:         H,
+    },
 
     // Brand
-    brandSection:          { marginBottom: 36 },
-    accentBar:             { width: 48, height: 3, borderRadius: 2, marginBottom: 28 },
-    brandName:             { fontSize: 36, fontWeight: '800', color: COLORS.textPrimary, letterSpacing: -1.5, marginBottom: 10 },
-    brandTagline:          { fontSize: 16, lineHeight: 26, color: COLORS.textSecondary, fontWeight: '300' },
-    brandAccent:           { color: COLORS.cyan, fontWeight: '700' },
+    brandSection:    { alignItems: 'flex-start', marginBottom: 40 },
 
-    // Card
-    card:                  { backgroundColor: COLORS.bgCard, borderWidth: 1, borderColor: COLORS.bgCardBorder, borderRadius: 24, padding: 28 },
-    cardHeader:            { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 28 },
-    cardIconWrap:          { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(34,211,238,0.08)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(34,211,238,0.15)' },
-    cardTitle:             { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, letterSpacing: -0.5 },
-    cardSubtitle:          { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
+    brandName:       {
+        fontFamily:    'Syne_700Bold',
+        fontSize:      20,
+        fontWeight:    '700',
+        color:         '#f1f5f9',
+        letterSpacing: -0.3,
+        marginBottom:  28,
+    },
 
-    // Error
-    errorAlert:            { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 20 },
-    errorAlertText:        { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    brandWelcome:    {
+        fontFamily:    'Syne_700Bold',
+        fontSize:      26,
+        fontWeight:    '700',
+        color:         '#ffffff',
+        letterSpacing: -0.3,
+        marginBottom:  6,
+    },
 
-    // Actions
-    forgotRow:             { alignItems: 'flex-end', marginTop: -8, marginBottom: 28 },
-    forgotLink:            { fontSize: 13, color: COLORS.cyan, fontWeight: '500' },
-    submitWrapper:         { borderRadius: 12, overflow: 'hidden', marginBottom: 24 },
-    submitButton:          { height: 52, alignItems: 'center', justifyContent: 'center' },
-    submitDisabled:        { opacity: 0.6 },
-    submitText:            { fontSize: 16, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    brandSub:        {
+        fontSize:      14,
+        color:         'rgba(255,255,255,0.45)',
+        fontWeight:    '300',
+    },
 
-    // Divider
-    divider:               { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-    dividerLine:           { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
-    dividerText:           { fontSize: 12, color: COLORS.textMuted, fontWeight: '500' },
+    // Form
+    formSection:     { width: '100%' },
+
+    // Inputs
+    inputWrap:       {
+        flexDirection:     'row',
+        alignItems:        'center',
+        borderWidth:       1,
+        borderColor:       'rgba(255,255,255,0.15)',
+        borderRadius:      12,
+        paddingHorizontal: 16,
+        height:            56,
+        marginBottom:      14,
+        backgroundColor:   'rgba(255,255,255,0.04)',
+    },
+    inputWrapFocused: {
+        borderColor:       COLORS.cyan,
+        backgroundColor:   'rgba(34,211,238,0.04)',
+    },
+    inputIcon:       { marginRight: 12 },
+    input:           { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
+    eyeBtn:          { paddingLeft: 10 },
+
+    // Errors
+    errorAlert:      { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
+    errorAlertText:  { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    fieldError:      { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
+
+    // Forgot
+    forgotRow:       { alignItems: 'flex-end', marginBottom: 24 },
+    forgotLink:      { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
+
+    // Sign In
+    btnSignIn:       { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    btnDisabled:     { opacity: 0.6 },
+    btnSignInText:   { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
 
     // Register
-    registerRow:           { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    registerPrompt:        { fontSize: 13, color: COLORS.textMuted },
-    registerLink:          { fontSize: 13, color: COLORS.cyan, fontWeight: '700' },
+    registerRow:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    registerPrompt:  { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    registerLink:    { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
 });
 
 export default LoginScreen;

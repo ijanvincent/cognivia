@@ -12,6 +12,7 @@
     "clean": "del node_modules package-lock.json && npm cache clean --force"
   },
   "dependencies": {
+    "@expo-google-fonts/syne": "^0.4.2",
     "@expo/vector-icons": "^15.0.3",
     "@google/generative-ai": "^0.21.0",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -24,9 +25,10 @@
     "expo": "54.0.23",
     "expo-document-picker": "~14.0.7",
     "expo-file-system": "^19.0.17",
-    "expo-font": "~14.0.9",
+    "expo-font": "~14.0.11",
     "expo-image-picker": "~17.0.8",
     "expo-linear-gradient": "~15.0.8",
+    "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
     "react-native": "0.81.5",
