@@ -242,8 +242,6 @@
   display: flex; flex-direction: column; gap: 10px;
 }
 
-.legalSectionBody p { }
-
 .legalSectionBody ul {
   list-style: none; padding: 0; margin: 0;
   display: flex; flex-direction: column; gap: 7px;
