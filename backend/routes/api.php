@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\DeckController;
 use App\Http\Controllers\User\FlashcardController;
+use App\Http\Controllers\User\DocumentParserController;
 use Illuminate\Support\Facades\Route;
 
 // ─── User Auth ───────────────────────────────────────────────
@@ -38,6 +39,10 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
     // ─── Flashcards ───────────────────────────────────────────
     Route::get('/decks/{deckId}/flashcards',  [FlashcardController::class, 'index']);
     Route::post('/decks/{deckId}/flashcards', [FlashcardController::class, 'store']);
+
+    // ─── Document Parser ──────────────────────────────────────
+    // ADDED — multiformat document parsing (PDF, DOCX, PPTX)
+    Route::post('/document/parse', [DocumentParserController::class, 'parse']);
 });
 
 // ─── Authenticated Admin Routes ───────────────────────────────
