@@ -23,6 +23,10 @@ class LoginRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'platform' => [          
+                'required',
+                'in:web,mobile',
+            ],
         ];
     }
 
@@ -32,6 +36,8 @@ class LoginRequest extends FormRequest
             'email.required'    => 'Email is required',
             'email.email'       => 'Please enter a valid email address',
             'password.required' => 'Password is required',
+            'platform.required' => 'Platform identifier is required.',    
+            'platform.in'       => 'Platform must be either web or mobile.', 
         ];
     }
 }

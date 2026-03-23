@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Switch,
-    TextInput,
-    Alert,
-    Platform,
-    Image,
-    ActivityIndicator
+    View, Text, StyleSheet, TouchableOpacity,
+    Switch, TextInput, Alert, Platform,
+    Image, ActivityIndicator
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';          // CHANGED
 import { useTheme } from '../ThemeContext';
 import api from '../services/api';
 
@@ -31,20 +24,18 @@ const ProfileScreen = () => {
         email: 'Loading...',
     });
 
-    // Load user from AsyncStorage
+    // Load user from SecureStore
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const userStr = await AsyncStorage.getItem('user');
+                const userStr = await SecureStore.getItemAsync('user'); // CHANGED
                 if (userStr) {
                     const user = JSON.parse(userStr);
                     setUserData({
                         name:  user.username || user.name || 'User',
                         email: user.email || '',
                     });
-                    if (user.avatar) {
-                        setProfileImage(user.avatar);
-                    }
+                    if (user.avatar) setProfileImage(user.avatar);
                 }
             } catch (error) {
                 console.error('Error loading user:', error);
@@ -83,11 +74,12 @@ const ProfileScreen = () => {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
 
-                const userStr = await AsyncStorage.getItem('user');
+                // CHANGED — was AsyncStorage.getItem/setItem
+                const userStr = await SecureStore.getItemAsync('user');
                 if (userStr) {
                     const user = JSON.parse(userStr);
                     user.avatar = response.data.user.avatar;
-                    await AsyncStorage.setItem('user', JSON.stringify(user));
+                    await SecureStore.setItemAsync('user', JSON.stringify(user));
                 }
 
                 Alert.alert('Success', 'Profile picture updated!');
@@ -136,9 +128,7 @@ const ProfileScreen = () => {
         Alert.alert('Theme Change', `App Theme changed to ${!isDarkMode ? 'Dark' : 'Light'} Mode.`);
     };
 
-    const handleAboutUs = () => {
-        navigation.navigate('About');
-    };
+    const handleAboutUs = () => navigation.navigate('About');
 
     const handleLogout = () => {
         Alert.alert(
@@ -154,8 +144,8 @@ const ProfileScreen = () => {
                         } catch (e) {
                             // ignore logout API errors
                         } finally {
-                            await AsyncStorage.removeItem('token');
-                            await AsyncStorage.removeItem('user');
+                            await SecureStore.deleteItemAsync('token'); // CHANGED
+                            await SecureStore.deleteItemAsync('user');  // CHANGED
                             navigation.replace('Login');
                         }
                     }
@@ -164,6 +154,7 @@ const ProfileScreen = () => {
         );
     };
 
+    // ── all JSX and styles unchanged ─────────────────────────
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
@@ -205,11 +196,10 @@ const ProfileScreen = () => {
                         style={[styles.linkSubmitButton, { backgroundColor: colors.primary }, isImporting && styles.linkSubmitButtonDisabled]}
                         disabled={isImporting}
                     >
-                        {isImporting ? (
-                            <ActivityIndicator size="small" color="black" />
-                        ) : (
-                            <Text style={[styles.linkSubmitButtonText, { color: 'black' }]}>Import</Text>
-                        )}
+                        {isImporting
+                            ? <ActivityIndicator size="small" color="black" />
+                            : <Text style={[styles.linkSubmitButtonText, { color: 'black' }]}>Import</Text>
+                        }
                     </TouchableOpacity>
                 </View>
 
@@ -244,29 +234,29 @@ const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 30 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, marginTop: Platform.OS === 'ios' ? 60 : 40 },
-    backButton: { padding: 5 },
-    headerTitle: { fontSize: 24, fontWeight: 'bold' },
-    profileInfo: { alignItems: 'center', marginBottom: 30 },
-    profileImage: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E0E0E0' },
-    editButton: { position: 'absolute', bottom: 50, right: '35%', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 2 },
-    editButtonText: { fontSize: 12, fontWeight: '600' },
-    userName: { fontSize: 22, fontWeight: 'bold', marginTop: 10 },
-    userEmail: { fontSize: 16 },
-    settingsSection: { borderRadius: 12, marginBottom: 25, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3, paddingVertical: 10 },
-    settingItemContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
-    linkInput: { flex: 1, fontSize: 12, marginLeft: 10 },
-    linkSubmitButton: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8, marginLeft: 10, minWidth: 70, alignItems: 'center', justifyContent: 'center' },
-    linkSubmitButtonDisabled: { opacity: 0.6 },
-    linkSubmitButtonText: { fontWeight: '600', fontSize: 15 },
-    settingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
-    settingItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-    settingIcon: { marginRight: 15 },
-    settingText: { fontSize: 16, fontWeight: '500' },
-    settingSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
-    logoutButton: { padding: 15, borderRadius: 10, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
-    logoutButtonText: { fontSize: 18, fontWeight: '600' },
+    container:                  { flex: 1, paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 30 },
+    header:                     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, marginTop: Platform.OS === 'ios' ? 60 : 40 },
+    backButton:                 { padding: 5 },
+    headerTitle:                { fontSize: 24, fontWeight: 'bold' },
+    profileInfo:                { alignItems: 'center', marginBottom: 30 },
+    profileImage:               { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E0E0E0' },
+    editButton:                 { position: 'absolute', bottom: 50, right: '35%', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 2 },
+    editButtonText:             { fontSize: 12, fontWeight: '600' },
+    userName:                   { fontSize: 22, fontWeight: 'bold', marginTop: 10 },
+    userEmail:                  { fontSize: 16 },
+    settingsSection:            { borderRadius: 12, marginBottom: 25, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3, paddingVertical: 10 },
+    settingItemContainer:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
+    linkInput:                  { flex: 1, fontSize: 12, marginLeft: 10 },
+    linkSubmitButton:           { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8, marginLeft: 10, minWidth: 70, alignItems: 'center', justifyContent: 'center' },
+    linkSubmitButtonDisabled:   { opacity: 0.6 },
+    linkSubmitButtonText:       { fontWeight: '600', fontSize: 15 },
+    settingItem:                { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
+    settingItemLeft:            { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    settingIcon:                { marginRight: 15 },
+    settingText:                { fontSize: 16, fontWeight: '500' },
+    settingSwitch:              { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
+    logoutButton:               { padding: 15, borderRadius: 10, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
+    logoutButtonText:           { fontSize: 18, fontWeight: '600' },
 });
 
 export default ProfileScreen;

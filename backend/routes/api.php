@@ -22,11 +22,12 @@ Route::prefix('admin')->group(function () {
 });
 
 // ─── Authenticated User Routes ────────────────────────────────
-Route::middleware(['auth:sanctum', 'user'])->group(function () {
+// CHANGED — added 'platform.match' to enforce one-platform-at-a-time rule
+Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function () {
     Route::post('/auth/logout',         [AuthController::class, 'logout']);
     Route::get('/auth/me',              [AuthController::class, 'me']);
     Route::post('/auth/profile/update', [AuthController::class, 'updateProfile']);
-    
+
     // ─── Decks ────────────────────────────────────────────────
     Route::get('/decks',         [DeckController::class, 'index']);
     Route::post('/decks',        [DeckController::class, 'store']);
@@ -39,6 +40,7 @@ Route::middleware(['auth:sanctum', 'user'])->group(function () {
 });
 
 // ─── Authenticated Admin Routes ───────────────────────────────
+// UNCHANGED — admins are web-only, no platform conflict
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::post('/logout',       [AdminAuthController::class, 'logout']);
     Route::get('/me',            [AdminAuthController::class, 'me']);

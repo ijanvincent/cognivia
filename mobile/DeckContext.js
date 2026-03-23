@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';          // CHANGED
 import api from './services/api';
 
 export const DeckContext = createContext({
@@ -10,15 +10,15 @@ export const DeckContext = createContext({
 });
 
 export const DeckProvider = ({ children }) => {
-    const [decks, setDecks]         = useState([]);
-    const [loading, setLoading]     = useState(true);
+    const [decks, setDecks]             = useState([]);
+    const [loading, setLoading]         = useState(true);
     const [currentUser, setCurrentUser] = useState(null);
 
-    // Load user from AsyncStorage on mount
+    // Load user from SecureStore on mount
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const userStr = await AsyncStorage.getItem('user');
+                const userStr = await SecureStore.getItemAsync('user'); // CHANGED
                 if (userStr) {
                     setCurrentUser(JSON.parse(userStr));
                 }
@@ -29,7 +29,7 @@ export const DeckProvider = ({ children }) => {
         loadUser();
     }, []);
 
-    // Fetch decks from Laravel API when user is available
+    // Fetch decks from API when user is available
     useEffect(() => {
         if (!currentUser) {
             setDecks([]);
@@ -62,7 +62,6 @@ export const DeckProvider = ({ children }) => {
                 progress:   0,
                 status:     newDeckData.status || 'New',
             });
-
             const newDeck = response.data.deck;
             setDecks(prev => [newDeck, ...prev]);
             return newDeck;

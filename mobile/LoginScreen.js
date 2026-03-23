@@ -8,14 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS } from './components/AuthInput';
 import api from './services/api';
 
 const { height: H } = Dimensions.get('window');
 
-// ── Wave background ───────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -52,7 +51,6 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ── Input ─────────────────────────────────────────────────────
 const Input = ({ value, onChangeText, placeholder, secureTextEntry,
     keyboardType, icon, rightIcon, onRightIconPress, editable }) => {
     const [focused, setFocused] = useState(false);
@@ -95,7 +93,6 @@ const Input = ({ value, onChangeText, placeholder, secureTextEntry,
     );
 };
 
-// ── Main ──────────────────────────────────────────────────────
 const LoginScreen = () => {
     const navigation = useNavigation();
     const [formData, setFormData]         = useState({ email: '', password: '' });
@@ -125,14 +122,32 @@ const LoginScreen = () => {
         setIsLoading(true);
         setErrors({});
         try {
+            console.log('1. Sending login request...');
             const response = await api.post('/auth/login', {
                 email:    formData.email.trim(),
                 password: formData.password,
+                platform: 'mobile',
             });
-            await AsyncStorage.setItem('token', response.data.token);
-            await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+            console.log('2. Response received:', JSON.stringify(response.data));
+
+            const userToStore = {
+                id:       response.data.user.id,
+                username: response.data.user.username,
+                email:    response.data.user.email,
+                avatar:   response.data.user.avatar || null,
+                role:     response.data.user.role,
+            };
+
+            console.log('3. Storing token...');
+            await SecureStore.setItemAsync('token', response.data.token);
+            console.log('4. Storing user...');
+            await SecureStore.setItemAsync('user', JSON.stringify(userToStore));
+            console.log('5. Navigating to HomeTabs...');
             navigation.replace('HomeTabs');
+            console.log('6. Navigation called.');
         } catch (error) {
+            console.error('LOGIN ERROR:', error.message);
+            console.error('ERROR RESPONSE:', JSON.stringify(error.response?.data));
             if (error.response?.status === 401 || error.response?.status === 422) {
                 setErrors({ general: 'Invalid email or password.' });
             } else if (error.message === 'Network Error') {
@@ -160,14 +175,14 @@ const LoginScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* ── Brand ── */}
+                    {/* Brand */}
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Sign in to your account to continue
                         </Text>
                     </View>
 
-                    {/* ── Form ── */}
+                    {/* Form */}
                     <View style={styles.formSection}>
 
                         {!!errors.general && (
@@ -249,86 +264,31 @@ const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    safeArea:        { flex: 1, backgroundColor: COLORS.bg },
-    flex:            { flex: 1 },
-    overlay:         { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
-
-    scrollContent:   {
-        flexGrow:          1,
-        paddingHorizontal: 28,
-        paddingVertical:   40,
-        justifyContent:    'center',
-        minHeight:         H,
-    },
-
-    // Brand
-    brandSection:    { alignItems: 'flex-start', marginBottom: 40 },
-
-    brandName:       {
-        fontFamily:    'Syne_700Bold',
-        fontSize:      20,
-        fontWeight:    '700',
-        color:         '#f1f5f9',
-        letterSpacing: -0.3,
-        marginBottom:  28,
-    },
-
-    brandWelcome:    {
-        fontFamily:    'Syne_700Bold',
-        fontSize:      26,
-        fontWeight:    '700',
-        color:         '#ffffff',
-        letterSpacing: -0.3,
-        marginBottom:  6,
-    },
-
-    brandSub:        {
-        fontSize:      14,
-        color:         'rgba(255,255,255,0.45)',
-        fontWeight:    '300',
-    },
-
-    // Form
-    formSection:     { width: '100%' },
-
-    // Inputs
-    inputWrap:       {
-        flexDirection:     'row',
-        alignItems:        'center',
-        borderWidth:       1,
-        borderColor:       'rgba(255,255,255,0.15)',
-        borderRadius:      12,
-        paddingHorizontal: 16,
-        height:            56,
-        marginBottom:      14,
-        backgroundColor:   'rgba(255,255,255,0.04)',
-    },
-    inputWrapFocused: {
-        borderColor:       COLORS.cyan,
-        backgroundColor:   'rgba(34,211,238,0.04)',
-    },
-    inputIcon:       { marginRight: 12 },
-    input:           { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
-    eyeBtn:          { paddingLeft: 10 },
-
-    // Errors
-    errorAlert:      { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText:  { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-    fieldError:      { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
-
-    // Forgot
-    forgotRow:       { alignItems: 'flex-end', marginBottom: 24 },
-    forgotLink:      { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
-
-    // Sign In
-    btnSignIn:       { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-    btnDisabled:     { opacity: 0.6 },
-    btnSignInText:   { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
-
-    // Register
-    registerRow:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    registerPrompt:  { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-    registerLink:    { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+    safeArea:         { flex: 1, backgroundColor: COLORS.bg },
+    flex:             { flex: 1 },
+    overlay:          { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    scrollContent:    { flexGrow: 1, paddingHorizontal: 28, paddingVertical: 40, justifyContent: 'center', minHeight: H },
+    brandSection:     { alignItems: 'flex-start', marginBottom: 40 },
+    brandName:        { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 28 },
+    brandWelcome:     { fontFamily: 'Syne_700Bold', fontSize: 26, fontWeight: '700', color: '#ffffff', letterSpacing: -0.3, marginBottom: 6 },
+    brandSub:         { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300' },
+    formSection:      { width: '100%' },
+    inputWrap:        { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+    inputWrapFocused: { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
+    inputIcon:        { marginRight: 12 },
+    input:            { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
+    eyeBtn:           { paddingLeft: 10 },
+    errorAlert:       { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
+    errorAlertText:   { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    fieldError:       { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
+    forgotRow:        { alignItems: 'flex-end', marginBottom: 24 },
+    forgotLink:       { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
+    btnSignIn:        { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    btnDisabled:      { opacity: 0.6 },
+    btnSignInText:    { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    registerRow:      { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    registerPrompt:   { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    registerLink:     { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
 });
 
 export default LoginScreen;

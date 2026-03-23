@@ -6,6 +6,7 @@ const api = axios.create({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
+    'X-Platform': 'web',   // NEW — identifies all requests as coming from web
   }
 });
 

@@ -48,7 +48,15 @@ class AuthService
             ]);
         }
 
-        $user->tokens()->delete();
+        // CHANGED — was: $user->tokens()->delete()
+        // Now we revoke both platforms explicitly:
+        // 1. Current platform — clean re-login
+        // 2. Other platform — enforce one-platform-at-a-time rule
+        $platform      = $data['platform'];
+        $otherPlatform = $platform === 'web' ? 'mobile' : 'web';
+
+        $this->authRepository->revokeTokensByPlatform($user, $platform);
+        $this->authRepository->revokeTokensByPlatform($user, $otherPlatform);
 
         // Remember Me — longer expiration if checked
         $tokenName = 'user_token';
@@ -56,11 +64,19 @@ class AuthService
             ? now()->addDays(30)
             : now()->addHours(24);
 
-        $token = $user->createToken($tokenName, ['*'], $expiresAt)->plainTextToken;
+        // CHANGED — was: $user->createToken(...)->plainTextToken
+        // Now uses repository method that tags the token with platform
+        $token = $this->authRepository->createPlatformToken(
+            $user,
+            $tokenName,
+            $platform,
+            $expiresAt
+        );
 
         return [
-            'user'  => $user,
-            'token' => $token,
+            'user'     => $user,
+            'token'    => $token,
+            'platform' => $platform, // NEW — returned for frontend awareness
         ];
     }
 
@@ -125,28 +141,30 @@ class AuthService
         // Delete token — single use only
         $this->authRepository->deleteResetToken($data['email']);
 
-        // Revoke all existing tokens — force re-login everywhere
+        // KEPT as-is — password reset nukes ALL tokens on ALL platforms
+        // This is correct security behavior — force re-login everywhere
         $user->tokens()->delete();
     }
+
     public function updateProfile(User $user, array $data): User
-{
-    $updateData = [];
+    {
+        $updateData = [];
 
-    if (!empty($data['username'])) {
-        // Check username not taken by another user
-        $existing = $this->authRepository->findByUsername($data['username']);
-        if ($existing && $existing->id !== $user->id) {
-            throw ValidationException::withMessages([
-                'username' => ['Username is already taken.'],
-            ]);
+        if (!empty($data['username'])) {
+            // Check username not taken by another user
+            $existing = $this->authRepository->findByUsername($data['username']);
+            if ($existing && $existing->id !== $user->id) {
+                throw ValidationException::withMessages([
+                    'username' => ['Username is already taken.'],
+                ]);
+            }
+            $updateData['username'] = $data['username'];
         }
-        $updateData['username'] = $data['username'];
-    }
 
-    if (!empty($data['avatar'])) {
-        $updateData['avatar'] = $data['avatar'];
-    }
+        if (!empty($data['avatar'])) {
+            $updateData['avatar'] = $data['avatar'];
+        }
 
-    return $this->authRepository->updateUser($user->id, $updateData);
-}
+        return $this->authRepository->updateUser($user->id, $updateData);
+    }
 }

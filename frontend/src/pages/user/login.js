@@ -40,6 +40,7 @@ function UserLogin() {
         email:      formData.email,
         password:   formData.password,
         rememberMe: formData.rememberMe,
+        platform:   'web',
       });
       const storage = formData.rememberMe ? localStorage : sessionStorage;
 const user = response.data.user;
