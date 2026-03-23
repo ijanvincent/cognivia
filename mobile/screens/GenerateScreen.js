@@ -3,21 +3,14 @@ import {
     View, Text, StyleSheet, TouchableOpacity, TextInput,
     Switch, Alert, ActivityIndicator,
 } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import { File } from 'expo-file-system';          
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
 import { generateFlashcardsWithGemini } from '../services/geminiService';
+import { pickDocument, parseDocument } from '../services/documentParser';
 import api from '../services/api';
-
-const readFileContent = async (uri) => {
-    const file = new File(uri);
-    const content = await file.text();
-    return content;
-};
 
 const GenerateScreen = () => {
     const { colors, theme }                         = useTheme();
@@ -34,73 +27,62 @@ const GenerateScreen = () => {
     const [loadingMessage, setLoadingMessage]       = useState('');
 
     // ── File selection ────────────────────────────────────────
+    // CHANGED — now supports PDF, DOCX, PPTX via Laravel backend parser
+    // REMOVED — txt-only DocumentPicker and File class reader
     const handleSelectFile = async () => {
         if (isLoading) return;
 
+        setIsLoading(true);
+        setLoadingMessage('Reading file...');
+
         try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: ['text/plain'],
-                copyToCacheDirectory: true,
-            });
+            // Step 1 — pick file (get file object including name)
+            const file = await pickDocument();
 
-            if (result.canceled) return;
+            // User cancelled the picker
+            if (!file) return;
 
-            const file = result.assets[0];
+            setLoadingMessage('Parsing document...');
 
-            if (!file.name.endsWith('.txt')) {
-                Alert.alert(
-                    'Unsupported Format',
-                    'Only .txt files are supported.\n\nPlease convert your file to plain text (.txt) first.',
-                    [{ text: 'OK' }]
-                );
+            // Step 2 — send to backend and get extracted text
+            const result = await parseDocument(file);
+
+            if (!result.text || !result.text.trim()) {
+                Alert.alert('Empty File', 'The selected file appears to be empty or has no extractable text.');
+                resetFileState();
                 return;
             }
 
-            setIsLoading(true);
-            setLoadingMessage('Reading file...');
+            const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, '');
 
-            try {
-                // WHY: New SDK v54 File class handles both
-                // file:// and content:// URIs natively.
-                const content = await readFileContent(file.uri);
+            setFileContent(result.text);
+            setSelectedFileName(file.name);       // ← real filename
+            setDeckName(nameWithoutExtension);    // ← pre-fill deck name
 
-                if (!content || !content.trim()) {
-                    Alert.alert('Empty File', 'The selected file appears to be empty.');
-                    resetFileState();
-                    return;
-                }
+            Alert.alert('File Ready', `"${file.name}" has been parsed and is ready for flashcard generation.`);
 
-                setSelectedFileName(file.name);
-                setSelectedFileUri(file.uri);
-                setFileContent(content);
-                setDeckName(file.name.replace(/\.[^/.]+$/, ''));
-
-                Alert.alert('File Ready', `"${file.name}" is ready for flashcard generation.`);
-
-            } catch (err) {
-                console.error('File read error:', err);
-                Alert.alert('Error', 'Could not read the file. Please try again.');
-                resetFileState();
-            } finally {
-                setIsLoading(false);
-                setLoadingMessage('');
-            }
-
-        } catch (err) {
-            console.error('File picker error:', err);
-            Alert.alert('Error', 'Could not select file. Please try again.');
+        } catch (error) {
+            console.error('File parse error:', error);
+            Alert.alert(
+                'Parse Failed',
+                error.message || 'Could not parse the document. Please ensure it is not corrupted.'
+            );
+            resetFileState();
+        } finally {
             setIsLoading(false);
+            setLoadingMessage('');
         }
     };
 
     // ── Generation ────────────────────────────────────────────
+    // UNCHANGED
     const handleGenerateFlashcards = async () => {
         if (!deckName.trim()) {
             Alert.alert('Missing Deck Name', 'Please enter a name for your deck.');
             return;
         }
         if (selectedFileName === 'No file selected' || !fileContent) {
-            Alert.alert('No File Selected', 'Please select a .txt file first.');
+            Alert.alert('No File Selected', 'Please select a PDF, DOCX, or PPTX file first.');
             return;
         }
         if (fileContent.length < 100) {
@@ -118,6 +100,7 @@ const GenerateScreen = () => {
         await proceedWithGeneration();
     };
 
+    // UNCHANGED — do not touch
     const proceedWithGeneration = async () => {
         setIsLoading(true);
 
@@ -136,7 +119,7 @@ const GenerateScreen = () => {
             setLoadingMessage('Saving deck...');
             const deckResponse = await api.post('/decks', {
                 title:      deckName.trim(),
-                source:     selectedFileName,
+                source:     selectedFileName,  // ← now real filename
                 card_count: flashcards.length,
                 mastery:    0,
                 progress:   0,
@@ -176,6 +159,7 @@ const GenerateScreen = () => {
     };
 
     // ── Helpers ───────────────────────────────────────────────
+    // UNCHANGED
     const resetFileState = () => {
         setDeckName('');
         setSelectedFileName('No file selected');
@@ -201,13 +185,14 @@ const GenerateScreen = () => {
                 </View>
             )}
 
+            {/* CHANGED — now supports PDF, DOCX, PPTX */}
             <TouchableOpacity
                 style={[styles.selectFileButton, { backgroundColor: colors.primary }, isLoading && styles.disabled]}
                 onPress={handleSelectFile}
                 disabled={isLoading}
             >
                 <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="black" />
-                <Text style={styles.selectFileButtonText}>Select TXT File</Text>
+                <Text style={styles.selectFileButtonText}>Select File (PDF, DOCX, PPTX)</Text>
             </TouchableOpacity>
 
             <Text style={[styles.label, { color: colors.text }]}>Deck Name</Text>
@@ -270,16 +255,13 @@ const GenerateScreen = () => {
                 ⚡ Powered by Google Gemini AI
             </Text>
 
-            <View style={styles.banner}>
-                <Text style={styles.bannerTitle}>⚠️ System Notice</Text>
-                <Text style={styles.bannerMsg}>Only .txt files are supported for flashcard generation.</Text>
-                <Text style={styles.bannerMsg}>Convert PDF or Word files to plain text (.txt) using WPS or any text editor.</Text>
-            </View>
+            {/* REMOVED — warning banner no longer needed */}
 
         </View>
     );
 };
 
+// UNCHANGED — banner styles removed, everything else preserved
 const styles = StyleSheet.create({
     container:            { flex: 1, padding: 20, paddingTop: 40 },
     loadingOverlay:       { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
@@ -298,9 +280,6 @@ const styles = StyleSheet.create({
     generateButtonText:   { color: 'black', fontSize: 18, fontWeight: '600' },
     footerNote:           { textAlign: 'center', fontSize: 12, marginTop: 15, fontStyle: 'italic' },
     disabled:             { opacity: 0.5 },
-    banner:               { backgroundColor: '#fff3cd', borderColor: '#ffeeba', borderWidth: 1, borderRadius: 8, padding: 15, margin: 10 },
-    bannerTitle:          { fontWeight: 'bold', fontSize: 16, color: '#856404', marginBottom: 8 },
-    bannerMsg:            { fontSize: 14, color: '#856404', marginBottom: 4 },
 });
 
 export default GenerateScreen;

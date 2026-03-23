@@ -1,126 +1,96 @@
+import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from './firebaseConfig';
+import { Platform } from 'react-native';
+import api from './api';
 
 /**
- * Upload document to Firebase Storage
- * @param {string} fileUri - Local file URI
- * @param {string} fileName - Name of the file
- * @returns {Promise<string>} - Download URL
+ * Supported MIME types for document parsing.
  */
-export const uploadDocumentToStorage = async (fileUri, fileName) => {
-    try {
-        // Read file as base64
-        const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-        
-        // Convert base64 to blob
-        const response = await fetch(`data:application/octet-stream;base64,${fileContent}`);
-        const blob = await response.blob();
-        
-        // Create storage reference
-        const storageRef = ref(storage, `documents/${Date.now()}_${fileName}`);
-        
-        // Upload file
-        await uploadBytes(storageRef, blob);
-        
-        // Get download URL
-        const downloadURL = await getDownloadURL(storageRef);
-        
-        return downloadURL;
-    } catch (error) {
-        console.error('Error uploading document:', error);
-        throw error;
+const SUPPORTED_MIME_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+];
+
+/**
+ * Supported file extensions for validation.
+ */
+const SUPPORTED_EXTENSIONS = ['pdf', 'docx', 'pptx'];
+
+/**
+ * Max file size: 10MB in bytes.
+ */
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Open document picker and let user select a PDF, DOCX, or PPTX file.
+ * Returns the picked file asset or null if cancelled.
+ *
+ * @returns {Promise<object|null>}
+ */
+export const pickDocument = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+        type: SUPPORTED_MIME_TYPES,
+        copyToCacheDirectory: true,
+    });
+
+    if (result.canceled) return null;
+
+    const file = result.assets[0];
+
+    // Client-side size validation before uploading
+    if (file.size && file.size > MAX_FILE_SIZE_BYTES) {
+        throw new Error('File exceeds the 10MB size limit.');
     }
+
+    // Client-side extension validation
+    const extension = file.name?.split('.').pop()?.toLowerCase();
+    if (!SUPPORTED_EXTENSIONS.includes(extension)) {
+        throw new Error('Only PDF, DOCX, and PPTX files are supported.');
+    }
+
+    return file;
 };
 
 /**
- * Parse document using a free PDF parsing API
- * For production, consider using Firebase Functions with pdf-parse or mammoth
+ * Send picked document to Laravel backend for parsing.
+ * Uses axios so the auth interceptor attaches Bearer token automatically.
+ *
+ * @param {object} file - File asset from pickDocument()
+ * @returns {Promise<{text: string, filename: string, extension: string}>}
  */
-export const parseDocumentWithAPI = async (fileUri, fileType) => {
-    try {
-        // Option 1: Use a free PDF parsing service like pdf.co (has free tier)
-        // Option 2: Use Firebase Functions with pdf-parse npm package
-        // Option 3: For simple text extraction, try reading as text
-        
-        if (fileType === 'txt' || fileType === 'text/plain') {
-            const content = await FileSystem.readAsStringAsync(fileUri);
-            return content;
-        }
-        
-        // For PDF/DOCX, we'll upload to storage and use a backend service
-        // This is a placeholder - you'll need to implement the backend
-        const uploadedURL = await uploadDocumentToStorage(fileUri, `doc.${fileType}`);
-        
-        // Call your backend API or Firebase Function here
-        // For now, return a sample text
-        throw new Error('PDF/DOCX parsing requires backend setup. Please use the parseWithGeminiVision method for images or implement a Firebase Function.');
-        
-    } catch (error) {
-        console.error('Error parsing document:', error);
-        throw error;
+export const parseDocument = async (file) => {
+    // Build FormData — React Native requires uri, name, type
+    const formData = new FormData();
+    formData.append('file', {
+        uri: Platform.OS === 'android' ? file.uri : file.uri.replace('file://', ''),
+        name: file.name,
+        type: file.mimeType,
+    });
+
+    const response = await api.post('/document/parse', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+
+    if (!response.data.success) {
+        throw new Error(response.data.message || 'Document parsing failed.');
     }
+
+    return response.data.data; // { text, filename, extension }
 };
 
 /**
- * Alternative: Use Gemini Vision to extract text from document images
- * Convert PDF pages to images and process with Gemini Pro Vision
+ * Convenience function — pick and parse in one call.
+ * Returns extracted text string, or null if user cancelled.
+ *
+ * @returns {Promise<string|null>}
  */
-export const parseDocumentAsImage = async (imageUri) => {
-    try {
-        const { GoogleGenerativeAI } = require("@google/generative-ai");
-        const genAI = new GoogleGenerativeAI("YOUR_GEMINI_API_KEY_HERE");
-        
-        // Read image file
-        const base64Data = await FileSystem.readAsStringAsync(imageUri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-        
-        const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
-        
-        const imageParts = [
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: "image/jpeg",
-                },
-            },
-        ];
-        
-        const prompt = "Extract all text content from this document image. Return only the text, nothing else.";
-        
-        const result = await model.generateContent([prompt, ...imageParts]);
-        const response = await result.response;
-        const text = response.text();
-        
-        return text;
-    } catch (error) {
-        console.error('Error parsing document as image:', error);
-        throw error;
-    }
-};
+export const pickAndParseDocument = async () => {
+    const file = await pickDocument();
+    if (!file) return null;
 
-/**
- * Simple text extraction fallback
- * Works for .txt files or content you can read directly
- */
-export const extractSimpleText = async (fileUri) => {
-    try {
-        const content = await FileSystem.readAsStringAsync(fileUri);
-        return content;
-    } catch (error) {
-        console.error('Error reading file:', error);
-        // If direct reading fails, try as base64 then decode
-        try {
-            const base64 = await FileSystem.readAsStringAsync(fileUri, {
-                encoding: FileSystem.EncodingType.Base64,
-            });
-            const decoded = atob(base64);
-            return decoded;
-        } catch (decodeError) {
-            throw new Error('Could not read file content');
-        }
-    }
+    const result = await parseDocument(file);
+    return result.text;
 };
