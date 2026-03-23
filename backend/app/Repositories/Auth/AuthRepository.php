@@ -72,7 +72,6 @@ class AuthRepository
         return $user->fresh();
     }
 
-    
     public function revokeTokensByPlatform(User $user, string $platform): void
     {
         $user->tokens()
@@ -80,7 +79,6 @@ class AuthRepository
              ->delete();
     }
 
-    
     public function createPlatformToken(
         User $user,
         string $tokenName,
@@ -88,10 +86,7 @@ class AuthRepository
         ?\DateTimeInterface $expiresAt = null
     ): string {
         $token = $user->createToken($tokenName, ['*'], $expiresAt);
-
-        
         $token->accessToken->forceFill(['platform' => $platform])->save();
-
         return $token->plainTextToken;
     }
 }

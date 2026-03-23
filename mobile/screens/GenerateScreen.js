@@ -4,7 +4,7 @@ import {
     Switch, Alert, ActivityIndicator,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';          
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,12 @@ import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
 import { generateFlashcardsWithGemini } from '../services/geminiService';
 import api from '../services/api';
+
+const readFileContent = async (uri) => {
+    const file = new File(uri);
+    const content = await file.text();
+    return content;
+};
 
 const GenerateScreen = () => {
     const { colors, theme }                         = useTheme();
@@ -54,7 +60,15 @@ const GenerateScreen = () => {
             setLoadingMessage('Reading file...');
 
             try {
-                const content = await FileSystem.readAsStringAsync(file.uri);
+                // WHY: New SDK v54 File class handles both
+                // file:// and content:// URIs natively.
+                const content = await readFileContent(file.uri);
+
+                if (!content || !content.trim()) {
+                    Alert.alert('Empty File', 'The selected file appears to be empty.');
+                    resetFileState();
+                    return;
+                }
 
                 setSelectedFileName(file.name);
                 setSelectedFileUri(file.uri);
@@ -62,7 +76,9 @@ const GenerateScreen = () => {
                 setDeckName(file.name.replace(/\.[^/.]+$/, ''));
 
                 Alert.alert('File Ready', `"${file.name}" is ready for flashcard generation.`);
-            } catch {
+
+            } catch (err) {
+                console.error('File read error:', err);
                 Alert.alert('Error', 'Could not read the file. Please try again.');
                 resetFileState();
             } finally {
@@ -70,7 +86,8 @@ const GenerateScreen = () => {
                 setLoadingMessage('');
             }
 
-        } catch {
+        } catch (err) {
+            console.error('File picker error:', err);
             Alert.alert('Error', 'Could not select file. Please try again.');
             setIsLoading(false);
         }
@@ -105,7 +122,6 @@ const GenerateScreen = () => {
         setIsLoading(true);
 
         try {
-            // Step 1 — Generate flashcards with Gemini AI
             setLoadingMessage('AI is analyzing your document...');
             const flashcards = await generateFlashcardsWithGemini(
                 fileContent,
@@ -117,7 +133,6 @@ const GenerateScreen = () => {
                 throw new Error('No flashcards were generated. Please try again.');
             }
 
-            // Step 2 — Create deck in database
             setLoadingMessage('Saving deck...');
             const deckResponse = await api.post('/decks', {
                 title:      deckName.trim(),
@@ -130,7 +145,6 @@ const GenerateScreen = () => {
 
             const newDeck = deckResponse.data.deck;
 
-            // Step 3 — Save flashcards to database
             setLoadingMessage('Saving flashcards...');
             await api.post(`/decks/${newDeck.id}/flashcards`, {
                 flashcards: flashcards.map(card => ({
@@ -139,7 +153,6 @@ const GenerateScreen = () => {
                 })),
             });
 
-            // Step 4 — Refresh deck list from API (single source of truth)
             setLoadingMessage('Finishing up...');
             await refreshDecks();
 

@@ -2,7 +2,6 @@
 
 namespace App\Services\Auth;
 
-use App\Events\ForceLogout;                    // NEW
 use App\Mail\PasswordResetMail;
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
@@ -52,33 +51,31 @@ class AuthService
         $platform      = $data['platform'];
         $otherPlatform = $platform === 'web' ? 'mobile' : 'web';
 
-        // NEW — Broadcast ForceLogout to the other platform BEFORE revoking
-        // This gives the client a chance to handle logout gracefully in real-time
-        $hasOtherToken = $user->tokens()
+        // ── Block login if other platform has an active session ────────
+        $hasOtherSession = $user->tokens()
             ->where('platform', $otherPlatform)
             ->exists();
 
-        if ($hasOtherToken) {
-            // Temporarily auth as this user so broadcastOn() can use auth()->id()
-            auth()->setUser($user);
-            broadcast(new ForceLogout($otherPlatform));
+        if ($hasOtherSession) {
+            throw ValidationException::withMessages([
+                'email' => [
+                    "This account is currently active on {$otherPlatform}. " .
+                    "Please log out from {$otherPlatform} first before logging in here."
+                ],
+            ]);
         }
 
-        // Revoke current platform tokens (clean re-login)
+        // ── Safe to proceed — revoke stale tokens for this platform ────
         $this->authRepository->revokeTokensByPlatform($user, $platform);
 
-        // Revoke other platform tokens
-        $this->authRepository->revokeTokensByPlatform($user, $otherPlatform);
-
-        // Remember Me — longer expiration if checked
-        $tokenName = 'user_token';
+        // ── Remember Me ───────────────────────────────────────────────
         $expiresAt = isset($data['remember_me']) && $data['remember_me']
             ? now()->addDays(30)
             : now()->addHours(24);
 
         $token = $this->authRepository->createPlatformToken(
             $user,
-            $tokenName,
+            'user_token',
             $platform,
             $expiresAt
         );
@@ -138,7 +135,6 @@ class AuthService
         $user->update(['password' => Hash::make($data['password'])]);
         $this->authRepository->deleteResetToken($data['email']);
 
-        // Nuke ALL tokens on ALL platforms — force re-login everywhere
         $user->tokens()->delete();
     }
 

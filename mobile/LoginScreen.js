@@ -113,22 +113,46 @@ const LoginScreen = () => {
         return e;
     };
 
+    // ── Extract the most specific error message from the API response ─────────
+    const extractErrorMessage = (error) => {
+        // Use the exact server message first — covers platform conflicts,
+        // "active on web/mobile" notices, and any custom Laravel responses
+        if (error.response?.data?.message) {
+            return error.response.data.message;
+        }
+        // Laravel validation errors bag
+        if (error.response?.data?.errors) {
+            const firstKey = Object.keys(error.response.data.errors)[0];
+            return error.response.data.errors[firstKey][0];
+        }
+        // 401 without a message body
+        if (error.response?.status === 401) {
+            return 'Invalid email or password.';
+        }
+        // No network / server unreachable
+        if (error.message === 'Network Error') {
+            return 'Cannot connect to server. Please check your connection.';
+        }
+        // Fallback
+        return 'Login failed. Please try again.';
+    };
+
     const handleLogin = async () => {
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
+
         setIsLoading(true);
         setErrors({});
+
         try {
-            console.log('1. Sending login request...');
             const response = await api.post('/auth/login', {
-                email:    formData.email.trim(),
+                email:    formData.email.trim().toLowerCase(),
                 password: formData.password,
                 platform: 'mobile',
             });
-            console.log('2. Response received:', JSON.stringify(response.data));
 
             const userToStore = {
                 id:       response.data.user.id,
@@ -138,23 +162,12 @@ const LoginScreen = () => {
                 role:     response.data.user.role,
             };
 
-            console.log('3. Storing token...');
             await SecureStore.setItemAsync('token', response.data.token);
-            console.log('4. Storing user...');
             await SecureStore.setItemAsync('user', JSON.stringify(userToStore));
-            console.log('5. Navigating to HomeTabs...');
+
             navigation.replace('HomeTabs');
-            console.log('6. Navigation called.');
         } catch (error) {
-            console.error('LOGIN ERROR:', error.message);
-            console.error('ERROR RESPONSE:', JSON.stringify(error.response?.data));
-            if (error.response?.status === 401 || error.response?.status === 422) {
-                setErrors({ general: 'Invalid email or password.' });
-            } else if (error.message === 'Network Error') {
-                setErrors({ general: 'Cannot connect to server. Check your connection.' });
-            } else {
-                setErrors({ general: 'Login failed. Please try again.' });
-            }
+            setErrors({ general: extractErrorMessage(error) });
         } finally {
             setIsLoading(false);
         }
