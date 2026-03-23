@@ -201,7 +201,6 @@ const RegisterScreen = () => {
                     {/* Brand */}
                     <View style={styles.brandSection}>
                     
-                        <Text style={styles.brandWelcome}>Create  Account</Text>
                         <Text style={styles.brandSub}>
                             Join and start learning smarter today.
                         </Text>
@@ -327,31 +326,30 @@ backBtn: {
 },
 
     // Brand
-    brandSection:   { alignItems: 'center', marginBottom: 32 },
-    brandName: {
-    fontFamily:    'Syne_700Bold',
-    fontSize:      20,
-    fontWeight:    '700',
-    color:         '#f1f5f9',
-    letterSpacing: -0.3,
-    marginBottom:  20,
-    textAlign:     'center',
-},
+    brandSection:   { alignItems: 'cent', marginBottom: 32 },
+    brandName:      {
+        fontFamily:    'Syne_700Bold',
+        fontSize:      20,
+        fontWeight:    '700',
+        color:         '#f1f5f9',
+        letterSpacing: -0.3,
+        marginBottom:  20,
+    },
     brandWelcome: {
     fontFamily:    'Syne_700Bold',
-    fontSize:      20,
+    fontSize:      22,
     fontWeight:    '800',
     color:         '#ffffff',
     letterSpacing: 1.5,       // ← spaced out uppercase
     textTransform: 'uppercase', // ← all caps
     textAlign:     'center',
     marginBottom:  6,
-},brandSub: {
-    fontSize:   14,
-    color:      'rgba(255,255,255,0.45)',
-    fontWeight: '200',
-    textAlign:  'center',
 },
+    brandSub:       {
+        fontSize:      14,
+        color:         'rgba(255,255,255,0.45)',
+        fontWeight:    '300',
+    },
 
     // Form
     formSection:    { width: '100%' },
