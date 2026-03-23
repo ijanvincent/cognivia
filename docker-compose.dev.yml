@@ -43,6 +43,21 @@ services:
     networks:
       - cognivia_network
 
+  soketi:
+    image: quay.io/soketi/soketi:latest-16-alpine
+    container_name: cognivia_soketi
+    restart: unless-stopped
+    ports:
+      - "6001:6001"  
+      - "9601:9601"   
+    environment:
+      SOKETI_DEBUG: "1"
+      SOKETI_DEFAULT_APP_ID: "${PUSHER_APP_ID}"
+      SOKETI_DEFAULT_APP_KEY: "${PUSHER_APP_KEY}"
+      SOKETI_DEFAULT_APP_SECRET: "${PUSHER_APP_SECRET}"
+    networks:
+      - cognivia_network
+
 networks:
   cognivia_network:
     driver: bridge

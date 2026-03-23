@@ -1,11 +1,11 @@
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import api from '../../services/api.js';
+import { getEcho, disconnectEcho } from '../../services/echo.js';
 
 const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
-
 
 const IconUser = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -50,26 +50,48 @@ function UserDashboard() {
   const userName    = user.name || user.username || 'Learner';
   const userInitial = userName.charAt(0).toUpperCase();
 
+  // ── Mount animation
   useEffect(() => {
     setUser(getStoredUser());
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
+  // ── Listen for profile updates
   useEffect(() => {
     const handleUserUpdated = (e) => setUser(e.detail || getStoredUser());
     window.addEventListener('cognivia:userUpdated', handleUserUpdated);
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
 
+  // ── FILE 9: ForceLogout WebSocket listener
+  useEffect(() => {
+    const userId = user?.id;
+    if (!userId) return;
+
+    const echo = getEcho();
+    if (!echo) return;
+
+    echo.private(`user.${userId}`)
+      .listen('.force.logout', (e) => {
+        if (e.platform === 'web') {
+          handleLogout();
+        }
+      });
+
+    return () => {
+      disconnectEcho();
+    };
+  }, [user?.id]);
+
   const handleLogout = async () => {
-  try { await api.post('/auth/logout'); } catch {}
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  sessionStorage.removeItem('token');
-  sessionStorage.removeItem('user');
-  window.location.replace('/login');
-};
+    try { await api.post('/auth/logout'); } catch {}
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    window.location.replace('/login');
+  };
 
   const handleEditProfile = () => {
     setDropdownOpen(false);
@@ -90,7 +112,6 @@ function UserDashboard() {
 
         {/* ── Avatar + Dropdown ── */}
         <div className={styles.avatarWrapper}>
-
           <button
             className={`${styles.avatarChip} ${dropdownOpen ? styles.avatarChipActive : ''}`}
             onClick={() => setDropdownOpen(prev => !prev)}
@@ -119,13 +140,10 @@ function UserDashboard() {
 
           {dropdownOpen && (
             <>
-              {/* Full-screen overlay — closes dropdown when clicking outside */}
               <div
                 style={{ position: 'fixed', inset: 0, zIndex: 98 }}
                 onClick={() => setDropdownOpen(false)}
               />
-
-              {/* Dropdown — above overlay */}
               <div className={styles.dropdown} style={{ zIndex: 100 }}>
                 <button
                   className={styles.dropdownItem}
@@ -136,10 +154,11 @@ function UserDashboard() {
                   Edit Profile
                 </button>
                 <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.06)', margin: '4px 6px', pointerEvents: 'none' }} />
-               <button
-                 className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                     onClick={handleLogout}
-                    >  <span className={styles.dropdownIcon}><IconLogout /></span>
+                <button
+                  className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                  onClick={handleLogout}
+                >
+                  <span className={styles.dropdownIcon}><IconLogout /></span>
                   Log out
                 </button>
               </div>
@@ -151,7 +170,6 @@ function UserDashboard() {
       {/* ── QR Code Center ── */}
       <div className={styles.qrWrapper}>
         <div className={styles.qrCard}>
-  
           <div className={styles.qrCodeBox}>
             <QRCode
               value={APP_DOWNLOAD_URL}
@@ -161,14 +179,11 @@ function UserDashboard() {
               level="H"
             />
           </div>
-
           <h2 className={styles.qrTitle}>Please Scan for the full experience</h2>
           <p className={styles.qrSubtitle}>
-             Scan the QR code with your phone camera<br />
-             to download CogniVia and start learning.
+            Scan the QR code with your phone camera<br />
+            to download CogniVia and start learning.
           </p>
-
-        
         </div>
       </div>
     </div>
