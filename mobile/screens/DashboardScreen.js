@@ -5,11 +5,11 @@ import {
     Alert, Share, ActivityIndicator
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';          // CHANGED
+import * as SecureStore from 'expo-secure-store';
 import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
+import { getEcho, disconnectEcho } from '../services/echoService';
 
-// ... ProgressBar component unchanged
 const ProgressBar = ({ progress, color, themeColors }) => (
     <View style={[styles.progressBarContainer, { backgroundColor: themeColors.border }]}>
         <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: color }]} />
@@ -22,10 +22,11 @@ const DashboardScreen = ({ navigation }) => {
     const [searchText, setSearchText]    = React.useState('');
     const [userName, setUserName]        = useState('User');
 
+    // ── Load user from SecureStore
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const userStr = await SecureStore.getItemAsync('user'); // CHANGED
+                const userStr = await SecureStore.getItemAsync('user');
                 if (userStr) {
                     const user = JSON.parse(userStr);
                     setUserName(user.username || user.name || 'User');
@@ -37,7 +38,44 @@ const DashboardScreen = ({ navigation }) => {
         loadUser();
     }, []);
 
-    // ── All DeckCard logic, JSX, and styles unchanged ────────
+    // ── FILE 10: ForceLogout WebSocket listener
+    useEffect(() => {
+        let channel = null;
+        let userId  = null;
+
+        const setupEcho = async () => {
+            try {
+                const userStr = await SecureStore.getItemAsync('user');
+                if (!userStr) return;
+
+                const user = JSON.parse(userStr);
+                userId = user?.id;
+                if (!userId) return;
+
+                const echo = await getEcho();
+                if (!echo) return;
+
+                channel = echo.private(`user.${userId}`)
+                    .listen('.force.logout', async (e) => {
+                        if (e.platform === 'mobile') {
+                            await SecureStore.deleteItemAsync('token');
+                            await SecureStore.deleteItemAsync('user');
+                            disconnectEcho();
+                            navigation.replace('Login');
+                        }
+                    });
+            } catch (err) {
+                console.error('Echo setup error:', err);
+            }
+        };
+
+        setupEcho();
+
+        return () => {
+            if (userId) disconnectEcho();
+        };
+    }, []);
+
     const DeckCard = ({ deck }) => {
         const masteryColor = deck.mastery >= 75 ? '#4CAF50' : deck.mastery >= 50 ? '#FFC107' : '#F44336';
 
@@ -172,34 +210,34 @@ const DashboardScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    container:              { flex: 1, paddingHorizontal: 20, paddingTop: Dimensions.get('window').height > 800 ? 60 : 40 },
-    header:                 { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    welcomeText:            { fontSize: 28, fontWeight: 'bold' },
-    profileIcon:            { padding: 5 },
-    searchBarContainer:     { flexDirection: 'row', alignItems: 'center', borderRadius: 12, marginBottom: 25, paddingHorizontal: 10, borderWidth: 1, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
-    searchIcon:             { marginRight: 8 },
-    searchInput:            { flex: 1, height: 45, fontSize: 16 },
-    loadingText:            { marginTop: 10, fontSize: 16 },
-    emptyState:             { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 100 },
-    emptyText:              { fontSize: 20, fontWeight: '600', marginTop: 20 },
-    emptySubtext:           { fontSize: 14, marginTop: 8, textAlign: 'center' },
-    deckList:               { flex: 1, marginBottom: 20 },
-    card:                   { padding: 20, borderRadius: 12, marginBottom: 15, borderLeftWidth: 5, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-    cardHeaderRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
-    cardTitleContainer:     { flex: 1, paddingRight: 10 },
-    cardTitle:              { fontSize: 18, fontWeight: '700' },
-    cardSource:             { fontSize: 13, marginBottom: 10 },
-    optionsButton:          { padding: 5 },
-    cardDetailsRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-    cardDetailText:         { fontSize: 14 },
-    masteryContainer:       { alignItems: 'flex-end', width: '50%' },
-    masteryText:            { fontSize: 14, fontWeight: '600', marginBottom: 5 },
-    progressBarContainer:   { height: 6, width: '100%', borderRadius: 3, overflow: 'hidden' },
-    progressBarFill:        { height: '100%', borderRadius: 3 },
-    progressRow:            { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTopWidth: 1, marginTop: 5 },
-    progressLeft:           { flexDirection: 'row', alignItems: 'center' },
-    progressIcon:           { marginRight: 8 },
-    progressText:           { fontSize: 14, fontWeight: '600' },
+    container:            { flex: 1, paddingHorizontal: 20, paddingTop: Dimensions.get('window').height > 800 ? 60 : 40 },
+    header:               { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    welcomeText:          { fontSize: 28, fontWeight: 'bold' },
+    profileIcon:          { padding: 5 },
+    searchBarContainer:   { flexDirection: 'row', alignItems: 'center', borderRadius: 12, marginBottom: 25, paddingHorizontal: 10, borderWidth: 1, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
+    searchIcon:           { marginRight: 8 },
+    searchInput:          { flex: 1, height: 45, fontSize: 16 },
+    loadingText:          { marginTop: 10, fontSize: 16 },
+    emptyState:           { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 100 },
+    emptyText:            { fontSize: 20, fontWeight: '600', marginTop: 20 },
+    emptySubtext:         { fontSize: 14, marginTop: 8, textAlign: 'center' },
+    deckList:             { flex: 1, marginBottom: 20 },
+    card:                 { padding: 20, borderRadius: 12, marginBottom: 15, borderLeftWidth: 5, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
+    cardHeaderRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
+    cardTitleContainer:   { flex: 1, paddingRight: 10 },
+    cardTitle:            { fontSize: 18, fontWeight: '700' },
+    cardSource:           { fontSize: 13, marginBottom: 10 },
+    optionsButton:        { padding: 5 },
+    cardDetailsRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+    cardDetailText:       { fontSize: 14 },
+    masteryContainer:     { alignItems: 'flex-end', width: '50%' },
+    masteryText:          { fontSize: 14, fontWeight: '600', marginBottom: 5 },
+    progressBarContainer: { height: 6, width: '100%', borderRadius: 3, overflow: 'hidden' },
+    progressBarFill:      { height: '100%', borderRadius: 3 },
+    progressRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTopWidth: 1, marginTop: 5 },
+    progressLeft:         { flexDirection: 'row', alignItems: 'center' },
+    progressIcon:         { marginRight: 8 },
+    progressText:         { fontSize: 14, fontWeight: '600' },
 });
 
 export default DashboardScreen;

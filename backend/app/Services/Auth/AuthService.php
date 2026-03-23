@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Events\ForceLogout;                    // NEW
 use App\Mail\PasswordResetMail;
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
@@ -48,14 +49,25 @@ class AuthService
             ]);
         }
 
-        // CHANGED — was: $user->tokens()->delete()
-        // Now we revoke both platforms explicitly:
-        // 1. Current platform — clean re-login
-        // 2. Other platform — enforce one-platform-at-a-time rule
         $platform      = $data['platform'];
         $otherPlatform = $platform === 'web' ? 'mobile' : 'web';
 
+        // NEW — Broadcast ForceLogout to the other platform BEFORE revoking
+        // This gives the client a chance to handle logout gracefully in real-time
+        $hasOtherToken = $user->tokens()
+            ->where('platform', $otherPlatform)
+            ->exists();
+
+        if ($hasOtherToken) {
+            // Temporarily auth as this user so broadcastOn() can use auth()->id()
+            auth()->setUser($user);
+            broadcast(new ForceLogout($otherPlatform));
+        }
+
+        // Revoke current platform tokens (clean re-login)
         $this->authRepository->revokeTokensByPlatform($user, $platform);
+
+        // Revoke other platform tokens
         $this->authRepository->revokeTokensByPlatform($user, $otherPlatform);
 
         // Remember Me — longer expiration if checked
@@ -64,8 +76,6 @@ class AuthService
             ? now()->addDays(30)
             : now()->addHours(24);
 
-        // CHANGED — was: $user->createToken(...)->plainTextToken
-        // Now uses repository method that tags the token with platform
         $token = $this->authRepository->createPlatformToken(
             $user,
             $tokenName,
@@ -76,7 +86,7 @@ class AuthService
         return [
             'user'     => $user,
             'token'    => $token,
-            'platform' => $platform, // NEW — returned for frontend awareness
+            'platform' => $platform,
         ];
     }
 
@@ -89,22 +99,15 @@ class AuthService
     {
         $user = $this->authRepository->findByEmail($email);
 
-        // Security: always return success even if email not found
-        // This prevents email enumeration attacks
         if (!$user) return;
 
-        // Generate secure random token
         $token = Str::random(64);
-
-        // Store hashed token in database
         $this->authRepository->storeResetToken($email, $token);
 
-        // Build reset URL
         $resetUrl = config('app.frontend_url')
             . '/reset-password?token=' . $token
             . '&email=' . urlencode($email);
 
-        // Send using Mailable class — clean and professional
         Mail::to($email)->send(new PasswordResetMail($resetUrl, $user->username));
     }
 
@@ -112,14 +115,12 @@ class AuthService
     {
         $record = $this->authRepository->findResetToken($data['email']);
 
-        // Check token exists
         if (!$record) {
             throw ValidationException::withMessages([
                 'token' => ['Invalid or expired reset link.'],
             ]);
         }
 
-        // Check token not expired (60 minutes)
         if (now()->diffInMinutes($record->created_at) > 60) {
             $this->authRepository->deleteResetToken($data['email']);
             throw ValidationException::withMessages([
@@ -127,22 +128,17 @@ class AuthService
             ]);
         }
 
-        // Verify token
         if (!Hash::check($data['token'], $record->token)) {
             throw ValidationException::withMessages([
                 'token' => ['Invalid or expired reset link.'],
             ]);
         }
 
-        // Update password
         $user = $this->authRepository->findByEmail($data['email']);
         $user->update(['password' => Hash::make($data['password'])]);
-
-        // Delete token — single use only
         $this->authRepository->deleteResetToken($data['email']);
 
-        // KEPT as-is — password reset nukes ALL tokens on ALL platforms
-        // This is correct security behavior — force re-login everywhere
+        // Nuke ALL tokens on ALL platforms — force re-login everywhere
         $user->tokens()->delete();
     }
 
@@ -151,7 +147,6 @@ class AuthService
         $updateData = [];
 
         if (!empty($data['username'])) {
-            // Check username not taken by another user
             $existing = $this->authRepository->findByUsername($data['username']);
             if ($existing && $existing->id !== $user->id) {
                 throw ValidationException::withMessages([
