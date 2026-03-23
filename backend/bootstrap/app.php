@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\EnsurePlatformMatch;  // NEW
 use App\Http\Middleware\UserMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,8 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'admin' => AdminMiddleware::class,
-            'user'  => UserMiddleware::class,
+            'admin'          => AdminMiddleware::class,
+            'user'           => UserMiddleware::class,
+            'platform.match' => EnsurePlatformMatch::class,  // NEW
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

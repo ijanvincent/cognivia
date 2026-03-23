@@ -14,7 +14,6 @@ import api from './services/api';
 
 const { height: H } = Dimensions.get('window');
 
-// ── Wave background ───────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -51,7 +50,6 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ── Input ─────────────────────────────────────────────────────
 const Input = ({ value, onChangeText, placeholder, secureTextEntry,
     keyboardType, icon, rightIcon, onRightIconPress, editable, autoCapitalize }) => {
     const [focused, setFocused] = useState(false);
@@ -94,7 +92,6 @@ const Input = ({ value, onChangeText, placeholder, secureTextEntry,
     );
 };
 
-// ── Main ──────────────────────────────────────────────────────
 const RegisterScreen = () => {
     const navigation = useNavigation();
 
@@ -104,9 +101,9 @@ const RegisterScreen = () => {
         password:              '',
         password_confirmation: '',
     });
-    const [errors, setErrors]                         = useState({});
-    const [isLoading, setIsLoading]                   = useState(false);
-    const [showPassword, setShowPassword]             = useState(false);
+    const [errors, setErrors]                           = useState({});
+    const [isLoading, setIsLoading]                     = useState(false);
+    const [showPassword, setShowPassword]               = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const updateField = (field, value) => {
@@ -190,23 +187,20 @@ const RegisterScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Back button */}
+                    {/* Back button — CHANGED: goBack() → navigate('Login') */}
                     <TouchableOpacity
-                        onPress={() => navigation.goBack()}
+                        onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}
                     >
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
-                    {/* Brand */}
                     <View style={styles.brandSection}>
-                    
                         <Text style={styles.brandSub}>
                             Join and start learning smarter today.
                         </Text>
                     </View>
 
-                    {/* Form */}
                     <View style={styles.formSection}>
 
                         {!!errors.general && (
@@ -216,7 +210,6 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
-                        {/* Username */}
                         <Input
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
@@ -226,7 +219,6 @@ const RegisterScreen = () => {
                         />
                         {!!errors.username && <Text style={styles.fieldError}>{errors.username}</Text>}
 
-                        {/* Email */}
                         <Input
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
@@ -237,7 +229,6 @@ const RegisterScreen = () => {
                         />
                         {!!errors.email && <Text style={styles.fieldError}>{errors.email}</Text>}
 
-                        {/* Password */}
                         <Input
                             value={formData.password}
                             onChangeText={v => updateField('password', v)}
@@ -250,7 +241,6 @@ const RegisterScreen = () => {
                         />
                         {!!errors.password && <Text style={styles.fieldError}>{errors.password}</Text>}
 
-                        {/* Confirm Password */}
                         <Input
                             value={formData.password_confirmation}
                             onChangeText={v => updateField('password_confirmation', v)}
@@ -265,7 +255,6 @@ const RegisterScreen = () => {
                             <Text style={styles.fieldError}>{errors.password_confirmation}</Text>
                         )}
 
-                        {/* Terms */}
                         <Text style={styles.termsText}>
                             By signing up you agree to our{' '}
                             <Text style={styles.termsLink}>Terms</Text>
@@ -273,7 +262,6 @@ const RegisterScreen = () => {
                             <Text style={styles.termsLink}>Privacy Policy</Text>.
                         </Text>
 
-                        {/* Create Account */}
                         <TouchableOpacity
                             onPress={handleRegister}
                             disabled={isLoading}
@@ -286,7 +274,6 @@ const RegisterScreen = () => {
                             }
                         </TouchableOpacity>
 
-                        {/* Sign in */}
                         <View style={styles.loginRow}>
                             <Text style={styles.loginPrompt}>Already have an account? </Text>
                             <TouchableOpacity
@@ -304,92 +291,32 @@ const RegisterScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    safeArea:       { flex: 1, backgroundColor: COLORS.bg },
-    flex:           { flex: 1 },
-    overlay:        { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
-    scrollContent: {
-    flexGrow:          1,
-    paddingHorizontal: 28,
-    paddingTop:        16,
-    paddingBottom:     40,
-    minHeight:         H,
-    justifyContent:    'center',  // ← add this
-},
-
-    // Back
-backBtn: {
-    position:  'absolute',
-    top:       16,
-    left:      28,
-    zIndex:    10,
-    padding:   4,
-},
-
-    // Brand
-    brandSection:   { alignItems: 'cent', marginBottom: 32 },
-    brandName:      {
-        fontFamily:    'Syne_700Bold',
-        fontSize:      20,
-        fontWeight:    '700',
-        color:         '#f1f5f9',
-        letterSpacing: -0.3,
-        marginBottom:  20,
-    },
-    brandWelcome: {
-    fontFamily:    'Syne_700Bold',
-    fontSize:      22,
-    fontWeight:    '800',
-    color:         '#ffffff',
-    letterSpacing: 1.5,       // ← spaced out uppercase
-    textTransform: 'uppercase', // ← all caps
-    textAlign:     'center',
-    marginBottom:  6,
-},
-    brandSub:       {
-        fontSize:      14,
-        color:         'rgba(255,255,255,0.45)',
-        fontWeight:    '300',
-    },
-
-    // Form
-    formSection:    { width: '100%' },
-    inputWrap:      {
-        flexDirection:     'row',
-        alignItems:        'center',
-        borderWidth:       1,
-        borderColor:       'rgba(255,255,255,0.15)',
-        borderRadius:      12,
-        paddingHorizontal: 16,
-        height:            56,
-        marginBottom:      14,
-        backgroundColor:   'rgba(255,255,255,0.04)',
-    },
-    inputWrapFocused: {
-        borderColor:       COLORS.cyan,
-        backgroundColor:   'rgba(34,211,238,0.04)',
-    },
-    inputIcon:      { marginRight: 12 },
-    input:          { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
-    eyeBtn:         { paddingLeft: 10 },
-
-    // Errors
-    errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-    fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
-
-    // Terms
-    termsText:      { fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 20, marginBottom: 24, marginTop: 4 },
-    termsLink:      { color: '#ffffff', fontWeight: '700' },
-
-    // Button
-    btnCreate:      { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-    btnDisabled:    { opacity: 0.6 },
-    btnCreateText:  { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
-
-    // Login
-    loginRow:       { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    loginPrompt:    { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-    loginLink:      { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+    safeArea:         { flex: 1, backgroundColor: COLORS.bg },
+    flex:             { flex: 1 },
+    overlay:          { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    scrollContent:    { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
+    backBtn:          { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
+    brandSection:     { alignItems: 'center', marginBottom: 32 },
+    brandName:        { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 20 },
+    brandWelcome:     { fontFamily: 'Syne_700Bold', fontSize: 22, fontWeight: '800', color: '#ffffff', letterSpacing: 1.5, textTransform: 'uppercase', textAlign: 'center', marginBottom: 6 },
+    brandSub:         { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300' },
+    formSection:      { width: '100%' },
+    inputWrap:        { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+    inputWrapFocused: { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
+    inputIcon:        { marginRight: 12 },
+    input:            { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
+    eyeBtn:           { paddingLeft: 10 },
+    errorAlert:       { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
+    errorAlertText:   { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    fieldError:       { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
+    termsText:        { fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 20, marginBottom: 24, marginTop: 4 },
+    termsLink:        { color: '#ffffff', fontWeight: '700' },
+    btnCreate:        { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    btnDisabled:      { opacity: 0.6 },
+    btnCreateText:    { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    loginRow:         { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    loginPrompt:      { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    loginLink:        { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
 });
 
 export default RegisterScreen;
