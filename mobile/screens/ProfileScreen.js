@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity,
-    Switch, TextInput, Alert, Platform,
-    Image, ActivityIndicator
+    Switch, Alert, Platform,
+    Image
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,9 +16,7 @@ const ProfileScreen = () => {
     const { theme, colors, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
 
-    const [inputLink, setInputLink]       = useState('');
     const [profileImage, setProfileImage] = useState(null);
-    const [isImporting, setIsImporting]   = useState(false);
     const [userData, setUserData]         = useState({
         name: 'Loading...',
         email: 'Loading...',
@@ -90,39 +88,6 @@ const ProfileScreen = () => {
         }
     };
 
-    const handleInputLink = async () => {
-        if (!inputLink.trim()) {
-            Alert.alert('Empty Code', 'Please enter a deck code to import.');
-            return;
-        }
-        const shareCodeMatch = inputLink.trim().match(/FC-([A-Z0-9]{8})/i);
-        if (shareCodeMatch) {
-            await importDeckFromCode(inputLink.trim());
-        } else {
-            Alert.alert('Invalid Code', 'Please enter a valid deck code (format: FC-XXXXXXXX)');
-        }
-    };
-
-    const importDeckFromCode = async (shareCode) => {
-        setIsImporting(true);
-        try {
-            const response = await api.post('/decks/import', { code: shareCode });
-            Alert.alert(
-                'Success! 🎉',
-                `"${response.data.deck.title}" has been imported!`,
-                [{ text: 'OK', onPress: () => {
-                    setInputLink('');
-                    navigation.navigate('HomeTabs', { screen: 'Home' });
-                }}]
-            );
-        } catch (error) {
-            const message = error.response?.data?.message || 'Could not import the deck. Please try again.';
-            Alert.alert('Import Failed', message);
-        } finally {
-            setIsImporting(false);
-        }
-    };
-
     const handleToggleAppTheme = () => {
         toggleTheme();
         Alert.alert('Theme Change', `App Theme changed to ${!isDarkMode ? 'Dark' : 'Light'} Mode.`);
@@ -179,30 +144,6 @@ const ProfileScreen = () => {
             </View>
 
             <View style={[styles.settingsSection, { backgroundColor: colors.card, shadowColor: isDarkMode ? '#FFF' : '#000' }]}>
-                <View style={[styles.settingItemContainer, { borderBottomColor: colors.border }]}>
-                    <MaterialCommunityIcons name="download" size={24} color={colors.subtext} style={styles.settingIcon} />
-                    <TextInput
-                        style={[styles.linkInput, { color: colors.text }]}
-                        placeholder="Enter deck code (e.g., FC-XXXXXXXX)"
-                        placeholderTextColor={colors.subtext}
-                        value={inputLink}
-                        onChangeText={setInputLink}
-                        autoCapitalize="characters"
-                        autoCorrect={false}
-                        editable={!isImporting}
-                    />
-                    <TouchableOpacity
-                        onPress={handleInputLink}
-                        style={[styles.linkSubmitButton, { backgroundColor: colors.primary }, isImporting && styles.linkSubmitButtonDisabled]}
-                        disabled={isImporting}
-                    >
-                        {isImporting
-                            ? <ActivityIndicator size="small" color="black" />
-                            : <Text style={[styles.linkSubmitButtonText, { color: 'black' }]}>Import</Text>
-                        }
-                    </TouchableOpacity>
-                </View>
-
                 <TouchableOpacity onPress={handleAboutUs} style={[styles.settingItem, { borderBottomColor: colors.border }]}>
                     <View style={styles.settingItemLeft}>
                         <MaterialCommunityIcons name="information-outline" size={24} color={colors.subtext} style={styles.settingIcon} />
@@ -245,11 +186,6 @@ const styles = StyleSheet.create({
     userName:                   { fontSize: 22, fontWeight: 'bold', marginTop: 10 },
     userEmail:                  { fontSize: 16 },
     settingsSection:            { borderRadius: 12, marginBottom: 25, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3, paddingVertical: 10 },
-    settingItemContainer:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
-    linkInput:                  { flex: 1, fontSize: 12, marginLeft: 10 },
-    linkSubmitButton:           { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8, marginLeft: 10, minWidth: 70, alignItems: 'center', justifyContent: 'center' },
-    linkSubmitButtonDisabled:   { opacity: 0.6 },
-    linkSubmitButtonText:       { fontWeight: '600', fontSize: 15 },
     settingItem:                { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 15, borderBottomWidth: 1 },
     settingItemLeft:            { flexDirection: 'row', alignItems: 'center', flex: 1 },
     settingIcon:                { marginRight: 15 },

@@ -251,10 +251,6 @@ const GenerateScreen = () => {
                 </Text>
             </TouchableOpacity>
 
-            <Text style={[styles.footerNote, { color: colors.subtext }]}>
-                ⚡ Powered by Google Gemini AI
-            </Text>
-
             {/* REMOVED — warning banner no longer needed */}
 
         </View>
