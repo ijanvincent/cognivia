@@ -3,6 +3,7 @@
     "name": "CogniVia",
     "slug": "cognivia",
     "version": "1.0.0",
+    "scheme": "cognivia",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
