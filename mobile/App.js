@@ -10,6 +10,7 @@ import TabNavigator from './TabNavigator';
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import Splash from './FirstPage/Splash';
 import FlashcardStudyScreen from './screens/FlashcardStudyScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -19,6 +20,22 @@ import { ThemeProvider } from './ThemeContext';
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createStackNavigator();
+
+// ── Deep link config ──────────────────────────────────────────
+const linking = {
+    prefixes: ['cognivia://'],
+    config: {
+        screens: {
+            ResetPassword: {
+                path: 'reset-password',
+                parse: {
+                    token: (token) => token,
+                    email: (email) => decodeURIComponent(email),
+                },
+            },
+        },
+    },
+};
 
 const HomeTabsWithContext = () => (
     <DeckProvider>
@@ -40,7 +57,7 @@ function App() {
 
     return (
         <ThemeProvider>
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
                 <Stack.Navigator
                     initialRouteName="Splash"
                     screenOptions={{ headerShown: false }}
@@ -50,6 +67,7 @@ function App() {
                     <Stack.Screen name="Login"          component={LoginScreen} />
                     <Stack.Screen name="Register"       component={RegisterScreen} />
                     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                    <Stack.Screen name="ResetPassword"  component={ResetPasswordScreen} />
                     <Stack.Screen name="Profile"        component={ProfileScreen} />
                     <Stack.Screen name="About"          component={AboutScreen} />
                     <Stack.Screen name="HomeTabs"       component={HomeTabsWithContext} />
