@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.17:3000/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://intercity-nonbibulously-brylee.ngrok-free.dev/api';
 console.log('📡 API URL being used:', API_URL);
 
 const api = axios.create({
@@ -9,13 +9,14 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-Platform': 'mobile',   // NEW — identifies all requests as coming from mobile
+        'X-Platform': 'mobile',
+        'ngrok-skip-browser-warning': 'true',
     },
 });
 
 // Attach token to every request
 api.interceptors.request.use(async (config) => {
-    const token = await SecureStore.getItemAsync('token');   // CHANGED — was AsyncStorage
+    const token = await SecureStore.getItemAsync('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,8 +28,8 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response?.status === 401) {
-            await SecureStore.deleteItemAsync('token');   // CHANGED — was AsyncStorage
-            await SecureStore.deleteItemAsync('user');    // CHANGED — was AsyncStorage
+            await SecureStore.deleteItemAsync('token');
+            await SecureStore.deleteItemAsync('user');
         }
         return Promise.reject(error);
     }
