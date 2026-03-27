@@ -26,6 +26,8 @@ services:
       - cognivia_network
     depends_on:
       - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   mysql:
     image: mysql:8.0
@@ -48,8 +50,8 @@ services:
     container_name: cognivia_soketi
     restart: unless-stopped
     ports:
-      - "6001:6001"  
-      - "9601:9601"   
+      - "6001:6001"
+      - "9601:9601"
     environment:
       SOKETI_DEBUG: "1"
       SOKETI_DEFAULT_APP_ID: "${PUSHER_APP_ID}"

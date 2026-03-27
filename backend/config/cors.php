@@ -5,6 +5,7 @@ return [
     'allowed_methods'          => ['*'],
     'allowed_origins'          => [
         'http://localhost:3001',
+        'http://10.76.253.117:3001',
         'https://intercity-nonbibulously-brylee.ngrok-free.dev',
     ],
     'allowed_origins_patterns' => [
