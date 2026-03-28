@@ -22,7 +22,6 @@ const DashboardScreen = ({ navigation }) => {
     const [searchText, setSearchText]    = React.useState('');
     const [userName, setUserName]        = useState('User');
 
-    // ── Load user from SecureStore
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -38,7 +37,7 @@ const DashboardScreen = ({ navigation }) => {
         loadUser();
     }, []);
 
-    // ── FILE 10: ForceLogout WebSocket listener
+
     useEffect(() => {
         let channel = null;
         let userId  = null;

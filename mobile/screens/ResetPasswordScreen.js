@@ -14,7 +14,6 @@ import api from '../services/api';
 
 const { height: H } = Dimensions.get('window');
 
-// ── Wave background ───────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -51,7 +50,7 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ── Password Input ────────────────────────────────────────────
+
 const PasswordInput = ({ value, onChangeText, placeholder, icon, editable }) => {
     const [focused, setFocused] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -87,12 +86,11 @@ const PasswordInput = ({ value, onChangeText, placeholder, icon, editable }) => 
     );
 };
 
-// ── Main ──────────────────────────────────────────────────────
 const ResetPasswordScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
 
-    // Read token & email from deep link params (cognivia://reset-password?token=xxx&email=xxx)
+  
     const token = route.params?.token ?? '';
     const email = route.params?.email ?? '';
 
@@ -151,7 +149,7 @@ const ResetPasswordScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Back */}
+                 
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}
@@ -159,14 +157,14 @@ const ResetPasswordScreen = () => {
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
-                    {/* Brand */}
+                 
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Enter your new password below.
                         </Text>
                     </View>
 
-                    {/* Form */}
+                  
                     <View style={styles.formSection}>
 
                         {success ? (
@@ -254,10 +252,9 @@ const styles = StyleSheet.create({
         minHeight:         H,
     },
 
-    // Back
+  
     backBtn:        { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
 
-    // Brand
     brandSection:   { alignItems: 'flex-start', marginBottom: 32 },
     brandSub:       {
         fontSize:   14,
@@ -265,7 +262,7 @@ const styles = StyleSheet.create({
         fontWeight: '300',
     },
 
-    // Form
+
     formSection:    { width: '100%' },
     inputWrap:      {
         flexDirection:     'row',
@@ -286,18 +283,17 @@ const styles = StyleSheet.create({
     input:          { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
     eyeBtn:         { padding: 4 },
 
-    // Alerts
+ 
     successAlert:   { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: COLORS.successBg, borderLeftWidth: 3, borderLeftColor: COLORS.successBorder, borderRadius: 10, padding: 16, marginBottom: 24 },
     successText:    { flex: 1, fontSize: 14, color: COLORS.successBorder, fontWeight: '500', lineHeight: 22 },
     errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
     errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-
-    // Button
+   
     btnSubmit:      { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     btnDisabled:    { opacity: 0.6 },
     btnSubmitText:  { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
 
-    // Login row
+  
     loginRow:       { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
     loginPrompt:    { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
     loginLink:      { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },

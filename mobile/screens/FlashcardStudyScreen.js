@@ -25,7 +25,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
 
     useEffect(() => { loadFlashcards(); }, []);
 
-    // ── Data fetching ─────────────────────────────────────────
+   
     const loadFlashcards = async () => {
         try {
             const response = await api.get(`/decks/${deck.id}/flashcards`);
@@ -37,7 +37,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         }
     };
 
-    // ── Answer checking ───────────────────────────────────────
+    
     const checkAnswer = async () => {
         if (!userAnswer.trim()) {
             Alert.alert('Empty Answer', 'Please type your answer first.');
@@ -66,7 +66,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         }
     };
 
-    // ── Navigation ────────────────────────────────────────────
+   
     const handleNext = () => {
         if (currentIndex < flashcards.length - 1) {
             setCurrentIndex(prev => prev + 1);
@@ -110,7 +110,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         }
     };
 
-    // ── Shared header ─────────────────────────────────────────
+    
     const Header = () => (
         <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -121,7 +121,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         </View>
     );
 
-    // ── Loading state ─────────────────────────────────────────
+   
     if (loading) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -134,7 +134,6 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         );
     }
 
-    // ── Empty state ───────────────────────────────────────────
     if (flashcards.length === 0) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -149,7 +148,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
 
     const currentCard = flashcards[currentIndex];
 
-    // ── Main render ───────────────────────────────────────────
+    
     return (
         <KeyboardAvoidingView
             style={[styles.container, { backgroundColor: colors.background }]}

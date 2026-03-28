@@ -21,7 +21,7 @@ SplashScreen.preventAutoHideAsync();
 
 const Stack = createStackNavigator();
 
-// ── Deep link config ──────────────────────────────────────────
+
 const linking = {
     prefixes: ['cognivia://'],
     config: {

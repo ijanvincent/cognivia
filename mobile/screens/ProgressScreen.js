@@ -38,7 +38,7 @@ const ProgressScreen = () => {
     const [loading, setLoading]       = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Chart data — based on deck mastery scores
+
     const getLast7DayLabels = () => {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const labels = [];
@@ -50,7 +50,7 @@ const ProgressScreen = () => {
         return labels;
     };
 
-    // Use deck mastery as chart data (simplified — no Firestore sessions needed)
+  
     const chartData = {
         labels: getLast7DayLabels(),
         datasets: [{
@@ -114,7 +114,7 @@ const ProgressScreen = () => {
         >
             <Text style={[styles.header, { color: colors.text }]}>Your Progress</Text>
 
-            {/* Stats Card */}
+        
             <View style={[styles.statsCard, { backgroundColor: colors.card, shadowColor: colors.shadow, borderTopColor: colors.border }]}>
                 <View style={styles.statRow}>
                     <MaterialCommunityIcons name="cards" size={20} color={colors.primary} />
@@ -133,7 +133,7 @@ const ProgressScreen = () => {
                 </Text>
             </View>
 
-            {/* Chart */}
+            
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Mastery Overview (Last 7 Days)</Text>
             <View style={[styles.chartContainer, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
                 <LineChart
@@ -146,7 +146,7 @@ const ProgressScreen = () => {
                 />
             </View>
 
-            {/* Mastery Breakdown */}
+         
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Mastery Breakdown by Deck</Text>
             <View style={styles.breakdownContainer}>
                 {decks.length > 0 ? (

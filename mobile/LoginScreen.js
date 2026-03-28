@@ -113,27 +113,26 @@ const LoginScreen = () => {
         return e;
     };
 
-    // ── Extract the most specific error message from the API response ─────────
+  
     const extractErrorMessage = (error) => {
-        // Use the exact server message first — covers platform conflicts,
-        // "active on web/mobile" notices, and any custom Laravel responses
+        
         if (error.response?.data?.message) {
             return error.response.data.message;
         }
-        // Laravel validation errors bag
+      
         if (error.response?.data?.errors) {
             const firstKey = Object.keys(error.response.data.errors)[0];
             return error.response.data.errors[firstKey][0];
         }
-        // 401 without a message body
+        
         if (error.response?.status === 401) {
             return 'Invalid email or password.';
         }
-        // No network / server unreachable
+       
         if (error.message === 'Network Error') {
             return 'Cannot connect to server. Please check your connection.';
         }
-        // Fallback
+     
         return 'Login failed. Please try again.';
     };
 
@@ -188,14 +187,14 @@ const LoginScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Brand */}
+                   
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Sign in to your account to continue
                         </Text>
                     </View>
 
-                    {/* Form */}
+                  
                     <View style={styles.formSection}>
 
                         {!!errors.general && (
@@ -235,7 +234,7 @@ const LoginScreen = () => {
                             <Text style={styles.fieldError}>{errors.password}</Text>
                         )}
 
-                        {/* Forgot */}
+                    
                         <TouchableOpacity
                             onPress={() => navigation.navigate('ForgotPassword')}
                             disabled={isLoading}
@@ -244,7 +243,7 @@ const LoginScreen = () => {
                             <Text style={styles.forgotLink}>Forgot your password?</Text>
                         </TouchableOpacity>
 
-                        {/* Sign In */}
+                   \
                         <TouchableOpacity
                             onPress={handleLogin}
                             disabled={isLoading}
@@ -257,7 +256,7 @@ const LoginScreen = () => {
                             }
                         </TouchableOpacity>
 
-                        {/* Register */}
+                      
                         <View style={styles.registerRow}>
                             <Text style={styles.registerPrompt}>
                                 Don't have an account?{' '}

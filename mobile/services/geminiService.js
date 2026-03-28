@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// ── Environment validation ────────────────────────────────────
+
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
 if (!API_KEY) {
@@ -10,17 +10,15 @@ if (!API_KEY) {
     );
 }
 
-// ── Constants ─────────────────────────────────────────────────
+
 const MODEL_NAME  = "gemini-2.5-flash";
 const MAX_DOC_LEN = 30000;
 const MAX_CARDS   = 50;
 const MIN_CARDS   = 1;
 
-// ── Client (instantiated once) ────────────────────────────────
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
-// ── Private helpers ───────────────────────────────────────────
 const buildPrompt = (documentText, numberOfCards, complexityLevel) => `
 You are an expert educational content creator.
 Analyze the following document and create exactly ${numberOfCards} high-quality flashcards.
@@ -88,7 +86,7 @@ const normalizeError = (error) => {
     return new Error('Something went wrong. Please try again.');
 };
 
-// ── Public API ────────────────────────────────────────────────
+
 export const generateFlashcardsWithGemini = async (
     documentText,
     numberOfCards = 20,

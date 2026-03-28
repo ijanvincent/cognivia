@@ -14,7 +14,6 @@ const api = axios.create({
     },
 });
 
-// Attach token to every request
 api.interceptors.request.use(async (config) => {
     const token = await SecureStore.getItemAsync('token');
     if (token) {
@@ -23,7 +22,7 @@ api.interceptors.request.use(async (config) => {
     return config;
 });
 
-// Handle 401 unauthorized
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {

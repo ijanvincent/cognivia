@@ -187,7 +187,7 @@ const RegisterScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Back button — CHANGED: goBack() → navigate('Login') */}
+                   
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}

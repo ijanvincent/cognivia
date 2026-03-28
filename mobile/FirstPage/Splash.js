@@ -7,7 +7,7 @@ export default function Splash({ navigation }) {
     const exitOpacity = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
-        // Fade + scale in
+     
         Animated.parallel([
             Animated.timing(opacity, {
                 toValue:         1,
@@ -22,7 +22,7 @@ export default function Splash({ navigation }) {
                 useNativeDriver: true,
             }),
         ]).start(() => {
-            // Hold then fade out
+       
             setTimeout(() => {
                 Animated.timing(exitOpacity, {
                     toValue:         0,

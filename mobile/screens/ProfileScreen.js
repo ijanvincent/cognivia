@@ -7,7 +7,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import * as SecureStore from 'expo-secure-store';          // CHANGED
+import * as SecureStore from 'expo-secure-store';         
 import { useTheme } from '../ThemeContext';
 import api from '../services/api';
 
@@ -22,11 +22,11 @@ const ProfileScreen = () => {
         email: 'Loading...',
     });
 
-    // Load user from SecureStore
+   
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const userStr = await SecureStore.getItemAsync('user'); // CHANGED
+                const userStr = await SecureStore.getItemAsync('user'); 
                 if (userStr) {
                     const user = JSON.parse(userStr);
                     setUserData({
@@ -72,7 +72,7 @@ const ProfileScreen = () => {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
 
-                // CHANGED — was AsyncStorage.getItem/setItem
+    
                 const userStr = await SecureStore.getItemAsync('user');
                 if (userStr) {
                     const user = JSON.parse(userStr);
@@ -107,10 +107,10 @@ const ProfileScreen = () => {
                         try {
                             await api.post('/auth/logout');
                         } catch (e) {
-                            // ignore logout API errors
+                  
                         } finally {
-                            await SecureStore.deleteItemAsync('token'); // CHANGED
-                            await SecureStore.deleteItemAsync('user');  // CHANGED
+                            await SecureStore.deleteItemAsync('token'); 
+                            await SecureStore.deleteItemAsync('user');  
                             navigation.replace('Login');
                         }
                     }
@@ -119,7 +119,6 @@ const ProfileScreen = () => {
         );
     };
 
-    // ── all JSX and styles unchanged ─────────────────────────
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>

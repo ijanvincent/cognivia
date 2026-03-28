@@ -32,7 +32,7 @@ const AboutScreen = () => {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Header */}
+          
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
@@ -43,7 +43,7 @@ const AboutScreen = () => {
 
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
 
-                {/* App Info */}
+          
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <View style={[styles.iconWrap, { backgroundColor: colors.primary }]}>
                         <MaterialCommunityIcons name="head-lightbulb-outline" size={44} color="#000" />
@@ -60,7 +60,7 @@ const AboutScreen = () => {
                     </Text>
                 </View>
 
-                {/* Stats */}
+              
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <View style={styles.statsRow}>
                         {stats.map((s, i) => (
@@ -72,7 +72,7 @@ const AboutScreen = () => {
                     </View>
                 </View>
 
-                {/* Mission */}
+               
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <View style={styles.sectionHeader}>
                         <MaterialCommunityIcons name="target" size={22} color={colors.primary} />
@@ -83,7 +83,7 @@ const AboutScreen = () => {
                     </Text>
                 </View>
 
-                {/* Features */}
+             
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <View style={styles.sectionHeader}>
                         <MaterialCommunityIcons name="star-outline" size={22} color={colors.primary} />
@@ -97,7 +97,7 @@ const AboutScreen = () => {
                     ))}
                 </View>
 
-                {/* Tech Stack */}
+         
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <View style={styles.sectionHeader}>
                         <MaterialCommunityIcons name="code-tags" size={22} color={colors.primary} />
@@ -112,7 +112,7 @@ const AboutScreen = () => {
                     </View>
                 </View>
 
-                {/* Footer */}
+         
                 <Text style={[styles.footer, { color: colors.subtext }]}>
                     © {new Date().getFullYear()} CogniVia. All rights reserved.
                 </Text>

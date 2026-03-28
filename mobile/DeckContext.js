@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';          // CHANGED
+import * as SecureStore from 'expo-secure-store';     
 import api from './services/api';
 
 export const DeckContext = createContext({
@@ -14,11 +14,10 @@ export const DeckProvider = ({ children }) => {
     const [loading, setLoading]         = useState(true);
     const [currentUser, setCurrentUser] = useState(null);
 
-    // Load user from SecureStore on mount
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const userStr = await SecureStore.getItemAsync('user'); // CHANGED
+                const userStr = await SecureStore.getItemAsync('user'); 
                 if (userStr) {
                     setCurrentUser(JSON.parse(userStr));
                 }
@@ -29,7 +28,7 @@ export const DeckProvider = ({ children }) => {
         loadUser();
     }, []);
 
-    // Fetch decks from API when user is available
+
     useEffect(() => {
         if (!currentUser) {
             setDecks([]);

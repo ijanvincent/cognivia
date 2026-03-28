@@ -14,7 +14,6 @@ import api from '../services/api';
 
 const { height: H } = Dimensions.get('window');
 
-// ── Wave background ───────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -51,7 +50,7 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ── Input ─────────────────────────────────────────────────────
+
 const Input = ({ value, onChangeText, placeholder, keyboardType, icon, editable }) => {
     const [focused, setFocused] = useState(false);
     return (
@@ -79,7 +78,6 @@ const Input = ({ value, onChangeText, placeholder, keyboardType, icon, editable 
     );
 };
 
-// ── Main ──────────────────────────────────────────────────────
 const ForgotPasswordScreen = () => {
     const navigation            = useNavigation();
     const [email, setEmail]     = useState('');
@@ -101,7 +99,7 @@ const ForgotPasswordScreen = () => {
         try {
             await api.post('/auth/forgot-password', { email: email.trim() });
         } catch {
-            // Always show success — prevents email enumeration
+            
         } finally {
             setLoading(false);
             setSuccess(true);
@@ -123,7 +121,7 @@ const ForgotPasswordScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Back */}
+                  
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
                         style={styles.backBtn}
@@ -131,14 +129,14 @@ const ForgotPasswordScreen = () => {
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
-                    {/* Brand */}
+                   
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Provide email and we'll send you a reset link.
                         </Text>
                     </View>
 
-                    {/* Form */}
+                 
                     <View style={styles.formSection}>
 
                         {success ? (
@@ -210,10 +208,10 @@ const styles = StyleSheet.create({
         minHeight:         H,
     },
 
-    // Back
+  
     backBtn:        { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
 
-    // Brand
+   
     brandSection:   { alignItems: 'flex-start', marginBottom: 32 },
     brandName:      {
         fontFamily:    'Syne_700Bold',
@@ -237,7 +235,7 @@ const styles = StyleSheet.create({
         fontWeight:    '300',
     },
 
-    // Form
+  
     formSection:    { width: '100%' },
     inputWrap:      {
         flexDirection:     'row',
@@ -257,18 +255,18 @@ const styles = StyleSheet.create({
     inputIcon:      { marginRight: 12 },
     input:          { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
 
-    // Alerts
+   
     successAlert:   { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: COLORS.successBg, borderLeftWidth: 3, borderLeftColor: COLORS.successBorder, borderRadius: 10, padding: 16, marginBottom: 24 },
     successText:    { flex: 1, fontSize: 14, color: COLORS.successBorder, fontWeight: '500', lineHeight: 22 },
     errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
     errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
 
-    // Button
+    
     btnSubmit:      { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     btnDisabled:    { opacity: 0.6 },
     btnSubmitText:  { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
 
-    // Login row
+  
     loginRow:       { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
     loginPrompt:    { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
     loginLink:      { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
