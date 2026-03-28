@@ -1,7 +1,3 @@
-/* =============================================
-   COGNIVIA FAQ — Dark Abstract Wave UI
-   Matches existing design system exactly
-   ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 
@@ -21,7 +17,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Page Shell ── */
+
 .pageContainer {
   min-height: 100vh;
   width: 100%;
@@ -34,7 +30,7 @@
   color: var(--text-primary);
 }
 
-/* ── SVG Background ── */
+
 .bgCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .bgSvg { width: 100%; height: 100%; }
 .wavePath {
@@ -50,7 +46,7 @@
   50%  { transform: translateZ(0) translateY(-14px) scaleX(1.01); }
   100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
-/* ── Top Bar ── */
+
 .topBar {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
@@ -92,14 +88,13 @@
 }
 .navCta:hover { opacity: 0.88; transform: translateY(-1px); }
 
-/* ── Scroll reveal ── */
+
 .hero, .ctaSection {
   opacity: 0; transform: translateY(32px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 .visible { opacity: 1 !important; transform: translateY(0) !important; }
 
-/* ── Shared helpers ── */
 .sectionEyebrow {
   display: inline-block; font-size: 11px; font-weight: 600;
   letter-spacing: 0.12em; text-transform: uppercase;
@@ -110,9 +105,6 @@
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 
-/* ═══════════════════════════════
-   HERO
-═══════════════════════════════ */
 .hero {
   position: relative; z-index: 5;
   max-width: 1100px; margin: 0 auto;
@@ -159,7 +151,7 @@
   max-width: 540px; margin: 0 auto 40px; font-weight: 300;
 }
 
-/* ── Search Bar ── */
+
 .searchWrap {
   max-width: 560px; margin: 0 auto;
 }
@@ -192,9 +184,7 @@
   letter-spacing: 0.02em;
 }
 
-/* ═══════════════════════════════
-   FAQ SECTION
-═══════════════════════════════ */
+
 .faqSection {
   position: relative; z-index: 5;
   max-width: 860px; margin: 0 auto; padding: 40px 48px 60px;
@@ -202,7 +192,7 @@
   display: flex; flex-direction: column; gap: 48px;
 }
 
-/* ── Category ── */
+
 .faqCategory {
   opacity: 0; transform: translateY(20px);
   transition: opacity 0.6s ease, transform 0.6s ease;
@@ -232,7 +222,6 @@
   backdrop-filter: blur(20px);
 }
 
-/* ── FAQ Item ── */
 .faqItem {
   border-bottom: 1px solid rgba(255,255,255,0.05);
   opacity: 0; transform: translateX(-12px);
@@ -274,7 +263,7 @@
   margin-left: 24px;
 }
 
-/* No results */
+
 .noResults {
   text-align: center; padding: 64px 24px;
   color: var(--text-muted); display: flex; flex-direction: column;
@@ -290,9 +279,7 @@
 }
 .noResultsReset:hover { background: rgba(34,211,238,0.14); }
 
-/* ═══════════════════════════════
-   HELP STRIP
-═══════════════════════════════ */
+
 .helpStrip {
   position: relative; z-index: 5;
   max-width: 860px; margin: 0 auto 20px; padding: 0 48px;
@@ -329,9 +316,6 @@
   font-weight: 300; line-height: 1.5;
 }
 
-/* ═══════════════════════════════
-   CTA
-═══════════════════════════════ */
 .ctaSection {
   position: relative; z-index: 5;
   margin: 40px 48px 80px;
@@ -368,7 +352,7 @@
 }
 .ctaActions { display: flex; gap: 16px; justify-content: center; align-items: center; }
 
-/* ── Buttons ── */
+
 .btnPrimary {
   display: inline-flex; align-items: center;
   font-size: 14px; font-weight: 600; font-family: var(--font-body);
@@ -390,7 +374,7 @@
 }
 .btnOutline:hover { border-color: var(--accent-cyan); background: rgba(34,211,238,0.06); }
 
-/* ── Footer ── */
+
 .footer {
   position: relative; z-index: 5;
   display: flex; align-items: center; justify-content: space-between;
@@ -404,7 +388,7 @@
 .footerLink  { font-size: 12px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
 .footerLink:hover { color: var(--accent-cyan); }
 
-/* ── Responsive ── */
+
 @media (max-width: 960px) {
   .topBarNav { display: none; }
   .hero { padding: 60px 24px 48px; }
@@ -425,7 +409,7 @@
   .faqA p { padding: 0 18px 16px; margin-left: 18px; }
   .categoryItems { border-radius: 12px; }
 }
-/* ── Mobile — disable animation entirely ── */
+
 @media (max-width: 768px) {
   .wavePath { animation: none; display: none; }
   .bgCanvas { display: none; }

@@ -32,7 +32,7 @@ function AdminLogin() {
       context.handleSetAppHeaderNone(false);
       context.handleSetAppContentClass('');
     };
-    // eslint-disable-next-line
+  
   }, []);
 
   const validateForm = () => {
@@ -101,7 +101,7 @@ function AdminLogin() {
         </div>
       )}
 
-      {/* Animated SVG Background */}
+    
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -125,7 +125,7 @@ function AdminLogin() {
         </svg>
       </div>
 
-      {/* Top Navigation Bar */}
+    
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -138,10 +138,9 @@ function AdminLogin() {
         </nav>
       </div>
 
-      {/* Main Content */}
       <div className={styles.mainContent}>
 
-        {/* Left Hero */}
+      
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -159,7 +158,7 @@ function AdminLogin() {
           </div>
         </div>
 
-        {/* Right Admin Card */}
+     
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -185,7 +184,7 @@ function AdminLogin() {
                 </div>
               )}
 
-              {/* Email */}
+            
               <div className={styles.formGroup}>
                 <label className={styles.label}>Admin Email</label>
                 <div className={styles.inputContainer}>
@@ -204,7 +203,7 @@ function AdminLogin() {
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
               </div>
 
-              {/* Password */}
+     
               <div className={styles.formGroup}>
                 <label className={styles.label}>Admin Password</label>
                 <div className={styles.inputContainer}>
@@ -235,7 +234,7 @@ function AdminLogin() {
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
 
-              {/* Attempts warning */}
+          
               {attempts > 0 && !locked && (
                 <div className={styles.attemptsWarning}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">

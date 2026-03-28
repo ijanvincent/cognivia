@@ -91,7 +91,7 @@ function UserRegister() {
         </div>
       )}
 
-      {/* Animated SVG Background */}
+
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -118,7 +118,7 @@ function UserRegister() {
         </svg>
       </div>
 
-      {/* Top Navigation Bar */}
+
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -131,10 +131,10 @@ function UserRegister() {
         </nav>
       </div>
 
-      {/* Main Content */}
+   
       <div className={styles.mainContent}>
 
-        {/* Left Hero */}
+  
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -151,7 +151,7 @@ function UserRegister() {
           </div>
         </div>
 
-        {/* Right Register Card */}
+
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -173,7 +173,7 @@ function UserRegister() {
                 </div>
               )}
 
-              {/* Username */}
+     
               <div className={styles.formGroup}>
                 <label className={styles.label}>Username</label>
                 <div className={styles.inputContainer}>
@@ -193,7 +193,7 @@ function UserRegister() {
                 {errors.username && <span className={styles.errorText}>{errors.username}</span>}
               </div>
 
-              {/* Email */}
+          
               <div className={styles.formGroup}>
                 <label className={styles.label}>Email address</label>
                 <div className={styles.inputContainer}>
@@ -212,7 +212,6 @@ function UserRegister() {
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
               </div>
 
-              {/* Two-column password row */}
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Password</label>
@@ -257,7 +256,7 @@ function UserRegister() {
                 </div>
               </div>
 
-              {/* Submit */}
+    
               <button type="submit" disabled={loading} className={styles.submitButton}>
                 {loading ? (
                   <><div className={styles.buttonSpinner}></div>Creating Account...</>

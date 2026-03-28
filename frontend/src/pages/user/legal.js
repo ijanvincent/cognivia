@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './legal.module.css';
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.08) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -17,7 +17,6 @@ function useInView(threshold = 0.08) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background ── */
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -45,7 +44,6 @@ function WaveBg() {
   );
 }
 
-/* ── Section Block ── */
 function LegalSection({ title, children, delay }) {
   const [ref, inView] = useInView();
   return (
@@ -56,7 +54,6 @@ function LegalSection({ title, children, delay }) {
   );
 }
 
-/* ── Privacy Content ── */
 function PrivacyContent() {
   return (
     <>
@@ -134,7 +131,7 @@ function PrivacyContent() {
   );
 }
 
-/* ── Terms Content ── */
+
 function TermsContent() {
   return (
     <>
@@ -202,9 +199,7 @@ function TermsContent() {
   );
 }
 
-/* ═══════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════ */
+
 export default function Legal() {
   const location = useLocation();
   const isTerms = location.pathname.includes('terms');
@@ -229,9 +224,7 @@ export default function Legal() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
+    
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>Legal</div>
         <div className={styles.heroDivider}></div>
@@ -245,7 +238,7 @@ export default function Legal() {
           and the rules that keep our community safe for everyone.
         </p>
 
-        {/* Tab switcher */}
+        
         <div className={styles.tabBar}>
           <button
             className={`${styles.tabBtn} ${activeTab === 'privacy' ? styles.tabActive : ''}`}
@@ -268,12 +261,9 @@ export default function Legal() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          LEGAL CONTENT
-      ═══════════════════════════════════════ */}
       <section className={styles.contentSection}>
         <div className={styles.contentCard}>
-          {/* Card Header */}
+     
           <div className={styles.contentCardHeader}>
             <div>
               <h2 className={styles.contentCardTitle}>
@@ -296,20 +286,19 @@ export default function Legal() {
             </div>
           </div>
 
-          {/* Intro */}
           <div className={styles.contentIntro}>
             {activeTab === 'privacy'
               ? 'This Privacy Policy explains how CogniVia Inc. collects, uses, and protects the personal information you provide when using our platform. We are committed to handling your data responsibly and transparently.'
               : 'These Terms of Service govern your access to and use of CogniVia. By using our platform, you agree to these terms. Please read them carefully — they contain important information about your rights and obligations.'}
           </div>
 
-          {/* Sections */}
+   
           <div className={styles.sectionsWrap}>
             {activeTab === 'privacy' ? <PrivacyContent /> : <TermsContent />}
           </div>
         </div>
 
-        {/* Side note */}
+       
         <div className={styles.sideNote}>
           <div className={styles.sideNoteIcon}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -320,7 +309,7 @@ export default function Legal() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+   
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

@@ -1,6 +1,4 @@
-/* =============================================
-   COGNIVIA EDIT PROFILE — Clean Minimal Dark
-   ============================================= */
+
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
 
@@ -24,7 +22,7 @@
   --ease:        cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Page ── */
+
 .page {
   min-height: 100%;
   background: var(--bg);
@@ -40,7 +38,7 @@
 
 .page.mounted { opacity: 1; }
 
-/* ── Back button ── */
+
 .backBtn {
   display: flex;
   align-items: center;
@@ -62,7 +60,7 @@
 
 .backBtn:hover { color: var(--text-1); }
 
-/* ── Card ── */
+
 .card {
   width: 100%;
   max-width: 480px;
@@ -82,7 +80,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Card Header ── */
+
 .cardHeader { margin-bottom: 28px; }
 
 .cardTitle {
@@ -100,7 +98,7 @@
   margin: 0;
 }
 
-/* ── Alerts ── */
+
 .successAlert {
   display: flex;
   align-items: center;
@@ -128,14 +126,14 @@
   margin-bottom: 20px;
 }
 
-/* ── Form ── */
+
 .form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* ── Avatar Section ── */
+
 .avatarSection {
   display: flex;
   flex-direction: column;
@@ -200,7 +198,7 @@
   margin: 0;
 }
 
-/* ── Form Group ── */
+
 .formGroup {
   display: flex;
   flex-direction: column;
@@ -294,7 +292,7 @@
   color: var(--text-3);
 }
 
-/* ── Submit Button ── */
+
 .submitBtn {
   width: 100%;
   padding: 14px;
@@ -327,7 +325,6 @@
   transform: none;
 }
 
-/* ── Spinner ── */
 .spinner {
   width: 14px;
   height: 14px;
@@ -339,7 +336,7 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Responsive ── */
+
 @media (max-width: 540px) {
   .page  { padding: 20px 12px 40px; }
   .card  { padding: 28px 20px 24px; }

@@ -1,6 +1,3 @@
-/* =============================================
-   COGNIVIA ADMIN LOGIN — Uniform with Login UI
-   ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&...');
@@ -27,7 +24,7 @@
 
 * { box-sizing: border-box; }
 
-/* ── Page Shell ── */
+
 .pageContainer {
   min-height: 100vh;
   width: 100%;
@@ -39,7 +36,7 @@
   overflow: hidden;
 }
 
-/* ── Animated Background ── */
+
 .bgCanvas {
   position: fixed;
   inset: 0;
@@ -60,7 +57,7 @@
   100% { transform: translateY(8px) scaleX(0.98); }
 }
 
-/* ── Loading ── */
+
 .loadingOverlay {
   position: fixed;
   inset: 0;
@@ -83,7 +80,7 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Top Bar ── */
+
 .topBar {
   position: relative;
   z-index: 10;
@@ -147,7 +144,7 @@
 .navLink:hover { color: var(--text-primary); }
 .navLink:hover::after { width: 100%; left: 0%; }
 
-/* ── Main Split ── */
+
 .mainContent {
   position: relative;
   z-index: 5;
@@ -162,7 +159,7 @@
   width: 100%;
 }
 
-/* ── Hero ── */
+
 .heroSection {
   flex: 1;
   animation: fadeLeft 0.7s ease-out 0.1s both;
@@ -234,7 +231,7 @@
   max-width: 380px;
 }
 
-/* ── Security Notice (hero area) ── */
+
 .securityNotice {
   display: flex;
   align-items: center;
@@ -258,7 +255,7 @@
   opacity: 0.85;
 }
 
-/* ── Card ── */
+
 .cardWrapper {
   flex-shrink: 0;
   width: 420px;
@@ -310,7 +307,7 @@
   font-weight: 400;
 }
 
-/* ── Security Badge inside card ── */
+
 .securityBadge {
   display: inline-flex;
   align-items: center;
@@ -339,7 +336,7 @@
   50%       { opacity: 0.5; transform: scale(0.85); }
 }
 
-/* ── Form ── */
+
 .form { display: flex; flex-direction: column; }
 
 .errorAlert {
@@ -375,7 +372,7 @@
   transition: color 0.25s ease, letter-spacing 0.25s ease;
 }
 
-/* ── Input Container ── */
+
 .inputContainer {
   position: relative;
   display: flex;
@@ -455,7 +452,6 @@
   box-shadow: 0 0 0 3px rgba(248,113,113,0.1) !important;
 }
 
-/* ── Eye Button ── */
 .eyeButton {
   position: absolute;
   right: 10px;
@@ -490,7 +486,7 @@
   padding-left: 2px;
 }
 
-/* ── Attempts Warning ── */
+
 .attemptsWarning {
   display: flex;
   align-items: center;
@@ -505,7 +501,6 @@
   margin-bottom: 14px;
 }
 
-/* ── Submit Button ── */
 .submitButton {
   width: 100%;
   padding: 14px;
@@ -550,7 +545,7 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* ── Links ── */
+
 .linksSection {
   margin-top: 20px;
   padding-top: 18px;
@@ -569,7 +564,7 @@
 
 .registerLink:hover { opacity: 0.8; text-decoration: underline; }
 
-/* ── Focus Visible ── */
+
 .inputField:focus-visible,
 .submitButton:focus-visible,
 .eyeButton:focus-visible {
@@ -577,7 +572,7 @@
   outline-offset: 2px;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 900px) {
   .topBarNav { display: none; }
   .mainContent { flex-direction: column; padding: 40px 24px; align-items: flex-start; }

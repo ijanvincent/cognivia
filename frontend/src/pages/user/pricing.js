@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './pricing.module.css';
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.12) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -17,7 +17,7 @@ function useInView(threshold = 0.12) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background (same as all pages) ── */
+
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -45,7 +45,7 @@ function WaveBg() {
   );
 }
 
-/* ── Pricing Card ── */
+
 function PricingCard({ plan, price, annualPrice, period, description, features, cta, ctaLink, accent, popular, delay, billing }) {
   const [ref, inView] = useInView();
   const displayPrice = billing === 'annual' ? annualPrice : price;
@@ -122,7 +122,7 @@ function getPlanIcon(plan) {
   return icons[plan] || null;
 }
 
-/* ── FAQ Item ── */
+
 function FaqItem({ q, a, delay }) {
   const [open, setOpen] = useState(false);
   const [ref, inView] = useInView();
@@ -144,9 +144,7 @@ function FaqItem({ q, a, delay }) {
   );
 }
 
-/* ═══════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════ */
+
 export default function Pricing() {
   const [heroRef, heroIn] = useInView(0.1);
   const [faqRef, faqIn] = useInView(0.1);
@@ -227,7 +225,7 @@ export default function Pricing() {
     <div className={styles.pageContainer}>
       <WaveBg />
 
-      {/* ── Top Nav ── */}
+
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
@@ -239,9 +237,7 @@ export default function Pricing() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
+  
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>Pricing</div>
         <div className={styles.heroDivider}></div>
@@ -255,7 +251,7 @@ export default function Pricing() {
           progress tracking, and multiplayer features.
         </p>
 
-        {/* Billing Toggle */}
+  
         <div className={styles.billingToggle}>
           <button
             className={`${styles.toggleBtn} ${billing === 'monthly' ? styles.toggleActive : ''}`}
@@ -271,9 +267,6 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          PRICING CARDS
-      ═══════════════════════════════════════ */}
       <section className={styles.plansSection}>
         <div className={styles.plansGrid}>
           {plans.map((p, i) => (
@@ -285,9 +278,7 @@ export default function Pricing() {
         </p>
       </section>
 
-      {/* ═══════════════════════════════════════
-          VALUE PROPS STRIP
-      ═══════════════════════════════════════ */}
+
       <section className={styles.valueStrip}>
         {[
           { icon: '🔒', label: 'No Hidden Fees', desc: 'What you see is what you pay. No setup fees, no overage charges.' },
@@ -303,9 +294,6 @@ export default function Pricing() {
         ))}
       </section>
 
-      {/* ═══════════════════════════════════════
-          FAQ
-      ═══════════════════════════════════════ */}
       <section ref={faqRef} className={`${styles.faqSection} ${faqIn ? styles.visible : ''}`}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Common Questions</span>
@@ -320,9 +308,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          CTA
-      ═══════════════════════════════════════ */}
+
       <section ref={ctaRef} className={`${styles.ctaSection} ${ctaIn ? styles.visible : ''}`}>
         <div className={styles.ctaGlow}></div>
         <div className={styles.ctaInner}>
@@ -342,7 +328,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+    
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

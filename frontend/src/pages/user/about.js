@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './about.module.css';
 
-/* ── Animated counter hook ── */
+
 function useCounter(target, duration = 1800, start = false) {
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -19,7 +19,7 @@ function useCounter(target, duration = 1800, start = false) {
   return val;
 }
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.15) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -31,7 +31,7 @@ function useInView(threshold = 0.15) {
   return [ref, inView];
 }
 
-/* ── Stat card ── */
+
 function StatCard({ value, suffix, label, delay }) {
   const [ref, inView] = useInView();
   const count = useCounter(value, 1600, inView);
@@ -43,7 +43,7 @@ function StatCard({ value, suffix, label, delay }) {
   );
 }
 
-/* ── Feature card ── */
+
 function FeatureCard({ icon, title, body, accent, delay }) {
   return (
     <div className={styles.featureCard} style={{ '--card-accent': accent, animationDelay: delay }}>
@@ -64,7 +64,7 @@ export default function About() {
   return (
     <div className={styles.pageContainer}>
 
-      {/* ── Animated SVG Background ── */}
+
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -88,7 +88,7 @@ export default function About() {
         </svg>
       </div>
 
-      {/* ── Top Nav ── */}
+   
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
@@ -100,9 +100,7 @@ export default function About() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
+     
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>About CogniVia</div>
         <div className={styles.heroDivider}></div>
@@ -116,7 +114,7 @@ export default function About() {
           into an engaging, gamified adventure — built for curious minds who refuse to stop growing.
         </p>
 
-        {/* Stats row */}
+  
         <div className={styles.statsRow}>
           <StatCard value={500}  suffix="+"  label="Topics Covered"    delay="0s"    />
           <StatCard value={10}   suffix="K+" label="Active Learners"   delay="0.12s" />
@@ -125,9 +123,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          MISSION
-      ═══════════════════════════════════════ */}
+ 
       <section ref={missionRef} className={`${styles.missionSection} ${missionIn ? styles.visible : ''}`}>
         <div className={styles.missionInner}>
           <div className={styles.missionLeft}>
@@ -169,9 +165,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          FEATURES
-      ═══════════════════════════════════════ */}
+
       <section ref={featRef} className={`${styles.featuresSection} ${featIn ? styles.visible : ''}`}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>What We Offer</span>
@@ -242,9 +236,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          GOALS
-      ═══════════════════════════════════════ */}
+
       <section ref={goalRef} className={`${styles.goalsSection} ${goalIn ? styles.visible : ''}`}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Our Goals</span>
@@ -273,9 +265,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          CTA
-      ═══════════════════════════════════════ */}
+   
       <section ref={ctaRef} className={`${styles.ctaSection} ${ctaIn ? styles.visible : ''}`}>
         <div className={styles.ctaGlow}></div>
         <div className={styles.ctaInner}>
@@ -295,7 +285,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+    
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

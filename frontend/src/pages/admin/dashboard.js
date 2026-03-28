@@ -27,7 +27,7 @@ function AdminDashboard() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
-        // eslint-disable-next-line
+        
     }, []);
 
     const fetchDashboard = async () => {
@@ -84,7 +84,7 @@ function AdminDashboard() {
 
     return (
         <div>
-            {/* Toast */}
+   
             {toast && (
                 <div style={{
                     position: 'fixed', top: '70px', right: '20px',
@@ -99,7 +99,6 @@ function AdminDashboard() {
                 </div>
             )}
 
-            {/* Professional Delete Confirm Modal */}
             {confirmModal && (
                 <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 9998 }}>
                     <div className="modal-dialog modal-dialog-centered">
@@ -156,7 +155,7 @@ function AdminDashboard() {
                 Admin Dashboard <small>Cognivia overview</small>
             </h1>
 
-            {/* Stats Widgets */}
+        
             <div className="row">
                 <div className="col-xl-3 col-md-6">
                     <div className="widget widget-stats bg-blue">
@@ -216,7 +215,7 @@ function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Registered Users — permanent, no panel buttons */}
+           
             <div className="row mt-2">
                 <div className="col-xl-12">
                     <div className="panel panel-inverse">
