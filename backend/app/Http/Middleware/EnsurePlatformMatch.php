@@ -12,7 +12,7 @@ class EnsurePlatformMatch
     {
         $headerPlatform = $request->header('X-Platform');
 
-        // Reject if header is missing or invalid
+     
         if (!in_array($headerPlatform, ['web', 'mobile'], true)) {
             return response()->json([
                 'message' => 'Missing or invalid X-Platform header.',
@@ -27,7 +27,7 @@ class EnsurePlatformMatch
             ], 401);
         }
 
-        // If token platform doesn't match header platform — reject
+      
         if ($token->platform !== $headerPlatform) {
             return response()->json([
                 'message'    => 'Token platform mismatch. Please log in again.',

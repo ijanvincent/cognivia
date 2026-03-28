@@ -31,9 +31,7 @@ class DocumentParserService
         };
     }
 
-    /**
-     * Extract text from PDF file.
-     */
+
     private function parsePdf(UploadedFile $file): string
     {
         try {
@@ -54,9 +52,7 @@ class DocumentParserService
         }
     }
 
-    /**
-     * Extract text from DOCX file.
-     */
+    
     private function parseDocx(UploadedFile $file): string
     {
         try {
@@ -83,9 +79,7 @@ class DocumentParserService
         }
     }
 
-    /**
-     * Extract text from PPTX file.
-     */
+  
     private function parsePptx(UploadedFile $file): string
     {
         try {
@@ -118,9 +112,7 @@ class DocumentParserService
         }
     }
 
-    /**
-     * Recursively extract text from Word elements.
-     */
+    
     private function extractWordElementText($element): string
     {
         $text = '';
@@ -147,18 +139,15 @@ class DocumentParserService
         return $text;
     }
 
-    /**
-     * Sanitize extracted text — remove null bytes, normalize whitespace.
-     */
     private function sanitizeText(string $text): string
     {
-        // Remove null bytes
+      
         $text = str_replace("\0", '', $text);
-        // Normalize line endings
+   
         $text = str_replace(["\r\n", "\r"], "\n", $text);
-        // Collapse excessive blank lines (max 2 consecutive)
+       
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
-        // Trim
+   
         return trim($text);
     }
 }

@@ -15,7 +15,7 @@ class FlashcardService
 
     public function getFlashcards(int $deckId, int $userId): Collection
     {
-        // Security: verify deck belongs to user before returning cards
+
         $deck = Deck::where('id', $deckId)
                     ->where('user_id', $userId)
                     ->first();
@@ -31,7 +31,7 @@ class FlashcardService
 
     public function saveFlashcards(int $deckId, int $userId, array $cards): void
     {
-        // Security: verify deck belongs to user
+      
         $deck = Deck::where('id', $deckId)
                     ->where('user_id', $userId)
                     ->first();
@@ -42,7 +42,6 @@ class FlashcardService
             ]);
         }
 
-        // Delete existing flashcards for this deck before saving new ones
         $this->flashcardRepository->deleteByDeck($deckId, $userId);
 
         $now = now()->toDateTimeString();
@@ -60,7 +59,7 @@ class FlashcardService
 
         $this->flashcardRepository->createMany($flashcards);
 
-        // Update deck card count to match actual flashcards saved
+   
         $deck->update(['card_count' => count($flashcards)]);
     }
 }

@@ -51,7 +51,6 @@ class AuthService
         $platform      = $data['platform'];
         $otherPlatform = $platform === 'web' ? 'mobile' : 'web';
 
-        // ── Block login if other platform has an active session ────────
         $hasOtherSession = $user->tokens()
             ->where('platform', $otherPlatform)
             ->exists();
@@ -65,10 +64,10 @@ class AuthService
             ]);
         }
 
-        // ── Safe to proceed — revoke stale tokens for this platform ────
+    
         $this->authRepository->revokeTokensByPlatform($user, $platform);
 
-        // ── Remember Me ───────────────────────────────────────────────
+  
         $expiresAt = isset($data['remember_me']) && $data['remember_me']
             ? now()->addDays(30)
             : now()->addHours(24);

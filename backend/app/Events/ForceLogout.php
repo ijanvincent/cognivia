@@ -18,11 +18,11 @@ class ForceLogout implements ShouldBroadcastNow
 
     public function __construct(string $platform)
     {
-        // The platform being logged OUT (the other one)
+       
         $this->platform = $platform;
     }
 
-    // Broadcast on the user's private channel
+    
     public function broadcastOn(): array
     {
         return [
@@ -30,13 +30,13 @@ class ForceLogout implements ShouldBroadcastNow
         ];
     }
 
-    // Event name the frontend listens for
+   
     public function broadcastAs(): string
     {
         return 'force.logout';
     }
 
-    // Data sent to the client
+
     public function broadcastWith(): array
     {
         return [
