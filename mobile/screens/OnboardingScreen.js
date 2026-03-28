@@ -44,14 +44,14 @@ const SLIDES = [
     },
 ];
 
-// ── Wave background — matches web exactly ─────────────────────
+
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
         viewBox="0 0 400 800"
         preserveAspectRatio="xMidYMid slice"
     >
-        {/* Pink/purple waves */}
+       
         {[...Array(8)].map((_, i) => (
             <Path
                 key={`pink-${i}`}
@@ -61,7 +61,7 @@ const WaveBackground = () => (
                 strokeWidth="1.2"
             />
         ))}
-        {/* Cyan waves */}
+       
         {[...Array(8)].map((_, i) => (
             <Path
                 key={`cyan-${i}`}
@@ -71,7 +71,7 @@ const WaveBackground = () => (
                 strokeWidth="1.2"
             />
         ))}
-        {/* Purple waves */}
+  
         {[...Array(5)].map((_, i) => (
             <Path
                 key={`purple-${i}`}
@@ -84,7 +84,7 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ── Dot ───────────────────────────────────────────────────────
+
 const Dot = ({ index, scrollX }) => {
     const width = scrollX.interpolate({
         inputRange:  [(index - 1) * W, index * W, (index + 1) * W],
@@ -99,7 +99,7 @@ const Dot = ({ index, scrollX }) => {
     return <Animated.View style={[styles.dot, { width, opacity }]} />;
 };
 
-// ── Press button ──────────────────────────────────────────────
+
 const PressBtn = ({ onPress, style, children }) => {
     const scale = useRef(new Animated.Value(1)).current;
     return (
@@ -121,16 +121,16 @@ const PressBtn = ({ onPress, style, children }) => {
     );
 };
 
-// ── Slide ─────────────────────────────────────────────────────
+
 const Slide = ({ item }) => (
     <View style={styles.slide}>
-        {/* Wave background per slide */}
+     
         <WaveBackground />
-        {/* Dark overlay so text is readable */}
+     
         <View style={styles.overlay} />
-        {/* Empty top area */}
+   
         <View style={styles.iconArea} />
-        {/* Text bottom */}
+
         <View style={styles.textArea}>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.body}>{item.body}</Text>
@@ -138,7 +138,6 @@ const Slide = ({ item }) => (
     </View>
 );
 
-// ── Main ──────────────────────────────────────────────────────
 const OnboardingScreen = () => {
     const navigation  = useNavigation();
     const scrollX     = useRef(new Animated.Value(0)).current;
@@ -241,7 +240,6 @@ const styles = StyleSheet.create({
     skipPlaceholder: { height: 40 },
     skipText:        { fontSize: 12, color: C.muted, fontWeight: '700', letterSpacing: 2 },
 
-    // Slide — position relative so SVG can be absolute
     slide:    { width: W, flex: 1, justifyContent: 'space-between' },
     overlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.45)' },
     iconArea: { flex: 1 },

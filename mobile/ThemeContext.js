@@ -2,28 +2,28 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Appearance } from 'react-native';
 
 const lightTheme = {
-    primary: '#007AFF',      // Blue (Main interactive color)
-    secondary: '#FF9500',    // Orange (Accent color)
-    background: '#F5F5F5',   // Light gray background
-    card: '#FFFFFF',         // White card/container
-    text: '#333333',         // Dark text
-    subtext: '#666666',      // Gray subtext
-    border: '#E0E0E0',        // Light border
-    status: '#4CAF50',       // Success/Mastery color
-    logout: '#FF3B30',       // Red for danger/logout
+    primary: '#007AFF',      
+    secondary: '#FF9500',    
+    background: '#F5F5F5',   
+    card: '#FFFFFF',         
+    text: '#333333',         
+    subtext: '#666666',      
+    border: '#E0E0E0',        
+    status: '#4CAF50',      
+    logout: '#FF3B30',       
 };
 
 
 const darkTheme = {
-    primary: '#FFFFFF',      // White (Used for main interactive elements/icons)
-    secondary: '#BBBBBB',    // Light Gray for accents
-    background: '#000000',   // Pure Black background
-    card: '#1E1E1E',         // Very Dark Gray card/container
-    text: '#FFFFFF',         // White text
-    subtext: '#AAAAAA',      // Gray subtext
-    border: '#333333',        // Darker border
-    status: '#FFFFFF',       // White for status/mastery indicator
-    logout: '#FF3B30',       // Red is often kept for universal warning/danger colors
+    primary: '#FFFFFF',      
+    secondary: '#BBBBBB',    
+    background: '#000000',   
+    card: '#1E1E1E',         
+    text: '#FFFFFF',        
+    subtext: '#AAAAAA',     
+    border: '#333333',       
+    status: '#FFFFFF',       
+    logout: '#FF3B30',      
 };
 
 

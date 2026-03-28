@@ -6,11 +6,11 @@ const api = axios.create({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
-    'X-Platform': 'web',   // NEW — identifies all requests as coming from web
+    'X-Platform': 'web',   
   }
 });
 
-// Attach token to every request
+
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
@@ -19,7 +19,6 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Auto logout on 401 (expired/invalid token)
 api.interceptors.response.use(
     (response) => response,
     (error) => {

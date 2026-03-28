@@ -26,9 +26,7 @@ const GenerateScreen = () => {
     const [isLoading, setIsLoading]                 = useState(false);
     const [loadingMessage, setLoadingMessage]       = useState('');
 
-    // ── File selection ────────────────────────────────────────
-    // CHANGED — now supports PDF, DOCX, PPTX via Laravel backend parser
-    // REMOVED — txt-only DocumentPicker and File class reader
+
     const handleSelectFile = async () => {
         if (isLoading) return;
 
@@ -36,15 +34,15 @@ const GenerateScreen = () => {
         setLoadingMessage('Reading file...');
 
         try {
-            // Step 1 — pick file (get file object including name)
+         
             const file = await pickDocument();
 
-            // User cancelled the picker
+            
             if (!file) return;
 
             setLoadingMessage('Parsing document...');
 
-            // Step 2 — send to backend and get extracted text
+         
             const result = await parseDocument(file);
 
             if (!result.text || !result.text.trim()) {
@@ -56,8 +54,8 @@ const GenerateScreen = () => {
             const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, '');
 
             setFileContent(result.text);
-            setSelectedFileName(file.name);       // ← real filename
-            setDeckName(nameWithoutExtension);    // ← pre-fill deck name
+            setSelectedFileName(file.name);      
+            setDeckName(nameWithoutExtension);  
 
             Alert.alert('File Ready', `"${file.name}" has been parsed and is ready for flashcard generation.`);
 
@@ -74,8 +72,6 @@ const GenerateScreen = () => {
         }
     };
 
-    // ── Generation ────────────────────────────────────────────
-    // UNCHANGED
     const handleGenerateFlashcards = async () => {
         if (!deckName.trim()) {
             Alert.alert('Missing Deck Name', 'Please enter a name for your deck.');
@@ -100,7 +96,7 @@ const GenerateScreen = () => {
         await proceedWithGeneration();
     };
 
-    // UNCHANGED — do not touch
+    
     const proceedWithGeneration = async () => {
         setIsLoading(true);
 
@@ -119,7 +115,7 @@ const GenerateScreen = () => {
             setLoadingMessage('Saving deck...');
             const deckResponse = await api.post('/decks', {
                 title:      deckName.trim(),
-                source:     selectedFileName,  // ← now real filename
+                source:     selectedFileName,  
                 card_count: flashcards.length,
                 mastery:    0,
                 progress:   0,
@@ -158,8 +154,7 @@ const GenerateScreen = () => {
         }
     };
 
-    // ── Helpers ───────────────────────────────────────────────
-    // UNCHANGED
+  
     const resetFileState = () => {
         setDeckName('');
         setSelectedFileName('No file selected');
@@ -170,7 +165,7 @@ const GenerateScreen = () => {
 
     const isGenerateDisabled = isLoading || selectedFileName === 'No file selected' || !deckName.trim();
 
-    // ── Render ────────────────────────────────────────────────
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
 
@@ -185,7 +180,7 @@ const GenerateScreen = () => {
                 </View>
             )}
 
-            {/* CHANGED — now supports PDF, DOCX, PPTX */}
+       
             <TouchableOpacity
                 style={[styles.selectFileButton, { backgroundColor: colors.primary }, isLoading && styles.disabled]}
                 onPress={handleSelectFile}
@@ -251,13 +246,13 @@ const GenerateScreen = () => {
                 </Text>
             </TouchableOpacity>
 
-            {/* REMOVED — warning banner no longer needed */}
+        
 
         </View>
     );
 };
 
-// UNCHANGED — banner styles removed, everything else preserved
+
 const styles = StyleSheet.create({
     container:            { flex: 1, padding: 20, paddingTop: 40 },
     loadingOverlay:       { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
