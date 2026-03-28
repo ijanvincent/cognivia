@@ -101,7 +101,7 @@ class AuthController extends Controller
 
     $data = $request->only(['username']);
 
-    // Handle file upload
+
     if ($request->hasFile('avatar')) {
         $file     = $request->file('avatar');
         $filename = 'avatar_' . $request->user()->id . '_' . time() . '.' . $file->getClientOriginalExtension();
