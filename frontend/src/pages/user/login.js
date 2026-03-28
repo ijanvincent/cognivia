@@ -45,7 +45,7 @@ function UserLogin() {
       const storage = formData.rememberMe ? localStorage : sessionStorage;
 const user = response.data.user;
 
-// Resolve avatar URL at login time so dashboard always has a full URL
+
 if (user.avatar && !user.avatar.startsWith('http')) {
   user.avatar = `http://localhost:3000${user.avatar.startsWith('/') ? '' : '/storage/'}${user.avatar}`;
 }
@@ -76,7 +76,7 @@ storage.setItem('user', JSON.stringify(user));
         </div>
       )}
 
-      {/* Animated SVG Background — desktop only */}
+    
       {!isMobile && (
         <div className={styles.bgCanvas}>
           <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
@@ -105,7 +105,7 @@ storage.setItem('user', JSON.stringify(user));
         </div>
       )}
 
-      {/* Top Navigation Bar */}
+  
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -118,10 +118,10 @@ storage.setItem('user', JSON.stringify(user));
         </nav>
       </div>
 
-      {/* Main Content */}
+     
       <div className={styles.mainContent}>
 
-        {/* Left Hero */}
+       
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -139,7 +139,7 @@ storage.setItem('user', JSON.stringify(user));
           </div>
         </div>
 
-        {/* Right Login Card */}
+
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -161,7 +161,7 @@ storage.setItem('user', JSON.stringify(user));
                 </div>
               )}
 
-              {/* Email */}
+     
               <div className={styles.formGroup}>
                 <label className={styles.label}>Email address</label>
                 <div className={styles.inputContainer}>
@@ -181,7 +181,7 @@ storage.setItem('user', JSON.stringify(user));
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
               </div>
 
-              {/* Password */}
+        
               <div className={styles.formGroup}>
                 <label className={styles.label}>Password</label>
                 <div className={styles.inputContainer}>
@@ -209,7 +209,7 @@ storage.setItem('user', JSON.stringify(user));
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
 
-              {/* Remember Me & Forgot Password */}
+     
               <div className={styles.rememberRow}>
                 <label className={styles.rememberLabel}>
                   <input
@@ -227,7 +227,7 @@ storage.setItem('user', JSON.stringify(user));
                 </Link>
               </div>
 
-              {/* Submit */}
+           
               <button type="submit" disabled={loading} className={styles.submitButton}>
                 {loading ? (
                   <><div className={styles.buttonSpinner}></div>Signing In...</>

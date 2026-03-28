@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './solutions.module.css';
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.12) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -17,7 +17,6 @@ function useInView(threshold = 0.12) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background ── */
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -45,7 +44,7 @@ function WaveBg() {
   );
 }
 
-/* ── Solution Card ── */
+
 function SolutionCard({ number, title, subtitle, body, features, accent, delay, flip }) {
   const [ref, inView] = useInView();
   return (
@@ -105,7 +104,7 @@ function getSolutionIcon(num) {
   return icons[num] || null;
 }
 
-/* ── Feature Comparison Row ── */
+
 function CompareRow({ label, starter, advanced, master, delay }) {
   const [ref, inView] = useInView();
   return (
@@ -118,9 +117,8 @@ function CompareRow({ label, starter, advanced, master, delay }) {
   );
 }
 
-/* ═══════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════ */
+
+
 export default function Solutions() {
   const [heroRef, heroIn] = useInView(0.1);
   const [compareRef, compareIn] = useInView(0.1);
@@ -149,7 +147,7 @@ export default function Solutions() {
     <div className={styles.pageContainer}>
       <WaveBg />
 
-      {/* ── Top Nav ── */}
+
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
@@ -161,9 +159,6 @@ export default function Solutions() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>Our Solutions</div>
         <div className={styles.heroDivider}></div>
@@ -178,9 +173,6 @@ export default function Solutions() {
         </p>
       </section>
 
-      {/* ═══════════════════════════════════════
-          WHO IS IT FOR — TAB SWITCHER
-      ═══════════════════════════════════════ */}
       <section className={styles.audienceSection}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Who It's For</span>
@@ -222,9 +214,6 @@ export default function Solutions() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          CORE SOLUTIONS — alternating cards
-      ═══════════════════════════════════════ */}
       <section className={styles.solutionsSection}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Core Solutions</span>
@@ -269,11 +258,6 @@ export default function Solutions() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          FEATURE COMPARISON TABLE
-          (replaces billing comparison — now shows
-           feature depth across learning modes)
-      ═══════════════════════════════════════ */}
       <section ref={compareRef} className={`${styles.compareSection} ${compareIn ? styles.visible : ''}`}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Learning Modes</span>
@@ -287,7 +271,7 @@ export default function Solutions() {
         </div>
 
         <div className={styles.compareTable}>
-          {/* Header */}
+    
           <div className={`${styles.compareRow} ${styles.compareHeader}`}>
             <span className={styles.compareLabel}>Feature</span>
             <span className={styles.compareCell}>Solo Mode</span>
@@ -314,9 +298,7 @@ export default function Solutions() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          CTA
-      ═══════════════════════════════════════ */}
+   
       <section ref={ctaRef} className={`${styles.ctaSection} ${ctaIn ? styles.visible : ''}`}>
         <div className={styles.ctaGlow}></div>
         <div className={styles.ctaInner}>
@@ -336,7 +318,7 @@ export default function Solutions() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

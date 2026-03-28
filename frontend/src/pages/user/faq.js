@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './faq.module.css';
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.12) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -17,7 +17,7 @@ function useInView(threshold = 0.12) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background ── */
+
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -45,7 +45,7 @@ function WaveBg() {
   );
 }
 
-/* ── FAQ Item ── */
+
 function FaqItem({ q, a, index, activeIndex, setActiveIndex, catDelay }) {
   const [ref, inView] = useInView(0.1);
   const isOpen = activeIndex === index;
@@ -71,7 +71,7 @@ function FaqItem({ q, a, index, activeIndex, setActiveIndex, catDelay }) {
   );
 }
 
-/* ── Category Section ── */
+
 function FaqCategory({ icon, title, items, startIndex, activeIndex, setActiveIndex }) {
   const [ref, inView] = useInView(0.08);
   return (
@@ -97,9 +97,7 @@ function FaqCategory({ icon, title, items, startIndex, activeIndex, setActiveInd
   );
 }
 
-/* ═══════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════ */
+
 export default function FAQ() {
   const [heroRef, heroIn] = useInView(0.1);
   const [ctaRef, ctaIn] = useInView(0.1);
@@ -227,7 +225,7 @@ export default function FAQ() {
     },
   ];
 
-  // Flatten for global index tracking (accordion: only one open at a time)
+
   let globalIndex = 0;
   const categoriesWithIndex = categories.map(cat => {
     const start = globalIndex;
@@ -235,7 +233,7 @@ export default function FAQ() {
     return { ...cat, startIndex: start };
   });
 
-  // Search filter
+
   const filtered = searchQuery.trim()
     ? categoriesWithIndex.map(cat => ({
         ...cat,
@@ -253,7 +251,7 @@ export default function FAQ() {
     <div className={styles.pageContainer}>
       <WaveBg />
 
-      {/* ── Top Nav ── */}
+ 
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
@@ -265,9 +263,7 @@ export default function FAQ() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
+    
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>Help Center</div>
         <div className={styles.heroDivider}></div>
@@ -281,7 +277,7 @@ export default function FAQ() {
           advanced features, progress tracking, and privacy.
         </p>
 
-        {/* Search Bar */}
+     
         <div className={styles.searchWrap}>
           <div className={styles.searchBox}>
             <svg className={styles.searchIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -310,9 +306,7 @@ export default function FAQ() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          FAQ CATEGORIES
-      ═══════════════════════════════════════ */}
+  
       <section className={styles.faqSection}>
         {filtered.length > 0 ? (
           filtered.map((cat, i) => (
@@ -337,9 +331,7 @@ export default function FAQ() {
         )}
       </section>
 
-      {/* ═══════════════════════════════════════
-          STILL NEED HELP
-      ═══════════════════════════════════════ */}
+    
       <section className={styles.helpStrip}>
         <div className={styles.helpStripInner}>
           <div className={styles.helpItem}>
@@ -380,9 +372,7 @@ export default function FAQ() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          CTA
-      ═══════════════════════════════════════ */}
+   
       <section ref={ctaRef} className={`${styles.ctaSection} ${ctaIn ? styles.visible : ''}`}>
         <div className={styles.ctaGlow}></div>
         <div className={styles.ctaInner}>
@@ -402,7 +392,7 @@ export default function FAQ() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

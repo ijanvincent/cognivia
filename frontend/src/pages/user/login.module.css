@@ -1,6 +1,3 @@
-/* =============================================
-   COGNIVIA LOGIN — Dark Abstract Wave UI
-   ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
@@ -39,7 +36,7 @@
   overflow: hidden;
 }
 
-/* ── Animated SVG Background ── */
+
 .bgCanvas {
   position: fixed;
   inset: 0;
@@ -67,7 +64,7 @@
   100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
 
-/* ── Loading Overlay ── */
+
 .loadingOverlay {
   position: fixed;
   inset: 0;
@@ -92,7 +89,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Top Navigation Bar ── */
+
 .topBar {
   position: relative;
   z-index: 10;
@@ -118,7 +115,7 @@
   text-decoration: none;
 }
 
-/* ── Hero Logo Row ── */
+
 .heroLogoRow {
   display: flex;
   align-items: center;
@@ -210,7 +207,7 @@
 
 .heroBtnPrimary:hover::after { transform: translateX(3px); }
 
-/* ── Main Content Split Layout ── */
+
 .mainContent {
   position: relative;
   z-index: 5;
@@ -225,7 +222,7 @@
   width: 100%;
 }
 
-/* ── Hero Text Section ── */
+
 .heroSection {
   flex: 1;
   animation: fadeLeft 0.7s ease-out 0.1s both;
@@ -316,7 +313,7 @@
   background: rgba(34, 211, 238, 0.06);
 }
 
-/* ── Login Card ── */
+
 .cardWrapper {
   flex-shrink: 0;
   width: 420px;
@@ -541,7 +538,7 @@
   padding-left: 2px;
 }
 
-/* ── Remember Me & Forgot Password ── */
+
 .rememberRow {
   display: flex;
   justify-content: space-between;
@@ -614,7 +611,7 @@
 
 .forgotLink:hover { color: var(--accent-cyan); }
 
-/* ── Submit Button ── */
+
 .submitButton {
   width: 100%;
   padding: 14px;
@@ -659,7 +656,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* ── Links Section ── */
 .linksSection {
   margin-top: 22px;
   padding-top: 20px;
@@ -692,7 +688,7 @@
   outline-offset: 2px;
 }
 
-/* ── Success Alert ── */
+
 .successAlert {
   background: rgba(52, 211, 153, 0.08);
   border: 1px solid rgba(52, 211, 153, 0.25);
@@ -709,7 +705,7 @@
   line-height: 1.6;
 }
 
-/* ── Password Strength Bar ── */
+
 .strengthWrapper {
   display: flex;
   align-items: center;
@@ -740,7 +736,7 @@
   min-width: 44px;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 900px) {
   .topBarNav { display: none; }
 
@@ -767,7 +763,7 @@
   .inputField { font-size: 16px; }
 }
 
-/* ── Mobile only — disable animation (phones ≤768px) ── */
+
 @media (max-width: 768px) {
   .wavePath { animation: none; display: none; }
   .bgCanvas { display: none; }

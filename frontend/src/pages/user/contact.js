@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './contact.module.css';
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.12) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -17,7 +17,7 @@ function useInView(threshold = 0.12) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background ── */
+
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -45,9 +45,7 @@ function WaveBg() {
   );
 }
 
-/* ═══════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════ */
+
 export default function Contact() {
   const [heroRef, heroIn] = useInView(0.1);
   const [formRef, formIn] = useInView(0.1);
@@ -55,7 +53,7 @@ export default function Contact() {
 
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors]     = useState({});
-  const [status, setStatus]     = useState('idle'); // idle | loading | success | error
+  const [status, setStatus]     = useState('idle');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,7 +77,7 @@ export default function Contact() {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setStatus('loading');
-    // Simulate submission — replace with your api.post('/contact', formData) call
+ 
     await new Promise(r => setTimeout(r, 1400));
     setStatus('success');
     setFormData({ name: '', email: '', subject: '', message: '' });
@@ -136,7 +134,7 @@ export default function Contact() {
     <div className={styles.pageContainer}>
       <WaveBg />
 
-      {/* ── Top Nav ── */}
+
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
@@ -148,9 +146,7 @@ export default function Contact() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
+      
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>Contact Us</div>
         <div className={styles.heroDivider}></div>
@@ -165,12 +161,10 @@ export default function Contact() {
         </p>
       </section>
 
-      {/* ═══════════════════════════════════════
-          MAIN — FORM + INFO
-      ═══════════════════════════════════════ */}
+      
       <section className={styles.mainSection}>
 
-        {/* ── Contact Form ── */}
+
         <div ref={formRef} className={`${styles.formCard} ${formIn ? styles.visible : ''}`}>
           {status === 'success' ? (
             <div className={styles.successState}>
@@ -191,7 +185,7 @@ export default function Contact() {
               </div>
 
               <form onSubmit={handleSubmit} className={styles.form} noValidate>
-                {/* Name + Email row */}
+          
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Full Name</label>
@@ -230,7 +224,7 @@ export default function Contact() {
                   </div>
                 </div>
 
-                {/* Subject */}
+          
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Subject</label>
                   <div className={`${styles.inputWrap} ${errors.subject ? styles.inputWrapError : ''}`}>
@@ -250,7 +244,7 @@ export default function Contact() {
                   {errors.subject && <span className={styles.errorText}>{errors.subject}</span>}
                 </div>
 
-                {/* Message */}
+        
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     Message
@@ -287,10 +281,10 @@ export default function Contact() {
           )}
         </div>
 
-        {/* ── Info Side ── */}
+    
         <div ref={infoRef} className={`${styles.infoSide} ${infoIn ? styles.visible : ''}`}>
 
-          {/* Contact cards */}
+     
           {contactInfo.map((c, i) => (
             <div key={i} className={styles.infoCard} style={{ '--accent': c.accent, transitionDelay: `${i * 0.1}s` }}>
               <div className={styles.infoCardIcon} style={{ background: `${c.accent}14`, borderColor: `${c.accent}30`, color: c.accent }}>
@@ -304,7 +298,6 @@ export default function Contact() {
             </div>
           ))}
 
-          {/* Response time badge */}
           <div className={styles.responseBadge}>
             <div className={styles.responseDot}></div>
             <div>
@@ -313,7 +306,7 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Quick links */}
+    
           <div className={styles.quickLinks}>
             <span className={styles.quickLinksTitle}>Quick Links</span>
             <Link to="/faq" className={styles.quickLink}>
@@ -332,7 +325,7 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

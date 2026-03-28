@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './howitworks.module.css';
 
-/* ── Intersection observer hook ── */
+
 function useInView(threshold = 0.12) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -17,7 +17,7 @@ function useInView(threshold = 0.12) {
   return [ref, inView];
 }
 
-/* ── Wave SVG Background ── */
+
 function WaveBg() {
   return (
     <div className={styles.bgCanvas}>
@@ -45,7 +45,7 @@ function WaveBg() {
   );
 }
 
-/* ── Step Card ── */
+
 function StepCard({ step, icon, title, body, accent, delay }) {
   const [ref, inView] = useInView();
   return (
@@ -67,7 +67,7 @@ function StepCard({ step, icon, title, body, accent, delay }) {
   );
 }
 
-/* ── FAQ Item ── */
+
 function FaqItem({ q, a, delay }) {
   const [open, setOpen] = useState(false);
   const [ref, inView] = useInView();
@@ -89,9 +89,7 @@ function FaqItem({ q, a, delay }) {
   );
 }
 
-/* ═══════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════ */
+
 export default function HowItWorks() {
   const [heroRef, heroIn] = useInView(0.1);
   const [faqRef, faqIn] = useInView(0.1);
@@ -162,7 +160,7 @@ export default function HowItWorks() {
     <div className={styles.pageContainer}>
       <WaveBg />
 
-      {/* ── Top Nav ── */}
+
       <div className={styles.topBar}>
         <div className={styles.topBarLogo}></div>
         <nav className={styles.topBarNav}>
@@ -174,9 +172,7 @@ export default function HowItWorks() {
         <Link to="/login" className={styles.navCta}>Sign In</Link>
       </div>
 
-      {/* ═══════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════ */}
+   
       <section ref={heroRef} className={`${styles.hero} ${heroIn ? styles.visible : ''}`}>
         <div className={styles.heroPill}>How It Works</div>
         <div className={styles.heroDivider}></div>
@@ -191,9 +187,7 @@ export default function HowItWorks() {
         </p>
       </section>
 
-      {/* ═══════════════════════════════════════
-          3-STEP FLOW
-      ═══════════════════════════════════════ */}
+ 
       <section className={styles.stepsSection}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Your Journey</span>
@@ -208,9 +202,6 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          HIGHLIGHTS STRIP
-      ═══════════════════════════════════════ */}
       <section className={styles.valueStrip}>
         {highlights.map((v, i) => (
           <div key={i} className={styles.valueItem} style={{ animationDelay: `${i * 0.08}s` }}>
@@ -221,9 +212,6 @@ export default function HowItWorks() {
         ))}
       </section>
 
-      {/* ═══════════════════════════════════════
-          SESSION FLOW BREAKDOWN
-      ═══════════════════════════════════════ */}
       <section style={{ position: 'relative', zIndex: 5, maxWidth: 1100, margin: '0 auto', padding: '80px 48px' }}>
         <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 56px' }}>
           <span className={styles.sectionEyebrow}>Inside Every Session</span>
@@ -265,9 +253,7 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          FAQ
-      ═══════════════════════════════════════ */}
+
       <section ref={faqRef} className={`${styles.faqSection} ${faqIn ? styles.visible : ''}`}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionEyebrow}>Got Questions?</span>
@@ -282,9 +268,6 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-          CTA
-      ═══════════════════════════════════════ */}
       <section ref={ctaRef} className={`${styles.ctaSection} ${ctaIn ? styles.visible : ''}`}>
         <div className={styles.ctaGlow}></div>
         <div className={styles.ctaInner}>
@@ -304,7 +287,7 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>

@@ -1,7 +1,3 @@
-/* =============================================
-   COGNIVIA PRICING — Dark Abstract Wave UI
-   Matches existing design system exactly
-   ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 
@@ -21,7 +17,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Page Shell ── */
+
 .pageContainer {
   min-height: 100vh;
   width: 100%;
@@ -34,7 +30,6 @@
   color: var(--text-primary);
 }
 
-/* ── SVG Background ── */
 .bgCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .bgSvg { width: 100%; height: 100%; }
 .wavePath {
@@ -47,7 +42,7 @@
   100% { transform: translateY(8px) scaleX(0.98); }
 }
 
-/* ── Top Bar ── */
+
 .topBar {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
@@ -89,14 +84,14 @@
 }
 .navCta:hover { opacity: 0.88; transform: translateY(-1px); }
 
-/* ── Scroll reveal base ── */
+
 .hero, .faqSection, .ctaSection {
   opacity: 0; transform: translateY(32px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 .visible { opacity: 1 !important; transform: translateY(0) !important; }
 
-/* ── Shared helpers ── */
+
 .sectionEyebrow {
   display: inline-block; font-size: 11px; font-weight: 600;
   letter-spacing: 0.12em; text-transform: uppercase;
@@ -114,9 +109,7 @@
 }
 .sectionHeader { text-align: center; max-width: 640px; margin: 0 auto 56px; }
 
-/* ═══════════════════════════════
-   HERO
-═══════════════════════════════ */
+
 .hero {
   position: relative; z-index: 5;
   max-width: 1100px; margin: 0 auto;
@@ -163,7 +156,7 @@
   max-width: 540px; margin: 0 auto 40px; font-weight: 300;
 }
 
-/* ── Billing Toggle ── */
+
 .billingToggle {
   display: inline-flex; gap: 4px;
   background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
@@ -189,9 +182,7 @@
   padding: 3px 8px;
 }
 
-/* ═══════════════════════════════
-   PRICING CARDS
-═══════════════════════════════ */
+
 .plansSection {
   position: relative; z-index: 5;
   max-width: 1100px; margin: 0 auto; padding: 48px 48px 20px;
@@ -218,7 +209,7 @@
   box-shadow: 0 16px 56px rgba(0,0,0,0.45);
 }
 
-/* Popular card elevated */
+
 .pricingCardPopular {
   border-color: rgba(34,211,238,0.3) !important;
   background: rgba(34,211,238,0.04) !important;
@@ -330,9 +321,7 @@
   margin-top: 28px; font-weight: 300;
 }
 
-/* ═══════════════════════════════
-   VALUE STRIP
-═══════════════════════════════ */
+
 .valueStrip {
   position: relative; z-index: 5;
   max-width: 1100px; margin: 60px auto 0; padding: 0 48px;
@@ -362,9 +351,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ═══════════════════════════════
-   FAQ
-═══════════════════════════════ */
+
 .faqSection {
   position: relative; z-index: 5;
   max-width: 760px; margin: 0 auto; padding: 80px 48px;
@@ -412,9 +399,7 @@
   font-size: 14px; line-height: 1.75; color: var(--text-secondary); font-weight: 300;
 }
 
-/* ═══════════════════════════════
-   CTA
-═══════════════════════════════ */
+
 .ctaSection {
   position: relative; z-index: 5;
   margin: 40px 48px 80px;
@@ -451,7 +436,6 @@
 }
 .ctaActions { display: flex; gap: 16px; justify-content: center; align-items: center; }
 
-/* ── Buttons ── */
 .btnPrimary {
   display: inline-flex; align-items: center;
   font-size: 14px; font-weight: 600; font-family: var(--font-body);
@@ -473,7 +457,7 @@
 }
 .btnOutline:hover { border-color: var(--accent-cyan); background: rgba(34,211,238,0.06); }
 
-/* ── Footer ── */
+
 .footer {
   position: relative; z-index: 5;
   display: flex; align-items: center; justify-content: space-between;
@@ -487,7 +471,6 @@
 .footerLink  { font-size: 12px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
 .footerLink:hover { color: var(--accent-cyan); }
 
-/* ── Responsive ── */
 @media (max-width: 960px) {
   .topBarNav { display: none; }
   .hero { padding: 60px 24px 48px; }

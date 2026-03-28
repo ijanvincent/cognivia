@@ -16,7 +16,7 @@ export const COLORS = {
     textSecondary: 'rgba(241,245,249,0.55)',
     textMuted:     'rgba(241,245,249,0.35)',
     error:         '#f87171',
-    errorBg:       'rgba(248,113,113,0.08)',o
+    errorBg:       'rgba(248,113,113,0.08)',
     successBg:     'rgba(52,211,153,0.08)',
     successBorder: '#34d399',
 };

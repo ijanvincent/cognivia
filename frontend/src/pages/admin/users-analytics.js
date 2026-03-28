@@ -19,7 +19,7 @@ function AdminUsersAnalytics() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
-        // eslint-disable-next-line
+       
     }, []);
 
     const fetchData = async () => {
@@ -37,15 +37,13 @@ function AdminUsersAnalytics() {
         }
     };
 
-    // ── Real data calculations ──────────────────────────────────────────────
-
     const totalUsers    = stats.total_users;
     const newToday      = stats.new_today;
     const newThisMonth  = stats.new_this_month;
     const growthRate    = totalUsers > 0 && newThisMonth > 0
         ? ((newThisMonth / totalUsers) * 100).toFixed(1) : '0';
 
-    // Group by month (last 7 months)
+
     const usersByMonth = users.reduce((acc, user) => {
         const month = new Date(user.created_at).toLocaleDateString('en-US', {
             month: 'short', year: 'numeric'
@@ -54,7 +52,7 @@ function AdminUsersAnalytics() {
         return acc;
     }, {});
 
-    // Last 7 months labels + counts for chart
+
     const getLast7Months = () => {
         const months = [];
         for (let i = 6; i >= 0; i--) {
@@ -66,9 +64,9 @@ function AdminUsersAnalytics() {
     };
     const last7Months  = getLast7Months();
     const registrationData = last7Months.map(m => usersByMonth[m] || 0);
-    const monthLabels      = last7Months.map(m => m.split(' ')[0]); // short: "Jan"
+    const monthLabels      = last7Months.map(m => m.split(' ')[0]); 
 
-    // Last 7 days for sparklines
+
     const getLast7Days = () => {
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date();
@@ -90,9 +88,7 @@ function AdminUsersAnalytics() {
         ? (totalUsers / Object.keys(usersByMonth).length).toFixed(1) : '0';
     const mostActiveMonth = Object.entries(usersByMonth).sort((a, b) => b[1] - a[1])[0];
 
-    // ── ApexCharts configs (same pattern as dashboard-v3) ──────────────────
 
-    // Main area chart — registrations last 7 months (blue + green, same as ColorAdmin)
     const mainChartOptions = {
         colors: ['#00acac', '#348fe2'],
         fill: { opacity: 0.75, type: 'solid' },
@@ -126,7 +122,7 @@ function AdminUsersAnalytics() {
         { name: 'Total Users',       data: cumulativeCounts }
     ];
 
-    // Sparkline — daily new users (blue→indigo gradient)
+
     const sparkNewOptions = {
         chart: { type: 'line', width: 120, height: 36, sparkline: { enabled: true } },
         stroke: { curve: 'smooth', width: 3 },
@@ -154,7 +150,7 @@ function AdminUsersAnalytics() {
     };
     const sparkNewSeries = [{ data: dailyCounts }];
 
-    // Sparkline — growth rate trend (red→orange→lime, same as conversion rate)
+    
     const sparkGrowthOptions = {
         chart: { type: 'line', width: 120, height: 36, sparkline: { enabled: true } },
         stroke: { curve: 'smooth', width: 3 },
@@ -183,7 +179,7 @@ function AdminUsersAnalytics() {
     };
     const sparkGrowthSeries = [{ data: registrationData }];
 
-    // Sparkline — cumulative total (teal→blue→cyan, same as store sessions)
+
     const sparkTotalOptions = {
         chart: { type: 'line', width: 120, height: 36, sparkline: { enabled: true } },
         stroke: { curve: 'smooth', width: 3 },
@@ -212,7 +208,7 @@ function AdminUsersAnalytics() {
     };
     const sparkTotalSeries = [{ data: cumulativeCounts }];
 
-    // prev 7 days vs prior 7 days comparison
+    
     const prev7Total  = dailyCounts.reduce((a, b) => a + b, 0);
     const prior7Total = last7Days.map(day => {
         const d = new Date(day);
@@ -242,12 +238,9 @@ function AdminUsersAnalytics() {
                 </div>
             ) : (
                 <>
-                    {/* ══════════════════════════════════════════════════
-                        ROW 1 — Website Analytics (Last 7 Days)
-                        Same dark card style as dashboard-v3
-                    ══════════════════════════════════════════════════ */}
+                 
                     <div className="row">
-                        {/* Main chart card — full width left */}
+                      
                         <div className="col-xl-8 col-lg-6">
                             <div className="card border-0 mb-3 overflow-hidden bg-gray-800 text-white">
                                 <div className="card-body">
@@ -296,10 +289,10 @@ function AdminUsersAnalytics() {
                             </div>
                         </div>
 
-                        {/* Right column — 2 sparkline cards stacked */}
+                     
                         <div className="col-xl-4 col-lg-6">
                             <div className="row">
-                                {/* New Registrations sparkline */}
+                             
                                 <div className="col-sm-6 col-xl-12">
                                     <div className="card border-0 text-truncate mb-3 bg-gray-800 text-white">
                                         <div className="card-body">
@@ -352,7 +345,7 @@ function AdminUsersAnalytics() {
                                     </div>
                                 </div>
 
-                                {/* Growth trend sparkline */}
+                               
                                 <div className="col-sm-6 col-xl-12">
                                     <div className="card border-0 text-truncate mb-3 bg-gray-800 text-white">
                                         <div className="card-body">
@@ -411,10 +404,7 @@ function AdminUsersAnalytics() {
                         </div>
                     </div>
 
-                    {/* ══════════════════════════════════════════════════
-                        ROW 2 — Analytics Details
-                        Same dark card style, total + trend sparkline
-                    ══════════════════════════════════════════════════ */}
+        
                     <div className="row">
                         <div className="col-xl-12">
                             <div className="card border-0 mb-3 bg-gray-800 text-white">
@@ -424,7 +414,7 @@ function AdminUsersAnalytics() {
                                         <span className="ms-2 text-gray-600 fw-normal">(last 7 days)</span>
                                     </div>
                                     <div className="row">
-                                        {/* Total Users */}
+                                       
                                         <div className="col-xl-3 col-md-6 mb-3">
                                             <div className="d-flex align-items-center mb-1">
                                                 <div>
@@ -449,7 +439,6 @@ function AdminUsersAnalytics() {
                                             </div>
                                         </div>
 
-                                        {/* New Today */}
                                         <div className="col-xl-3 col-md-6 mb-3">
                                             <div className="d-flex align-items-center mb-1">
                                                 <div>
@@ -475,7 +464,7 @@ function AdminUsersAnalytics() {
                                             </div>
                                         </div>
 
-                                        {/* This Month */}
+                                  
                                         <div className="col-xl-3 col-md-6 mb-3">
                                             <div className="d-flex align-items-center mb-1">
                                                 <div>
@@ -501,7 +490,7 @@ function AdminUsersAnalytics() {
                                             </div>
                                         </div>
 
-                                        {/* Avg Per Month */}
+                                   
                                         <div className="col-xl-3 col-md-6 mb-3">
                                             <div className="d-flex align-items-center mb-1">
                                                 <div>
@@ -532,10 +521,6 @@ function AdminUsersAnalytics() {
                         </div>
                     </div>
 
-                    {/* ══════════════════════════════════════════════════
-                        ROW 3 — Registrations by Month + Recent
-                        Plain div panels — no Panel component = no buttons
-                    ══════════════════════════════════════════════════ */}
                     <div className="row">
                         <div className="col-xl-6">
                             <div className="panel panel-inverse">

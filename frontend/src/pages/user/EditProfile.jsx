@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 import styles from './editprofile.module.css';
 
-// ── Icons ──
+
 const IconUser = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="8" r="4"/>
@@ -31,61 +31,41 @@ const IconCheck = () => (
   </svg>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// resolveAvatarUrl — idempotent, safe, handles all cases
-//
-// WHY this exists: Laravel UserResource may return any of these:
-//   A) Full URL:    "https://api.cognivia.com/storage/avatars/5_xxx.jpg"
-//   B) Relative:   "/storage/avatars/5_xxx.jpg"
-//   C) Raw path:   "avatars/5_xxx.jpg"
-//   D) Blob URL:   "blob:http://localhost:5173/abc-123" (local preview only)
-//
-// We normalize A/B/C → a display-ready URL. D is left untouched.
-// This function is IDEMPOTENT — safe to call multiple times on the same value.
-// ─────────────────────────────────────────────────────────────────────────────
+
 function resolveAvatarUrl(avatar) {
   if (!avatar) return null;
-  if (avatar.startsWith('blob:')) return avatar;                          // local preview
-  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar; // already full
+  if (avatar.startsWith('blob:')) return avatar;                         
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar; 
   const base = 'http://localhost:3000';
-  if (avatar.startsWith('/storage/')) return `${base}${avatar}`;          // relative /storage/...
-  if (avatar.startsWith('/'))        return `${base}${avatar}`;          // other relative
-  return `${base}/storage/${avatar}`;                                     // raw path
+  if (avatar.startsWith('/storage/')) return `${base}${avatar}`;      
+  if (avatar.startsWith('/'))        return `${base}${avatar}`;          
+  return `${base}/storage/${avatar}`;                                   
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Storage helpers
-//
-// FIX: We write user to BOTH storages, and read from whichever has data.
-// WHY: Original code wrote to whichever storage had the TOKEN. But if token
-//      was in sessionStorage and an old user was in localStorage, getStoredUser()
-//      would read localStorage first → always returning the STALE old user.
-//      Writing to both eliminates the mismatch entirely.
-// ─────────────────────────────────────────────────────────────────────────────
+
 function getStoredUser() {
   try {
-    // Prefer the storage that also has the token (most authoritative)
+    
     if (localStorage.getItem('token')) {
       return JSON.parse(localStorage.getItem('user') || 'null') || {};
     }
     if (sessionStorage.getItem('token')) {
       return JSON.parse(sessionStorage.getItem('user') || 'null') || {};
     }
-    // Fallback: whichever has user data
+   
     const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
     return JSON.parse(raw || 'null') || {};
   } catch { return {}; }
 }
 
 function persistUser(updatedUser) {
-  // FIX: Write to BOTH storages so getStoredUser() always finds the latest
-  // regardless of which one it reads from.
+ 
   const serialized = JSON.stringify(updatedUser);
   try { localStorage.setItem('user', serialized); } catch {}
   try { sessionStorage.setItem('user', serialized); } catch {}
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function EditProfile() {
   const navigate     = useNavigate();
@@ -101,12 +81,12 @@ function EditProfile() {
   const [storedUser, setStoredUser]       = useState({});
   const [formData, setFormData]           = useState({ username: '' });
 
-  // Load user fresh every time this page mounts
+  
   useEffect(() => {
     const user = getStoredUser();
     setStoredUser(user);
     setFormData({ username: user.username || '' });
-    // Resolve and set avatar preview from stored user
+   
     if (user.avatar) {
       setAvatarPreview(resolveAvatarUrl(user.avatar));
     } else {
@@ -116,7 +96,7 @@ function EditProfile() {
     return () => clearTimeout(t);
   }, []);
 
-  // Revoke blob URL on unmount to prevent memory leaks
+ 
   useEffect(() => {
     return () => {
       if (objectUrlRef.current) {
@@ -146,7 +126,6 @@ function EditProfile() {
       return;
     }
 
-    // Revoke old blob URL before creating a new one
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
     }
@@ -156,7 +135,7 @@ function EditProfile() {
     setAvatarFile(file);
     setAvatarPreview(blobUrl);
     setErrors(prev => ({ ...prev, avatar: null }));
-    e.target.value = ''; // allow re-selecting same file
+    e.target.value = ''; 
   };
 
   const handleSubmit = async (e) => {
@@ -186,25 +165,20 @@ function EditProfile() {
 
       const updatedUser = response.data.user;
 
-      // Normalize avatar URL from API response before storing
+     
       if (updatedUser.avatar) {
         updatedUser.avatar = resolveAvatarUrl(updatedUser.avatar);
       }
 
-      // FIX: Write to BOTH storages (eliminates token/user storage mismatch)
+      
       persistUser(updatedUser);
 
-      // FIX: Fire custom event AFTER writing storage AND right before navigating.
-      // Dashboard's useState init reads from storage on mount — since we write
-      // to storage first, the fresh mount will read the correct user.
-      // The event handles the case where Dashboard is already mounted (no remount).
+     
       window.dispatchEvent(new CustomEvent('cognivia:userUpdated', { detail: updatedUser }));
 
       setSuccess(true);
 
-      // FIX: Navigate immediately after event — don't wait 1800ms then navigate.
-      // The success UI shows for 1800ms but storage is already updated.
-      // Dashboard's useState(() => getStoredUser()) will read correct data on mount.
+      
       setTimeout(() => navigate('/dashboard'), 1800);
 
     } catch (error) {
@@ -252,7 +226,7 @@ function EditProfile() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
 
-          {/* ── Avatar upload ── */}
+      
           <div className={styles.avatarSection}>
             <div className={styles.avatarWrap} onClick={handleAvatarClick}>
               {avatarPreview ? (
@@ -281,7 +255,7 @@ function EditProfile() {
             {errors.avatar && <span className={styles.errorText}>{errors.avatar}</span>}
           </div>
 
-          {/* ── Username ── */}
+       
           <div className={styles.formGroup}>
             <label className={styles.label}>Username</label>
             <div className={styles.inputContainer}>
@@ -300,7 +274,6 @@ function EditProfile() {
             {errors.username && <span className={styles.errorText}>{errors.username}</span>}
           </div>
 
-          {/* ── Email (read only) ── */}
           <div className={styles.formGroup}>
             <label className={styles.label}>Email address</label>
             <div className={styles.inputContainer}>
@@ -314,7 +287,7 @@ function EditProfile() {
             <span className={styles.readOnlyHint}>Email cannot be changed</span>
           </div>
 
-          {/* ── Submit ── */}
+     
           <button
             type="submit"
             disabled={loading || success}

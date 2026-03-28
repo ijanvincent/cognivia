@@ -23,7 +23,7 @@ function AdminUsers() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
-        // eslint-disable-next-line
+        
     }, []);
 
     const fetchUsers = async () => {
@@ -42,7 +42,7 @@ function AdminUsers() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    // Golden Rule #1 — professional modal confirm, never window.confirm
+
     const confirmDelete = (user) => {
         setConfirmModal(user);
     };
@@ -77,7 +77,7 @@ function AdminUsers() {
 
     return (
         <div>
-            {/* Golden Rule #2 — Toast top right, no alert() */}
+       
             {toast && (
                 <div style={{
                     position: 'fixed', top: '70px', right: '20px',
@@ -92,7 +92,7 @@ function AdminUsers() {
                 </div>
             )}
 
-            {/* Golden Rule #1 — Professional delete confirm modal */}
+       
             {confirmModal && (
                 <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 9998 }}>
                     <div className="modal-dialog modal-dialog-centered">
@@ -149,7 +149,7 @@ function AdminUsers() {
                 User Management <small>all registered users</small>
             </h1>
 
-            {/* Plain div panel — no Panel component = no minimize/maximize/close */}
+       
             <div className="panel panel-inverse">
                 <div className="panel-heading d-flex align-items-center justify-content-between">
                     <h4 className="panel-title">

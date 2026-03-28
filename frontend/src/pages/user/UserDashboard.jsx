@@ -50,21 +50,21 @@ function UserDashboard() {
   const userName    = user.name || user.username || 'Learner';
   const userInitial = userName.charAt(0).toUpperCase();
 
-  // ── Mount animation
+
   useEffect(() => {
     setUser(getStoredUser());
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  // ── Listen for profile updates
+
   useEffect(() => {
     const handleUserUpdated = (e) => setUser(e.detail || getStoredUser());
     window.addEventListener('cognivia:userUpdated', handleUserUpdated);
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
 
-  // ── FILE 9: ForceLogout WebSocket listener
+
   useEffect(() => {
     const userId = user?.id;
     if (!userId) return;
@@ -101,7 +101,7 @@ function UserDashboard() {
   return (
     <div className={`${styles.page} ${mounted ? styles.mounted : ''}`}>
 
-      {/* ── Header ── */}
+
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Dashboard</h1>
@@ -110,7 +110,7 @@ function UserDashboard() {
           </p>
         </div>
 
-        {/* ── Avatar + Dropdown ── */}
+
         <div className={styles.avatarWrapper}>
           <button
             className={`${styles.avatarChip} ${dropdownOpen ? styles.avatarChipActive : ''}`}
@@ -167,7 +167,7 @@ function UserDashboard() {
         </div>
       </div>
 
-      {/* ── QR Code Center ── */}
+
       <div className={styles.qrWrapper}>
         <div className={styles.qrCard}>
           <div className={styles.qrCodeBox}>

@@ -21,7 +21,7 @@ function ResetPassword() {
   const email = searchParams.get('email');
 
   useEffect(() => {
-    // If no token or email in URL, mark as invalid
+
     if (!token || !email) setTokenValid(false);
   }, [token, email]);
 
@@ -62,7 +62,7 @@ function ResetPassword() {
         password_confirmation: formData.password_confirmation,
       });
       setSuccess(true);
-      // Redirect to login after 3 seconds
+
       setTimeout(() => navigate('/login'), 3000);
     } catch (error) {
       if (error.response?.data?.errors?.token) {
@@ -77,7 +77,7 @@ function ResetPassword() {
     }
   };
 
-  // Password strength indicator
+
   const getPasswordStrength = (password) => {
     if (!password) return null;
     const hasLower   = /[a-z]/.test(password);
@@ -100,7 +100,7 @@ function ResetPassword() {
         </div>
       )}
 
-      {/* Animated SVG Background */}
+
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -127,7 +127,7 @@ function ResetPassword() {
         </svg>
       </div>
 
-      {/* Top Navigation Bar */}
+
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -140,10 +140,10 @@ function ResetPassword() {
         </nav>
       </div>
 
-      {/* Main Content */}
+   
       <div className={styles.mainContent}>
 
-        {/* Left Hero */}
+     
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -160,7 +160,7 @@ function ResetPassword() {
           </div>
         </div>
 
-        {/* Right Card */}
+     
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -180,7 +180,7 @@ function ResetPassword() {
               </div>
             </div>
 
-            {/* Invalid Token State */}
+      
             {!tokenValid && (
               <div>
                 <div className={styles.errorAlert}>
@@ -197,7 +197,7 @@ function ResetPassword() {
               </div>
             )}
 
-            {/* Success State */}
+         
             {success && (
               <div>
                 <div className={styles.successAlert}>
@@ -217,7 +217,7 @@ function ResetPassword() {
               </div>
             )}
 
-            {/* Form State */}
+  
             {tokenValid && !success && (
               <form onSubmit={handleSubmit} className={styles.form}>
                 {errors.general && (
@@ -229,7 +229,7 @@ function ResetPassword() {
                   </div>
                 )}
 
-                {/* New Password */}
+            
                 <div className={styles.formGroup}>
                   <label className={styles.label}>New Password</label>
                   <div className={styles.inputContainer}>
@@ -255,7 +255,7 @@ function ResetPassword() {
                       <img src={showPassword ? hideIcon : eyeIcon} alt={showPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
                     </button>
                   </div>
-                  {/* Password Strength Bar */}
+       
                   {formData.password && strength && (
                     <div className={styles.strengthWrapper}>
                       <div className={styles.strengthBar}>
@@ -269,7 +269,7 @@ function ResetPassword() {
                   {errors.password && <span className={styles.errorText}>{errors.password}</span>}
                 </div>
 
-                {/* Confirm Password */}
+             
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Confirm Password</label>
                   <div className={styles.inputContainer}>
@@ -297,7 +297,7 @@ function ResetPassword() {
                   {errors.password_confirmation && <span className={styles.errorText}>{errors.password_confirmation}</span>}
                 </div>
 
-                {/* Submit */}
+       
                 <button type="submit" disabled={loading} className={styles.submitButton}>
                   {loading ? (
                     <><div className={styles.buttonSpinner}></div>Resetting...</>
