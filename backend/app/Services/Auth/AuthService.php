@@ -2,6 +2,8 @@
 
 namespace App\Services\Auth;
 
+use App\Exceptions\Auth\EmailNotFoundException;
+use App\Exceptions\Auth\WrongPasswordException;
 use App\Mail\PasswordResetMail;
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
@@ -36,10 +38,12 @@ class AuthService
     {
         $user = $this->authRepository->findByEmail($data['email']);
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid email or password'],
-            ]);
+        if (!$user) {
+            throw new EmailNotFoundException();
+        }
+
+        if (!Hash::check($data['password'], $user->password)) {
+            throw new WrongPasswordException();
         }
 
         if ($user->isAdmin()) {
@@ -64,10 +68,8 @@ class AuthService
             ]);
         }
 
-    
         $this->authRepository->revokeTokensByPlatform($user, $platform);
 
-  
         $expiresAt = isset($data['remember_me']) && $data['remember_me']
             ? now()->addDays(30)
             : now()->addHours(24);

@@ -3,13 +3,12 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    'Accept':                     'application/json',
+    'Content-Type':               'application/json',
     'ngrok-skip-browser-warning': 'true',
-    'X-Platform': 'web',   
+    'X-Platform':                 'web',
   }
 });
-
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -22,7 +21,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        const status     = error.response?.status;
+        const url        = error.config?.url || '';
+
+        const isAuthRoute = url.includes('/auth/login')
+            || url.includes('/auth/register')
+            || url.includes('/auth/forgot-password')
+            || url.includes('/auth/reset-password');
+
+        if (status === 401 && !isAuthRoute) {
             const user = JSON.parse(
                 localStorage.getItem('user') || sessionStorage.getItem('user') || '{}'
             );
@@ -32,6 +39,7 @@ api.interceptors.response.use(
             sessionStorage.removeItem('user');
             window.location.href = user?.role === 'admin' ? '/admin/login' : '/login';
         }
+
         return Promise.reject(error);
     }
 );

@@ -7,7 +7,7 @@ import lockIcon from './../../assets/lock.png';
 import eyeIcon from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 
-const isMobile = window.innerWidth <=768;
+const isMobile = window.innerWidth <= 768;
 
 function UserLogin() {
   const [redirect, setRedirect]         = useState(false);
@@ -19,13 +19,21 @@ function UserLogin() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    setErrors(prev => ({ ...prev, [name]: null, general: null }));
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.email.trim()) newErrors.email    = 'Email is required';
-    if (!formData.password)     newErrors.password = 'Password is required';
+    const newErrors  = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!formData.email.trim())
+      newErrors.email = 'Email address is required.';
+    else if (!emailRegex.test(formData.email))
+      newErrors.email = 'Please enter a valid email address.';
+
+    if (!formData.password)
+      newErrors.password = 'Password is required.';
+
     return newErrors;
   };
 
@@ -33,33 +41,74 @@ function UserLogin() {
     e.preventDefault();
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+
     setLoading(true);
     setErrors({});
+
     try {
       const response = await api.post('/auth/login', {
-        email:      formData.email,
-        password:   formData.password,
-        rememberMe: formData.rememberMe,
-        platform:   'web',
+        email:       formData.email,
+        password:    formData.password,
+        remember_me: formData.rememberMe,
+        platform:    'web',
       });
+
       const storage = formData.rememberMe ? localStorage : sessionStorage;
-const user = response.data.user;
+      const user    = response.data.user;
 
+      if (user.avatar && !user.avatar.startsWith('http')) {
+        user.avatar = `http://localhost:3000${user.avatar.startsWith('/') ? '' : '/storage/'}${user.avatar}`;
+      }
 
-if (user.avatar && !user.avatar.startsWith('http')) {
-  user.avatar = `http://localhost:3000${user.avatar.startsWith('/') ? '' : '/storage/'}${user.avatar}`;
-}
-
-storage.setItem('token', response.data.token);
-storage.setItem('user', JSON.stringify(user));
+      storage.setItem('token', response.data.token);
+      storage.setItem('user', JSON.stringify(user));
       setRedirect(true);
+
     } catch (error) {
-      if (error.response?.status === 401) {
-        setErrors({ general: 'Invalid email or password' });
-      } else if (error.response?.data?.message) {
-        setErrors({ general: error.response.data.message });
+      const status  = error.response?.status;
+      const code    = error.response?.data?.error_code;
+      const message = error.response?.data?.message;
+
+      if (status === 401) {
+        switch (code) {
+          case 'EMAIL_NOT_FOUND':
+            setErrors({ email: message || 'No account found with this email address.' });
+            break;
+          case 'WRONG_PASSWORD':
+            setErrors({ password: message || 'The password you entered is incorrect.' });
+            break;
+          case 'TOO_MANY_ATTEMPTS':
+            setErrors({ general: message || 'Too many attempts. Please try again later.' });
+            break;
+          default:
+            setErrors({
+              email:    'Please check your email address.',
+              password: 'Please check your password.',
+              general:  'Invalid credentials. Please try again.',
+            });
+        }
+      } else if (status === 422) {
+        if (code === 'PLATFORM_CONFLICT') {
+          setErrors({ general: message });
+        } else if (code === 'ADMIN_ACCOUNT') {
+          setErrors({ email: 'This account is not authorized here.' });
+        } else {
+          const laravelErrors = error.response?.data?.errors || {};
+          setErrors({
+            email:    laravelErrors.email?.[0]    || null,
+            password: laravelErrors.password?.[0] || null,
+            platform: laravelErrors.platform?.[0] || null,
+          });
+        }
+      } else if (status === 429) {
+        const retryAfter = error.response?.data?.retry_after;
+        setErrors({
+          general: retryAfter
+            ? `Too many login attempts. Please try again in ${retryAfter} seconds.`
+            : (message || 'Too many login attempts. Please try again later.'),
+        });
       } else {
-        setErrors({ general: 'Login failed. Please try again.' });
+        setErrors({ general: message || 'Login failed. Please try again.' });
       }
     } finally {
       setLoading(false);
@@ -76,7 +125,6 @@ storage.setItem('user', JSON.stringify(user));
         </div>
       )}
 
-    
       {!isMobile && (
         <div className={styles.bgCanvas}>
           <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
@@ -105,7 +153,6 @@ storage.setItem('user', JSON.stringify(user));
         </div>
       )}
 
-  
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -118,10 +165,7 @@ storage.setItem('user', JSON.stringify(user));
         </nav>
       </div>
 
-     
       <div className={styles.mainContent}>
-
-       
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -139,34 +183,34 @@ storage.setItem('user', JSON.stringify(user));
           </div>
         </div>
 
-
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderRow}>
                 <div>
-                  <h2 className={styles.cardTitle}>Welcome back </h2>
+                  <h2 className={styles.cardTitle}>Welcome back</h2>
                   <p className={styles.cardSubtitle}>Sign in to your account to continue</p>
                 </div>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form onSubmit={handleSubmit} className={styles.form} noValidate>
+
               {errors.general && (
-                <div className={styles.errorAlert}>
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                <div className={styles.errorAlert} role="alert">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
                   </svg>
                   <span>{errors.general}</span>
                 </div>
               )}
 
-     
               <div className={styles.formGroup}>
-                <label className={styles.label}>Email address</label>
-                <div className={styles.inputContainer}>
-                  <img src={emailIcon} alt="" className={styles.inputIcon} />
+                <label className={styles.label} htmlFor="email">Email address</label>
+                <div className={`${styles.inputContainer} ${errors.email ? styles.inputContainerError : ''}`}>
+                  <img src={emailIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                   <input
+                    id="email"
                     type="email"
                     name="email"
                     value={formData.email}
@@ -176,17 +220,26 @@ storage.setItem('user', JSON.stringify(user));
                     disabled={loading}
                     autoComplete="email"
                     autoFocus
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                   />
                 </div>
-                {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+                {errors.email && (
+                  <span id="email-error" className={styles.errorText} role="alert">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                      <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                    </svg>
+                    {errors.email}
+                  </span>
+                )}
               </div>
 
-        
               <div className={styles.formGroup}>
-                <label className={styles.label}>Password</label>
-                <div className={styles.inputContainer}>
-                  <img src={lockIcon} alt="" className={styles.inputIcon} />
+                <label className={styles.label} htmlFor="password">Password</label>
+                <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
+                  <img src={lockIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={formData.password}
@@ -195,6 +248,8 @@ storage.setItem('user', JSON.stringify(user));
                     placeholder="Enter your password"
                     disabled={loading}
                     autoComplete="current-password"
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
                   />
                   <button
                     type="button"
@@ -202,14 +257,21 @@ storage.setItem('user', JSON.stringify(user));
                     className={styles.eyeButton}
                     tabIndex={-1}
                     disabled={loading}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    <img src={showPassword ? hideIcon : eyeIcon} alt={showPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
+                    <img src={showPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
                   </button>
                 </div>
-                {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+                {errors.password && (
+                  <span id="password-error" className={styles.errorText} role="alert">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                      <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                    </svg>
+                    {errors.password}
+                  </span>
+                )}
               </div>
 
-     
               <div className={styles.rememberRow}>
                 <label className={styles.rememberLabel}>
                   <input
@@ -227,10 +289,9 @@ storage.setItem('user', JSON.stringify(user));
                 </Link>
               </div>
 
-           
               <button type="submit" disabled={loading} className={styles.submitButton}>
                 {loading ? (
-                  <><div className={styles.buttonSpinner}></div>Signing In...</>
+                  <><div className={styles.buttonSpinner} aria-hidden="true"></div>Signing in...</>
                 ) : (
                   'Sign In'
                 )}

@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 
@@ -21,10 +20,8 @@
   --font-body: 'DM Sans', sans-serif;
 }
 
-/* ── Reset & Base ── */
 * { box-sizing: border-box; }
 
-/* ── Page Shell ── */
 .pageContainer {
   min-height: 100vh;
   width: 100%;
@@ -35,7 +32,6 @@
   position: relative;
   overflow: hidden;
 }
-
 
 .bgCanvas {
   position: fixed;
@@ -49,7 +45,6 @@
   height: 100%;
 }
 
-/* ── FIXED: Smooth GPU-accelerated animation — no blinking ── */
 .wavePath {
   stroke: var(--wave-color);
   animation: waveFloat 6s ease-in-out infinite alternate;
@@ -63,7 +58,6 @@
   50%  { transform: translateZ(0) translateY(-14px) scaleX(1.01); }
   100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
-
 
 .loadingOverlay {
   position: fixed;
@@ -89,7 +83,6 @@
   to { transform: rotate(360deg); }
 }
 
-
 .topBar {
   position: relative;
   z-index: 10;
@@ -114,7 +107,6 @@
   gap: 12px;
   text-decoration: none;
 }
-
 
 .heroLogoRow {
   display: flex;
@@ -207,7 +199,6 @@
 
 .heroBtnPrimary:hover::after { transform: translateX(3px); }
 
-
 .mainContent {
   position: relative;
   z-index: 5;
@@ -221,7 +212,6 @@
   margin: 0 auto;
   width: 100%;
 }
-
 
 .heroSection {
   flex: 1;
@@ -313,7 +303,6 @@
   background: rgba(34, 211, 238, 0.06);
 }
 
-
 .cardWrapper {
   flex-shrink: 0;
   width: 420px;
@@ -364,16 +353,17 @@
   font-weight: 400;
 }
 
-/* ── Form ── */
 .form {
   display: flex;
   flex-direction: column;
 }
 
+/* ── General error alert (top of form) ── */
 .errorAlert {
   background: var(--error-bg);
   border: 1px solid rgba(248, 113, 113, 0.25);
   border-left: 3px solid var(--error);
+  border-radius: 0;
   color: var(--error);
   padding: 11px 14px;
   border-radius: 8px;
@@ -383,13 +373,33 @@
   gap: 10px;
   font-size: 13px;
   font-weight: 500;
+  animation: errorShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* ── Field-level error shake animation ── */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
 }
 
 .formGroup { margin-bottom: 20px; }
 
+/* When a field group has an error, animate it in */
+.formGroup:has(.inputError) {
+  animation: errorShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
 .formGroup:focus-within .label {
   color: var(--accent-cyan);
   letter-spacing: 0.08em;
+}
+
+/* Label turns red when the sibling input has an error */
+.formGroup:has(.inputError) .label {
+  color: var(--error);
 }
 
 .label {
@@ -409,6 +419,7 @@
   align-items: center;
 }
 
+/* Default focus underline (cyan) */
 .inputContainer::after {
   content: '';
   position: absolute;
@@ -427,6 +438,13 @@
   left: 0%;
 }
 
+/* Error underline overrides cyan underline */
+.inputContainerError::after {
+  background: linear-gradient(90deg, var(--error), rgba(248, 113, 113, 0.6)) !important;
+  width: 100% !important;
+  left: 0% !important;
+}
+
 .inputIcon {
   position: absolute;
   left: 14px;
@@ -443,6 +461,12 @@
 .inputContainer:focus-within .inputIcon {
   opacity: 0.85;
   filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg);
+}
+
+/* Icon turns red when field has error */
+.inputContainerError .inputIcon {
+  filter: invert(1) sepia(1) saturate(5) hue-rotate(310deg);
+  opacity: 0.8;
 }
 
 .inputField {
@@ -489,14 +513,18 @@
   cursor: not-allowed;
 }
 
+/* ── Error state for input ── */
 .inputError {
-  border-color: rgba(248, 113, 113, 0.5) !important;
-  background: var(--error-bg) !important;
+  border-color: rgba(248, 113, 113, 0.55) !important;
+  background: rgba(248, 113, 113, 0.05) !important;
 }
 
 .inputError:focus {
-  border-color: rgba(248, 113, 113, 0.6) !important;
-  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1) !important;
+  border-color: rgba(248, 113, 113, 0.7) !important;
+  box-shadow:
+    0 0 0 3px rgba(248, 113, 113, 0.1),
+    0 2px 12px rgba(248, 113, 113, 0.08) !important;
+  background: rgba(248, 113, 113, 0.06) !important;
 }
 
 .eyeButton {
@@ -529,15 +557,24 @@
 
 .eyeButton:hover .eyeIcon { opacity: 0.9; }
 
+/* ── Inline field error text ── */
 .errorText {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   color: var(--error);
-  font-size: 11.5px;
-  margin-top: 6px;
+  font-size: 12px;
+  margin-top: 7px;
   font-weight: 500;
   padding-left: 2px;
+  line-height: 1.4;
+  animation: errorFadeIn 0.2s ease-out both;
 }
 
+@keyframes errorFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .rememberRow {
   display: flex;
@@ -611,7 +648,6 @@
 
 .forgotLink:hover { color: var(--accent-cyan); }
 
-
 .submitButton {
   width: 100%;
   padding: 14px;
@@ -680,14 +716,12 @@
   text-decoration: underline;
 }
 
-/* ── Focus Visible ── */
 .inputField:focus-visible,
 .submitButton:focus-visible,
 .eyeButton:focus-visible {
   outline: 2px solid var(--accent-cyan);
   outline-offset: 2px;
 }
-
 
 .successAlert {
   background: rgba(52, 211, 153, 0.08);
@@ -704,7 +738,6 @@
   font-weight: 500;
   line-height: 1.6;
 }
-
 
 .strengthWrapper {
   display: flex;
@@ -736,7 +769,6 @@
   min-width: 44px;
 }
 
-
 @media (max-width: 900px) {
   .topBarNav { display: none; }
 
@@ -763,7 +795,6 @@
   .inputField { font-size: 16px; }
 }
 
-
 @media (max-width: 768px) {
   .wavePath { animation: none; display: none; }
   .bgCanvas { display: none; }
@@ -775,4 +806,6 @@
 @media (prefers-reduced-motion: reduce) {
   .wavePath { animation: none; }
   .bgCanvas { display: none; }
+  .errorShake { animation: none; }
+  .errorFadeIn { animation: none; }
 }
