@@ -243,7 +243,7 @@ const LoginScreen = () => {
                             <Text style={styles.forgotLink}>Forgot your password?</Text>
                         </TouchableOpacity>
 
-                   \
+                   
                         <TouchableOpacity
                             onPress={handleLogin}
                             disabled={isLoading}
