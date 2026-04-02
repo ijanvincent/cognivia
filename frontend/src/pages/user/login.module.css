@@ -385,7 +385,7 @@
   background: var(--error);
   border-radius: 8px 0 0 8px;
 }
-/* ── Field-level error shake animation ── */
+
 @keyframes errorShake {
   0%, 100% { transform: translateX(0); }
   20%       { transform: translateX(-5px); }
@@ -396,7 +396,7 @@
 
 .formGroup { margin-bottom: 20px; }
 
-/* When a field group has an error, animate it in */
+
 .formGroup:has(.inputError) {
   animation: errorShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
@@ -406,7 +406,7 @@
   letter-spacing: 0.08em;
 }
 
-/* Label turns red when the sibling input has an error */
+
 .formGroup:has(.inputError) .label {
   color: var(--error);
 }
@@ -428,7 +428,7 @@
   align-items: center;
 }
 
-/* Default focus underline (cyan) */
+
 .inputContainer::after {
   content: '';
   position: absolute;
@@ -447,7 +447,7 @@
   left: 0%;
 }
 
-/* Error underline overrides cyan underline */
+
 .inputContainerError::after {
   background: linear-gradient(90deg, var(--error), rgba(248, 113, 113, 0.6)) !important;
   width: 100% !important;
@@ -472,7 +472,7 @@
   filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg);
 }
 
-/* Icon turns red when field has error */
+
 .inputContainerError .inputIcon {
   filter: invert(1) sepia(1) saturate(5) hue-rotate(310deg);
   opacity: 0.8;
@@ -522,7 +522,7 @@
   cursor: not-allowed;
 }
 
-/* ── Error state for input ── */
+
 .inputError {
   border-color: rgba(248, 113, 113, 0.55) !important;
   background: rgba(248, 113, 113, 0.05) !important;
@@ -566,7 +566,7 @@
 
 .eyeButton:hover .eyeIcon { opacity: 0.9; }
 
-/* ── Inline field error text ── */
+
 .errorText {
   display: flex;
   align-items: center;
