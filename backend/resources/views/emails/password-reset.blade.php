@@ -7,11 +7,7 @@
   <meta name="x-apple-disable-message-reformatting"/>
   <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no"/>
   <title>Reset Your Password — CogniVia</title>
-  <!--[if mso]>
-  <noscript>
-    <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
-  </noscript>
-  <![endif]-->
+
   <style>
     * { box-sizing: border-box; }
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -89,9 +85,9 @@
                        target="_blank"
                        rel="noopener noreferrer"
                        style="display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;padding:13px 30px;border-radius:8px;background:#111827;mso-padding-alt:0;letter-spacing:0.01em;">
-                      <!--[if mso]><i style="letter-spacing:30px;mso-font-width:-100%;mso-text-raise:30pt">&nbsp;</i><![endif]-->
+    
                       Reset Password
-                      <!--[if mso]><i style="letter-spacing:30px;mso-font-width:-100%">&nbsp;</i><![endif]-->
+                    
                     </a>
                   </td>
                 </tr>
