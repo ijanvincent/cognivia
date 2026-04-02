@@ -362,11 +362,11 @@
 .errorAlert {
   background: var(--error-bg);
   border: 1px solid rgba(248, 113, 113, 0.25);
-  border-left: 3px solid var(--error);
-  border-radius: 0;
+  border-left: none;
+  border-radius: 8px;
+  position: relative;
   color: var(--error);
   padding: 11px 14px;
-  border-radius: 8px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -375,7 +375,16 @@
   font-weight: 500;
   animation: errorShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
-
+.errorAlert::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 0px;
+  height: calc(100% + 2px);
+  background: var(--error);
+  border-radius: 8px 0 0 8px;
+}
 /* ── Field-level error shake animation ── */
 @keyframes errorShake {
   0%, 100% { transform: translateX(0); }
