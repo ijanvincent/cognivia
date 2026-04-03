@@ -503,7 +503,6 @@
 .strengthMeter {
   margin-top: 10px;
   margin-bottom: 4px;
-  /* Fade in when it appears */
   animation: fadeIn 0.25s ease both;
 }
 
@@ -512,7 +511,6 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Row: "Strength" label on the left, level text on the right */
 .strengthHeader {
   display: flex;
   justify-content: space-between;
@@ -528,14 +526,12 @@
   text-transform: uppercase;
 }
 
-/* Animated colour change as strength changes */
 .strengthLabel {
   font-size: 12px;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
-/* 4-segment bar — connected single line */
 .strengthBars {
   display: flex;
   gap: 0;
@@ -551,7 +547,6 @@
   background: rgba(255, 255, 255, 0.08);
   transition: background 0.35s ease;
 }
-
 
 /* ── Submit button ──────────────────────────────────────────────────────── */
 .submitButton {
@@ -587,6 +582,12 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ADDED: Extra visual cue when consent not yet given */
+.submitButtonDisabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
 }
 
 .buttonSpinner {
@@ -629,6 +630,113 @@
 .eyeButton:focus-visible {
   outline: 2px solid var(--accent-cyan);
   outline-offset: 2px;
+}
+
+/* ── ADDED: Consent Checkbox ────────────────────────────────────────────── */
+/*
+  WHY these styles:
+  - Native <input type="checkbox"> is hidden (opacity:0, size 0) and replaced
+    with a custom div so it matches the dark design system exactly.
+  - The native input stays in the DOM for accessibility — screen readers and
+    keyboard navigation still work correctly.
+  - Wrapper gets an error border when consentTouched && !consentChecked,
+    consistent with how inputError works on the text fields above.
+*/
+
+.consentWrapper {
+  margin-top: 4px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 14px;
+  transition: border-color 0.2s ease;
+}
+
+.consentWrapperError {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.03);
+}
+
+.consentLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Hide native checkbox but keep it accessible */
+.consentCheckboxNative {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.consentCheckboxWrap {
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Custom checkbox box */
+.consentCheckbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+}
+
+.consentCheckbox:hover {
+  border-color: var(--accent-cyan);
+}
+
+.consentCheckboxChecked {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.consentCheckboxError {
+  border-color: var(--error);
+}
+
+.consentText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* Legal links inside consent text — no underline, bold white */
+.consentLink {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.consentLink:hover {
+  color: var(--accent-cyan);
+}
+
+/* Consent error message */
+.consentError {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--error);
+  font-weight: 500;
+  padding-left: 2px;
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */

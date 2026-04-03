@@ -19,7 +19,6 @@ const PASSWORD_RULES = [
 ];
 
 // ── Strength levels (index === score) ───────────────────────────────────────
-// score 0 → no input yet; score 1–5 → mapped to a level
 const STRENGTH_LEVELS = [
   null,
   { label: 'Too Weak',    color: '#ef4444', bars: 1 },
@@ -29,13 +28,10 @@ const STRENGTH_LEVELS = [
   { label: 'Very Strong', color: '#10b981', bars: 4 },
 ];
 
-// Pure helper — centralises strength logic, keeps JSX clean
 const getStrength = (password) => {
   const score = PASSWORD_RULES.filter((r) => r.test(password)).length;
   return { score, ...(STRENGTH_LEVELS[score] ?? STRENGTH_LEVELS[1]) };
 };
-
-// ────────────────────────────────────────────────────────────────────────────
 
 function UserRegister() {
   const [redirect, setRedirect] = useState(false);
@@ -49,7 +45,15 @@ function UserRegister() {
   const [loading, setLoading]                         = useState(false);
   const [showPassword, setShowPassword]               = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showStrengthMeter, setShowStrengthMeter] = useState(false);
+  const [showStrengthMeter, setShowStrengthMeter]     = useState(false);
+
+  // ── ADDED: Consent state ──────────────────────────────────────────────────
+  // WHY consentChecked: explicit affirmative consent required by GDPR Art. 7,
+  // Apple App Store guideline 5.1.1, and Google Play User Data policy.
+  // WHY consentTouched: only show the error AFTER a submit attempt —
+  // not on initial page load. Standard progressive disclosure UX pattern.
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentTouched, setConsentTouched] = useState(false);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
@@ -92,6 +96,15 @@ function UserRegister() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setShowStrengthMeter(false);
+
+    // ── ADDED: Consent guard (Layer 1 — UI logic) ─────────────────────────
+    // WHY: Mark as touched to show the error message, then hard-stop.
+    // Button is also visually disabled, but we guard here too to prevent
+    // any programmatic or accessibility bypass of the disabled state.
+    setConsentTouched(true);
+    if (!consentChecked) return;
+
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
@@ -120,6 +133,10 @@ function UserRegister() {
   if (redirect) return <Navigate to="/login" />;
 
   const strength = getStrength(formData.password);
+
+  // Button disabled when: loading OR consent not checked
+  // WHY: Visual feedback (disabled style) + logic guard in handleSubmit
+  const isSubmitDisabled = loading || !consentChecked;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -339,7 +356,7 @@ function UserRegister() {
                     )}
                   </div>
 
-                  {/* ── Password strength meter ── */}
+                  {/* Password strength meter */}
                   {showStrengthMeter && formData.password.length > 0 && (
                     <div
                       id="password-strength"
@@ -347,20 +364,14 @@ function UserRegister() {
                       aria-live="polite"
                       aria-label={`Password strength: ${strength.label || 'none'}`}
                     >
-                      {/* Header: label + strength text */}
                       <div className={styles.strengthHeader}>
                         <span className={styles.strengthTitle}>Strength</span>
                         {strength.score > 0 && (
-                          <span
-                            className={styles.strengthLabel}
-                            style={{ color: strength.color }}
-                          >
+                          <span className={styles.strengthLabel} style={{ color: strength.color }}>
                             {strength.label}
                           </span>
                         )}
                       </div>
-
-                      {/* 4-segment bar */}
                       <div className={styles.strengthBars}>
                         {[0, 1, 2, 3].map((i) => (
                           <div
@@ -419,13 +430,83 @@ function UserRegister() {
 
               </div>{/* end formRow */}
 
+              {/* ── ADDED: Consent Checkbox ─────────────────────────────────────
+                  WHAT: Replaced the implicit "By creating an account..." pattern
+                  with an explicit checkbox the user must tick before submitting.
+                  WHY: GDPR Article 7, Apple App Store guideline 5.1.1, and
+                  Google Play User Data policy all require explicit affirmative
+                  consent — passive notice text does not meet the bar.
+                  The Terms and Privacy links open the actual legal pages
+                  in the same tab via React Router (web, not browser redirect).
+                  Error only shows after a submit attempt — not on load.
+              ──────────────────────────────────────────────────────────────── */}
+              <div className={`${styles.consentWrapper} ${consentTouched && !consentChecked ? styles.consentWrapperError : ''}`}>
+                <label className={styles.consentLabel}>
+                  <div className={styles.consentCheckboxWrap}>
+                    <input
+                      type="checkbox"
+                      checked={consentChecked}
+                      onChange={(e) => {
+                        setConsentChecked(e.target.checked);
+                        if (consentTouched && e.target.checked) {
+                          setConsentTouched(false);
+                        }
+                      }}
+                      disabled={loading}
+                      className={styles.consentCheckboxNative}
+                      aria-describedby="consent-error"
+                    />
+                    {/* Custom checkbox visual */}
+                    <div className={`${styles.consentCheckbox} ${consentChecked ? styles.consentCheckboxChecked : ''} ${consentTouched && !consentChecked ? styles.consentCheckboxError : ''}`}>
+                      {consentChecked && (
+                        <svg width="11" height="9" viewBox="0 0 11 9" fill="none" aria-hidden="true">
+                          <path d="M1 4L4 7.5L10 1" stroke="#07080f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+
+                  <span className={styles.consentText}>
+                    I have read and agree to the{' '}
+                    <Link
+                      to="/terms"
+                      className={styles.consentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms of Service
+                    </Link>
+                    {' '}and{' '}
+                    <Link
+                      to="/privacy"
+                      className={styles.consentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Privacy Policy
+                    </Link>
+                  </span>
+                </label>
+
+                {/* Error — only shown after submit attempt without consent */}
+                {consentTouched && !consentChecked && (
+                  <span id="consent-error" className={styles.consentError} role="alert">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                    </svg>
+                    You must agree to the Terms and Privacy Policy to continue.
+                  </span>
+                )}
+              </div>
+
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading}
-                className={styles.submitButton}
+                disabled={isSubmitDisabled}
+                className={`${styles.submitButton} ${!consentChecked ? styles.submitButtonDisabled : ''}`}
                 aria-busy={loading}
-                onClick={() => setShowStrengthMeter(false)}
               >
                 {loading ? (
                   <>
