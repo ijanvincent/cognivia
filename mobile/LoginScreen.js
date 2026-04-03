@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     flex:             { flex: 1 },
     overlay:          { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
     scrollContent:    { flexGrow: 1, paddingHorizontal: 28, paddingVertical: 40, justifyContent: 'center', minHeight: H },
-    brandSection:     { alignItems: 'flex-start', marginBottom: 40 },
+    brandSection:     { alignItems: 'center', marginBottom: 40 },
     brandName:        { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 28 },
     brandWelcome:     { fontFamily: 'Syne_700Bold', fontSize: 26, fontWeight: '700', color: '#ffffff', letterSpacing: -0.3, marginBottom: 6 },
     brandSub:         { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300' },

@@ -96,17 +96,6 @@
             </td>
           </tr>
 
-          {{-- FALLBACK LINK --}}
-          <tr>
-            <td style="padding:20px 36px;border-top:1px solid #f0f0f0;background:#fafafa;">
-              <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#9ca3af;margin:0 0 6px;line-height:1.6;">
-                Button not working? Copy and paste this link into your browser:
-              </p>
-              <p style="font-family:'Courier New',Courier,monospace;font-size:12px;color:#6366f1;margin:0;word-break:break-all;line-height:1.6;">
-                {{ $resetUrl }}
-              </p>
-            </td>
-          </tr>
 
           <tr>
             <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
