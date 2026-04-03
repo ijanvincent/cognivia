@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator,
     StyleSheet, KeyboardAvoidingView, Platform,
-    ScrollView, TextInput, Dimensions,
+    ScrollView, TextInput, Dimensions, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,22 @@ import api from './services/api';
 
 const { height: H } = Dimensions.get('window');
 
+// ─── Web URL (from env, falls back to production domain) ─────────────────────
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://cognivia.com';
+
+/**
+ * Opens the legal page in the device's default browser.
+ * @param {'terms' | 'privacy'} page
+ */
+const openLegal = async (page) => {
+    const url = `${WEB_URL}/${page}`;
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+        await Linking.openURL(url);
+    }
+};
+
+// ─── Wave Background ──────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -50,9 +66,12 @@ const WaveBackground = () => (
     </Svg>
 );
 
-const Input = ({ value, onChangeText, placeholder, secureTextEntry,
-    keyboardType, icon, rightIcon, onRightIconPress, editable, autoCapitalize,
-    onFocusCallback, onBlurCallback }) => {
+// ─── Reusable Input ───────────────────────────────────────────────────────────
+const Input = ({
+    value, onChangeText, placeholder, secureTextEntry,
+    keyboardType, icon, rightIcon, onRightIconPress,
+    editable, autoCapitalize, onFocusCallback, onBlurCallback,
+}) => {
     const [focused, setFocused] = useState(false);
     return (
         <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
@@ -93,6 +112,7 @@ const Input = ({ value, onChangeText, placeholder, secureTextEntry,
     );
 };
 
+// ─── Password Requirement Row ─────────────────────────────────────────────────
 const PasswordRequirement = ({ met, label }) => (
     <View style={styles.reqRow}>
         {met ? (
@@ -104,6 +124,7 @@ const PasswordRequirement = ({ met, label }) => (
     </View>
 );
 
+// ─── Password Rules ───────────────────────────────────────────────────────────
 const PASSWORD_RULES = [
     { key: 'lowercase', label: 'At least one lowercase letter', test: (p) => /[a-z]/.test(p) },
     { key: 'uppercase', label: 'At least one uppercase letter', test: (p) => /[A-Z]/.test(p) },
@@ -112,6 +133,7 @@ const PASSWORD_RULES = [
     { key: 'length',    label: 'Minimum 8 characters',          test: (p) => p.length >= 8 },
 ];
 
+// ─── Register Screen ──────────────────────────────────────────────────────────
 const RegisterScreen = () => {
     const navigation = useNavigation();
 
@@ -127,7 +149,7 @@ const RegisterScreen = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordFocused, setPasswordFocused]         = useState(false);
     const [confirmFocused, setConfirmFocused]           = useState(false);
-    const [strengthDismissed, setStrengthDismissed]     = useState(false); // ← NEW
+    const [strengthDismissed, setStrengthDismissed]     = useState(false);
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -161,7 +183,7 @@ const RegisterScreen = () => {
     };
 
     const handleRegister = async () => {
-        setStrengthDismissed(true); // ← HIDE meter immediately on press
+        setStrengthDismissed(true);
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -194,10 +216,9 @@ const RegisterScreen = () => {
         }
     };
 
-    // Show meter only when: password field focused OR has content with no other field active
-    // AND user hasn't dismissed it by pressing Create Account
+    // Show meter only when password is focused or has content (and not dismissed)
     const showPasswordRules = !strengthDismissed &&
-        (passwordFocused || (!confirmFocused && formData.password.length > 0)); // ← UPDATED
+        (passwordFocused || (!confirmFocused && formData.password.length > 0));
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -214,6 +235,7 @@ const RegisterScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
+                    {/* Back Button */}
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}
@@ -221,6 +243,7 @@ const RegisterScreen = () => {
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
+                    {/* Brand Section */}
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Join and start learning smarter today.
@@ -229,6 +252,7 @@ const RegisterScreen = () => {
 
                     <View style={styles.formSection}>
 
+                        {/* General Error */}
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
                                 <MaterialCommunityIcons name="alert-circle-outline" size={16} color={COLORS.error} />
@@ -236,7 +260,7 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
-                        {/* Username — focus hides the meter */}
+                        {/* Username */}
                         <Input
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
@@ -247,7 +271,7 @@ const RegisterScreen = () => {
                         />
                         {!!errors.username && <Text style={styles.fieldError}>{errors.username}</Text>}
 
-                        {/* Email — focus hides the meter */}
+                        {/* Email */}
                         <Input
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
@@ -259,7 +283,7 @@ const RegisterScreen = () => {
                         />
                         {!!errors.email && <Text style={styles.fieldError}>{errors.email}</Text>}
 
-                        {/* Password — focus SHOWS the meter (resets dismiss) */}
+                        {/* Password */}
                         <View style={[styles.inputWrap, passwordFocused && styles.inputWrapFocused]}>
                             <MaterialCommunityIcons
                                 name="lock-outline"
@@ -278,7 +302,7 @@ const RegisterScreen = () => {
                                 autoCorrect={false}
                                 onFocus={() => {
                                     setPasswordFocused(true);
-                                    setStrengthDismissed(false); // ← re-show when user taps password again
+                                    setStrengthDismissed(false);
                                 }}
                                 onBlur={() => setPasswordFocused(false)}
                                 editable={!isLoading}
@@ -295,6 +319,7 @@ const RegisterScreen = () => {
                             </TouchableOpacity>
                         </View>
 
+                        {/* Password Strength Meter */}
                         {showPasswordRules && (
                             <View style={styles.reqContainer}>
                                 {PASSWORD_RULES.map(rule => (
@@ -306,10 +331,9 @@ const RegisterScreen = () => {
                                 ))}
                             </View>
                         )}
-
                         {!!errors.password && <Text style={styles.fieldError}>{errors.password}</Text>}
 
-                        {/* Confirm Password — focus hides the meter */}
+                        {/* Confirm Password */}
                         <Input
                             value={formData.password_confirmation}
                             onChangeText={v => updateField('password_confirmation', v)}
@@ -321,7 +345,7 @@ const RegisterScreen = () => {
                             editable={!isLoading}
                             onFocusCallback={() => {
                                 setConfirmFocused(true);
-                                setStrengthDismissed(true); // ← hide when confirm is tapped
+                                setStrengthDismissed(true);
                             }}
                             onBlurCallback={() => setConfirmFocused(false)}
                         />
@@ -329,13 +353,30 @@ const RegisterScreen = () => {
                             <Text style={styles.fieldError}>{errors.password_confirmation}</Text>
                         )}
 
+                        {/* ── Terms & Privacy ───────────────────────────────────
+                            CHANGED: Wrapped "Terms" and "Privacy Policy" in
+                            Text with onPress → openLegal().
+                            WHY: Tapping opens the web legal page in the device
+                            browser via Linking.openURL() — React Native standard.
+                        ─────────────────────────────────────────────────────── */}
                         <Text style={styles.termsText}>
                             By signing up you agree to our{' '}
-                            <Text style={styles.termsLink}>Terms</Text>
+                            <Text
+                                style={styles.termsLink}
+                                onPress={() => openLegal('terms')}
+                            >
+                                Terms
+                            </Text>
                             {' '}and{' '}
-                            <Text style={styles.termsLink}>Privacy Policy</Text>.
+                            <Text
+                                style={styles.termsLink}
+                                onPress={() => openLegal('privacy')}
+                            >
+                                Privacy Policy
+                            </Text>.
                         </Text>
 
+                        {/* Create Account Button */}
                         <TouchableOpacity
                             onPress={handleRegister}
                             disabled={isLoading}
@@ -348,6 +389,7 @@ const RegisterScreen = () => {
                             }
                         </TouchableOpacity>
 
+                        {/* Sign In Link */}
                         <View style={styles.loginRow}>
                             <Text style={styles.loginPrompt}>Already have an account? </Text>
                             <TouchableOpacity
@@ -357,6 +399,7 @@ const RegisterScreen = () => {
                                 <Text style={styles.loginLink}>Sign in</Text>
                             </TouchableOpacity>
                         </View>
+
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -364,6 +407,7 @@ const RegisterScreen = () => {
     );
 };
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
     safeArea:         { flex: 1, backgroundColor: COLORS.bg },
     flex:             { flex: 1 },
