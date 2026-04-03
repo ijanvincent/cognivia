@@ -51,7 +51,8 @@ const WaveBackground = () => (
 );
 
 const Input = ({ value, onChangeText, placeholder, secureTextEntry,
-    keyboardType, icon, rightIcon, onRightIconPress, editable, autoCapitalize }) => {
+    keyboardType, icon, rightIcon, onRightIconPress, editable, autoCapitalize,
+    onFocusCallback, onBlurCallback }) => {
     const [focused, setFocused] = useState(false);
     return (
         <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
@@ -71,8 +72,8 @@ const Input = ({ value, onChangeText, placeholder, secureTextEntry,
                 keyboardType={keyboardType || 'default'}
                 autoCapitalize={autoCapitalize || 'none'}
                 autoCorrect={false}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
+                onFocus={() => { setFocused(true); onFocusCallback?.(); }}
+                onBlur={() => { setFocused(false); onBlurCallback?.(); }}
                 editable={editable !== false}
             />
             {rightIcon && (
@@ -92,6 +93,25 @@ const Input = ({ value, onChangeText, placeholder, secureTextEntry,
     );
 };
 
+const PasswordRequirement = ({ met, label }) => (
+    <View style={styles.reqRow}>
+        {met ? (
+            <MaterialCommunityIcons name="check-circle" size={16} color="#22c55e" />
+        ) : (
+            <View style={styles.reqDot} />
+        )}
+        <Text style={[styles.reqText, met && styles.reqTextMet]}>{label}</Text>
+    </View>
+);
+
+const PASSWORD_RULES = [
+    { key: 'lowercase', label: 'At least one lowercase letter', test: (p) => /[a-z]/.test(p) },
+    { key: 'uppercase', label: 'At least one uppercase letter', test: (p) => /[A-Z]/.test(p) },
+    { key: 'number',    label: 'At least one number',           test: (p) => /[0-9]/.test(p) },
+    { key: 'special',   label: 'At least one special character', test: (p) => /[^a-zA-Z0-9]/.test(p) },
+    { key: 'length',    label: 'Minimum 8 characters',          test: (p) => p.length >= 8 },
+];
+
 const RegisterScreen = () => {
     const navigation = useNavigation();
 
@@ -105,6 +125,9 @@ const RegisterScreen = () => {
     const [isLoading, setIsLoading]                     = useState(false);
     const [showPassword, setShowPassword]               = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordFocused, setPasswordFocused]         = useState(false);
+    const [confirmFocused, setConfirmFocused]           = useState(false);
+    const [strengthDismissed, setStrengthDismissed]     = useState(false); // ← NEW
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -128,8 +151,6 @@ const RegisterScreen = () => {
         }
         if (!formData.password) {
             e.password = 'Password is required.';
-        } else if (formData.password.length < 8) {
-            e.password = 'Password must be at least 8 characters.';
         }
         if (!formData.password_confirmation) {
             e.password_confirmation = 'Please confirm your password.';
@@ -140,6 +161,7 @@ const RegisterScreen = () => {
     };
 
     const handleRegister = async () => {
+        setStrengthDismissed(true); // ← HIDE meter immediately on press
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -172,6 +194,11 @@ const RegisterScreen = () => {
         }
     };
 
+    // Show meter only when: password field focused OR has content with no other field active
+    // AND user hasn't dismissed it by pressing Create Account
+    const showPasswordRules = !strengthDismissed &&
+        (passwordFocused || (!confirmFocused && formData.password.length > 0)); // ← UPDATED
+
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <StatusBar style="light" backgroundColor={COLORS.bg} translucent={false} />
@@ -187,7 +214,6 @@ const RegisterScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                   
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}
@@ -210,15 +236,18 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
+                        {/* Username — focus hides the meter */}
                         <Input
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
                             placeholder="Username"
                             icon="account-outline"
                             editable={!isLoading}
+                            onFocusCallback={() => setStrengthDismissed(true)}
                         />
                         {!!errors.username && <Text style={styles.fieldError}>{errors.username}</Text>}
 
+                        {/* Email — focus hides the meter */}
                         <Input
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
@@ -226,21 +255,61 @@ const RegisterScreen = () => {
                             keyboardType="email-address"
                             icon="email-outline"
                             editable={!isLoading}
+                            onFocusCallback={() => setStrengthDismissed(true)}
                         />
                         {!!errors.email && <Text style={styles.fieldError}>{errors.email}</Text>}
 
-                        <Input
-                            value={formData.password}
-                            onChangeText={v => updateField('password', v)}
-                            placeholder="Password"
-                            secureTextEntry={!showPassword}
-                            icon="lock-outline"
-                            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                            onRightIconPress={() => setShowPassword(p => !p)}
-                            editable={!isLoading}
-                        />
+                        {/* Password — focus SHOWS the meter (resets dismiss) */}
+                        <View style={[styles.inputWrap, passwordFocused && styles.inputWrapFocused]}>
+                            <MaterialCommunityIcons
+                                name="lock-outline"
+                                size={20}
+                                color={passwordFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                                style={styles.inputIcon}
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={formData.password}
+                                onChangeText={v => updateField('password', v)}
+                                placeholder="Password"
+                                placeholderTextColor="rgba(255,255,255,0.3)"
+                                secureTextEntry={!showPassword}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                onFocus={() => {
+                                    setPasswordFocused(true);
+                                    setStrengthDismissed(false); // ← re-show when user taps password again
+                                }}
+                                onBlur={() => setPasswordFocused(false)}
+                                editable={!isLoading}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setShowPassword(p => !p)}
+                                style={styles.eyeBtn}
+                            >
+                                <MaterialCommunityIcons
+                                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                    size={20}
+                                    color={passwordFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        {showPasswordRules && (
+                            <View style={styles.reqContainer}>
+                                {PASSWORD_RULES.map(rule => (
+                                    <PasswordRequirement
+                                        key={rule.key}
+                                        met={rule.test(formData.password)}
+                                        label={rule.label}
+                                    />
+                                ))}
+                            </View>
+                        )}
+
                         {!!errors.password && <Text style={styles.fieldError}>{errors.password}</Text>}
 
+                        {/* Confirm Password — focus hides the meter */}
                         <Input
                             value={formData.password_confirmation}
                             onChangeText={v => updateField('password_confirmation', v)}
@@ -250,6 +319,11 @@ const RegisterScreen = () => {
                             rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
                             onRightIconPress={() => setShowConfirmPassword(p => !p)}
                             editable={!isLoading}
+                            onFocusCallback={() => {
+                                setConfirmFocused(true);
+                                setStrengthDismissed(true); // ← hide when confirm is tapped
+                            }}
+                            onBlurCallback={() => setConfirmFocused(false)}
                         />
                         {!!errors.password_confirmation && (
                             <Text style={styles.fieldError}>{errors.password_confirmation}</Text>
@@ -296,12 +370,13 @@ const styles = StyleSheet.create({
     overlay:          { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
     scrollContent:    { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
     backBtn:          { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
-    brandSection:     { alignItems: 'flex-start', marginBottom: 32 },
+    brandSection:     { alignItems: 'center', marginBottom: 32 },
     brandName:        { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 20 },
     brandWelcome:     { fontFamily: 'Syne_700Bold', fontSize: 22, fontWeight: '800', color: '#ffffff', letterSpacing: 1.5, textTransform: 'uppercase', textAlign: 'center', marginBottom: 6 },
     brandSub:         { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
     formSection:      { width: '100%' },
     inputWrap:        { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+    inputWrapNoMb:    { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
     inputWrapFocused: { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
     inputIcon:        { marginRight: 12 },
     input:            { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
@@ -317,6 +392,11 @@ const styles = StyleSheet.create({
     loginRow:         { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
     loginPrompt:      { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
     loginLink:        { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+    reqContainer:     { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 14, gap: 6 },
+    reqRow:           { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    reqDot:           { width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
+    reqText:          { fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: '400' },
+    reqTextMet:       { color: '#22c55e', fontWeight: '500' },
 });
 
 export default RegisterScreen;

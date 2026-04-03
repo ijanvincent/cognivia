@@ -1,29 +1,27 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&...');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@1,700;1,800&display=swap');
 
+/* ── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --bg-deep: #07080f;
-  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-deep:        #07080f;
+  --bg-card:        rgba(255, 255, 255, 0.04);
   --bg-card-border: rgba(255, 255, 255, 0.09);
-  --accent-cyan: #22d3ee;
-  --accent-pink: #e879f9;
-  --accent-purple: #a855f7;
-  --text-primary: #f1f5f9;
+  --accent-cyan:    #22d3ee;
+  --accent-pink:    #e879f9;
+  --accent-purple:  #a855f7;
+  --text-primary:   #f1f5f9;
   --text-secondary: rgba(241, 245, 249, 0.55);
-  --text-muted: rgba(241, 245, 249, 0.35);
-  --input-bg: rgba(255, 255, 255, 0.05);
-  --input-border: rgba(255, 255, 255, 0.1);
-  --error: #f87171;
-  --error-bg: rgba(248, 113, 113, 0.08);
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --text-muted:     rgba(241, 245, 249, 0.35);
+  --input-bg:       rgba(255, 255, 255, 0.05);
+  --input-border:   rgba(255, 255, 255, 0.1);
+  --error:          #f87171;
+  --error-bg:       rgba(248, 113, 113, 0.08);
+  --font-display:   'Syne', sans-serif;
+  --font-body:      'DM Sans', sans-serif;
 }
 
 * { box-sizing: border-box; }
 
-
+/* ── Page shell ─────────────────────────────────────────────────────────── */
 .pageContainer {
   min-height: 100vh;
   width: 100%;
@@ -35,7 +33,7 @@
   overflow: hidden;
 }
 
-
+/* ── Animated background ────────────────────────────────────────────────── */
 .bgCanvas {
   position: fixed;
   inset: 0;
@@ -62,6 +60,7 @@
   100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
 
+/* ── Loading overlay ────────────────────────────────────────────────────── */
 .loadingOverlay {
   position: fixed;
   inset: 0;
@@ -86,7 +85,7 @@
   to { transform: rotate(360deg); }
 }
 
-
+/* ── Top bar ────────────────────────────────────────────────────────────── */
 .topBar {
   position: relative;
   z-index: 10;
@@ -146,13 +145,15 @@
   height: 1.5px;
   background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
   border-radius: 2px;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    left  0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navLink:hover { color: var(--text-primary); }
 .navLink:hover::after { width: 100%; left: 0%; }
 
-
+/* ── Main content layout ────────────────────────────────────────────────── */
 .mainContent {
   position: relative;
   z-index: 5;
@@ -167,7 +168,7 @@
   width: 100%;
 }
 
-
+/* ── Hero ───────────────────────────────────────────────────────────────── */
 .heroSection {
   flex: 1;
   animation: fadeLeft 0.7s ease-out 0.1s both;
@@ -266,7 +267,7 @@
   background: rgba(34, 211, 238, 0.06);
 }
 
-
+/* ── Card ───────────────────────────────────────────────────────────────── */
 .cardWrapper {
   flex-shrink: 0;
   width: 460px;
@@ -285,7 +286,7 @@
   padding: 36px 36px 32px;
   backdrop-filter: blur(24px);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 24px 60px rgba(0, 0, 0, 0.5),
     0 0 80px rgba(34, 211, 238, 0.04);
 }
@@ -303,7 +304,6 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 28px;
-  font-style: normal;
   color: #f1f5f9;
   margin: 0 0 6px 0;
   letter-spacing: -0.3px;
@@ -317,6 +317,7 @@
   font-weight: 400;
 }
 
+/* ── Form ───────────────────────────────────────────────────────────────── */
 .form {
   display: flex;
   flex-direction: column;
@@ -336,7 +337,6 @@
   font-size: 13px;
   font-weight: 500;
 }
-
 
 .formRow {
   display: grid;
@@ -362,7 +362,7 @@
   transition: color 0.25s ease, letter-spacing 0.25s ease;
 }
 
-
+/* ── Input ──────────────────────────────────────────────────────────────── */
 .inputContainer {
   position: relative;
   display: flex;
@@ -378,7 +378,9 @@
   height: 2px;
   background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
   border-radius: 0 0 10px 10px;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    left  0.35s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
@@ -456,7 +458,7 @@
   box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1) !important;
 }
 
-
+/* ── Eye toggle ─────────────────────────────────────────────────────────── */
 .eyeButton {
   position: absolute;
   right: 10px;
@@ -487,6 +489,7 @@
 
 .eyeButton:hover .eyeIcon { opacity: 0.9; }
 
+/* ── Error text ─────────────────────────────────────────────────────────── */
 .errorText {
   display: block;
   color: var(--error);
@@ -496,7 +499,61 @@
   padding-left: 2px;
 }
 
+/* ── Password strength meter ────────────────────────────────────────────── */
+.strengthMeter {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  /* Fade in when it appears */
+  animation: fadeIn 0.25s ease both;
+}
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Row: "Strength" label on the left, level text on the right */
+.strengthHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.strengthTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Animated colour change as strength changes */
+.strengthLabel {
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* 4-segment bar — connected single line */
+.strengthBars {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.strengthBar {
+  flex: 1;
+  height: 4px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.35s ease;
+}
+
+
+/* ── Submit button ──────────────────────────────────────────────────────── */
 .submitButton {
   width: 100%;
   padding: 14px;
@@ -541,7 +598,7 @@
   animation: spin 0.8s linear infinite;
 }
 
-
+/* ── Footer links ───────────────────────────────────────────────────────── */
 .linksSection {
   margin-top: 20px;
   padding-top: 18px;
@@ -566,7 +623,7 @@
   text-decoration: underline;
 }
 
-
+/* ── Focus-visible rings (accessibility) ────────────────────────────────── */
 .inputField:focus-visible,
 .submitButton:focus-visible,
 .eyeButton:focus-visible {
@@ -574,6 +631,7 @@
   outline-offset: 2px;
 }
 
+/* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .topBarNav { display: none; }
 
@@ -593,34 +651,25 @@
 }
 
 @media (max-width: 540px) {
-  .topBar { padding: 16px 24px; }
+  .topBar    { padding: 16px 24px; }
   .loginCard { padding: 28px 20px; }
   .heroTitle { font-size: 32px; letter-spacing: -1px; }
-  .inputField { font-size: 16px; }
+  .inputField { font-size: 16px; } /* prevents iOS zoom */
   .formRow { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-  .wavePath {
-    animation: none;
-    display: none;
-  }
-
-  .bgCanvas {
-    display: none;
-  }
-
+  .wavePath  { animation: none; display: none; }
+  .bgCanvas  { display: none; }
   .pageContainer {
-    background: linear-gradient(
-      135deg,
-      #07080f 0%,
-      #0d0f1f 50%,
-      #07080f 100%
-    );
+    background: linear-gradient(135deg, #07080f 0%, #0d0f1f 50%, #07080f 100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wavePath { animation: none; }
-  .bgCanvas { display: none; }
+  .wavePath       { animation: none; }
+  .bgCanvas       { display: none; }
+  .strengthMeter  { animation: none; }
+  .strengthBar    { transition: none; }
+  .strengthLabel  { transition: none; }
 }
