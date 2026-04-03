@@ -14,11 +14,11 @@ import api from './services/api';
 
 const { height: H } = Dimensions.get('window');
 
-// ─── Web URL (from env, falls back to production domain) ─────────────────────
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://cognivia.com';
 
 /**
  * Opens the legal page in the device's default browser.
+ * WHY: Linking.openURL() is the React Native standard for external URLs.
  * @param {'terms' | 'privacy'} page
  */
 const openLegal = async (page) => {
@@ -29,7 +29,7 @@ const openLegal = async (page) => {
     }
 };
 
-// ─── Wave Background ──────────────────────────────────────────────────────────
+
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -66,7 +66,6 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ─── Reusable Input ───────────────────────────────────────────────────────────
 const Input = ({
     value, onChangeText, placeholder, secureTextEntry,
     keyboardType, icon, rightIcon, onRightIconPress,
@@ -112,7 +111,7 @@ const Input = ({
     );
 };
 
-// ─── Password Requirement Row ─────────────────────────────────────────────────
+
 const PasswordRequirement = ({ met, label }) => (
     <View style={styles.reqRow}>
         {met ? (
@@ -124,7 +123,7 @@ const PasswordRequirement = ({ met, label }) => (
     </View>
 );
 
-// ─── Password Rules ───────────────────────────────────────────────────────────
+
 const PASSWORD_RULES = [
     { key: 'lowercase', label: 'At least one lowercase letter', test: (p) => /[a-z]/.test(p) },
     { key: 'uppercase', label: 'At least one uppercase letter', test: (p) => /[A-Z]/.test(p) },
@@ -133,7 +132,54 @@ const PASSWORD_RULES = [
     { key: 'length',    label: 'Minimum 8 characters',          test: (p) => p.length >= 8 },
 ];
 
-// ─── Register Screen ──────────────────────────────────────────────────────────
+
+
+const ConsentCheckbox = ({ checked, onToggle, onTermsPress, onPrivacyPress, hasError }) => (
+    <View style={styles.consentWrapper}>
+        <TouchableOpacity
+            onPress={onToggle}
+            activeOpacity={0.7}
+            style={[styles.consentRow, hasError && styles.consentRowError]}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked }}
+            accessibilityLabel="I agree to the Terms of Service and Privacy Policy"
+        >
+    
+            <View style={[
+                styles.checkbox,
+                checked  && styles.checkboxChecked,
+                hasError && !checked && styles.checkboxError,
+            ]}>
+                {checked && (
+                    <MaterialCommunityIcons name="check" size={13} color="#07080f" />
+                )}
+            </View>
+
+            
+            <Text style={styles.consentText}>
+                I accept the{' '}
+                <Text style={styles.consentLink} onPress={onTermsPress}>
+                  Terms
+                </Text>
+                {' '}and{' '}
+                <Text style={styles.consentLink} onPress={onPrivacyPress}>
+                    Privacy Policy
+                </Text>
+            </Text>
+        </TouchableOpacity>
+
+      
+        {hasError && (
+            <View style={styles.consentErrorRow}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={13} color={COLORS.error} />
+                <Text style={styles.consentErrorText}>
+                    You must agree to the Terms and Privacy Policy to continue.
+                </Text>
+            </View>
+        )}
+    </View>
+);
+
 const RegisterScreen = () => {
     const navigation = useNavigation();
 
@@ -150,6 +196,10 @@ const RegisterScreen = () => {
     const [passwordFocused, setPasswordFocused]         = useState(false);
     const [confirmFocused, setConfirmFocused]           = useState(false);
     const [strengthDismissed, setStrengthDismissed]     = useState(false);
+
+
+    const [consentChecked, setConsentChecked] = useState(false);
+    const [consentTouched, setConsentTouched] = useState(false);
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -184,13 +234,20 @@ const RegisterScreen = () => {
 
     const handleRegister = async () => {
         setStrengthDismissed(true);
+
+     
+        setConsentTouched(true);
+        if (!consentChecked) return;
+
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
+
         setIsLoading(true);
         setErrors({});
+
         try {
             await api.post('/auth/register', {
                 username:              formData.username.trim(),
@@ -216,9 +273,12 @@ const RegisterScreen = () => {
         }
     };
 
-    // Show meter only when password is focused or has content (and not dismissed)
+
     const showPasswordRules = !strengthDismissed &&
         (passwordFocused || (!confirmFocused && formData.password.length > 0));
+
+    
+    const isButtonDisabled = isLoading || !consentChecked;
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -235,7 +295,7 @@ const RegisterScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Back Button */}
+                
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}
@@ -243,7 +303,7 @@ const RegisterScreen = () => {
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
-                    {/* Brand Section */}
+                  
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Join and start learning smarter today.
@@ -252,7 +312,7 @@ const RegisterScreen = () => {
 
                     <View style={styles.formSection}>
 
-                        {/* General Error */}
+                     
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
                                 <MaterialCommunityIcons name="alert-circle-outline" size={16} color={COLORS.error} />
@@ -260,7 +320,7 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
-                        {/* Username */}
+                  
                         <Input
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
@@ -271,7 +331,7 @@ const RegisterScreen = () => {
                         />
                         {!!errors.username && <Text style={styles.fieldError}>{errors.username}</Text>}
 
-                        {/* Email */}
+                      
                         <Input
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
@@ -283,7 +343,7 @@ const RegisterScreen = () => {
                         />
                         {!!errors.email && <Text style={styles.fieldError}>{errors.email}</Text>}
 
-                        {/* Password */}
+                    
                         <View style={[styles.inputWrap, passwordFocused && styles.inputWrapFocused]}>
                             <MaterialCommunityIcons
                                 name="lock-outline"
@@ -319,7 +379,7 @@ const RegisterScreen = () => {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Password Strength Meter */}
+                     
                         {showPasswordRules && (
                             <View style={styles.reqContainer}>
                                 {PASSWORD_RULES.map(rule => (
@@ -333,7 +393,7 @@ const RegisterScreen = () => {
                         )}
                         {!!errors.password && <Text style={styles.fieldError}>{errors.password}</Text>}
 
-                        {/* Confirm Password */}
+             
                         <Input
                             value={formData.password_confirmation}
                             onChangeText={v => updateField('password_confirmation', v)}
@@ -353,35 +413,23 @@ const RegisterScreen = () => {
                             <Text style={styles.fieldError}>{errors.password_confirmation}</Text>
                         )}
 
-                        {/* ── Terms & Privacy ───────────────────────────────────
-                            CHANGED: Wrapped "Terms" and "Privacy Policy" in
-                            Text with onPress → openLegal().
-                            WHY: Tapping opens the web legal page in the device
-                            browser via Linking.openURL() — React Native standard.
-                        ─────────────────────────────────────────────────────── */}
-                        <Text style={styles.termsText}>
-                            By signing up you agree to our{' '}
-                            <Text
-                                style={styles.termsLink}
-                                onPress={() => openLegal('terms')}
-                            >
-                                Terms
-                            </Text>
-                            {' '}and{' '}
-                            <Text
-                                style={styles.termsLink}
-                                onPress={() => openLegal('privacy')}
-                            >
-                                Privacy Policy
-                            </Text>.
-                        </Text>
+                     
+                        <ConsentCheckbox
+                            checked={consentChecked}
+                            onToggle={() => setConsentChecked(p => !p)}
+                            onTermsPress={() => openLegal('terms')}
+                            onPrivacyPress={() => openLegal('privacy')}
+                            hasError={consentTouched && !consentChecked}
+                        />
 
-                        {/* Create Account Button */}
                         <TouchableOpacity
                             onPress={handleRegister}
-                            disabled={isLoading}
+                            disabled={isButtonDisabled}
                             activeOpacity={0.88}
-                            style={[styles.btnCreate, isLoading && styles.btnDisabled]}
+                            style={[
+                                styles.btnCreate,
+                                isButtonDisabled && styles.btnDisabled,
+                            ]}
                         >
                             {isLoading
                                 ? <ActivityIndicator color="#07080f" />
@@ -389,7 +437,7 @@ const RegisterScreen = () => {
                             }
                         </TouchableOpacity>
 
-                        {/* Sign In Link */}
+                     
                         <View style={styles.loginRow}>
                             <Text style={styles.loginPrompt}>Already have an account? </Text>
                             <TouchableOpacity
@@ -407,40 +455,51 @@ const RegisterScreen = () => {
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    safeArea:         { flex: 1, backgroundColor: COLORS.bg },
-    flex:             { flex: 1 },
-    overlay:          { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
-    scrollContent:    { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
-    backBtn:          { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
-    brandSection:     { alignItems: 'center', marginBottom: 32 },
-    brandName:        { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 20 },
-    brandWelcome:     { fontFamily: 'Syne_700Bold', fontSize: 22, fontWeight: '800', color: '#ffffff', letterSpacing: 1.5, textTransform: 'uppercase', textAlign: 'center', marginBottom: 6 },
-    brandSub:         { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
-    formSection:      { width: '100%' },
-    inputWrap:        { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
-    inputWrapNoMb:    { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
-    inputWrapFocused: { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
-    inputIcon:        { marginRight: 12 },
-    input:            { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
-    eyeBtn:           { paddingLeft: 10 },
-    errorAlert:       { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText:   { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-    fieldError:       { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
-    termsText:        { fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 20, marginBottom: 24, marginTop: 4 },
-    termsLink:        { color: '#ffffff', fontWeight: '700' },
-    btnCreate:        { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-    btnDisabled:      { opacity: 0.6 },
-    btnCreateText:    { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
-    loginRow:         { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    loginPrompt:      { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-    loginLink:        { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
-    reqContainer:     { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 14, gap: 6 },
-    reqRow:           { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    reqDot:           { width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
-    reqText:          { fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: '400' },
-    reqTextMet:       { color: '#22c55e', fontWeight: '500' },
+    safeArea:          { flex: 1, backgroundColor: COLORS.bg },
+    flex:              { flex: 1 },
+    overlay:           { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    scrollContent:     { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
+    backBtn:           { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
+    brandSection:      { alignItems: 'center', marginBottom: 32 },
+    brandName:         { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 20 },
+    brandWelcome:      { fontFamily: 'Syne_700Bold', fontSize: 22, fontWeight: '800', color: '#ffffff', letterSpacing: 1.5, textTransform: 'uppercase', textAlign: 'center', marginBottom: 6 },
+    brandSub:          { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
+    formSection:       { width: '100%' },
+    inputWrap:         { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+    inputWrapNoMb:     { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+    inputWrapFocused:  { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
+    inputIcon:         { marginRight: 12 },
+    input:             { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
+    eyeBtn:            { paddingLeft: 10 },
+    errorAlert:        { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
+    errorAlertText:    { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    fieldError:        { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
+
+    consentWrapper:    { marginBottom: 20, marginTop: 4 },
+    consentRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)' },
+    consentRowError:   { borderColor: 'rgba(239,68,68,0.4)' },
+    checkbox:          { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
+    checkboxChecked:   { backgroundColor: COLORS.cyan, borderColor: COLORS.cyan },
+    checkboxError:     { borderColor: COLORS.error },
+    consentText:       { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 20, fontWeight: '300' },
+    consentLink:       { color: '#ffffff', fontWeight: '700' },
+    consentErrorRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, marginLeft: 2 },
+    consentErrorText:  { fontSize: 12, color: COLORS.error, fontWeight: '500', flex: 1 },
+
+   
+    btnCreate:         { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    btnDisabled:       { opacity: 0.35 },
+    btnCreateText:     { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    loginRow:          { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    loginPrompt:       { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    loginLink:         { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+
+    reqContainer:      { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 14, gap: 6 },
+    reqRow:            { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    reqDot:            { width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
+    reqText:           { fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: '400' },
+    reqTextMet:        { color: '#22c55e', fontWeight: '500' },
 });
 
 export default RegisterScreen;
