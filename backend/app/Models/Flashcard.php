@@ -11,12 +11,16 @@ class Flashcard extends Model
         'user_id',
         'question',
         'answer',
+        'type',
+        'options',
+        'explanation',
         'mastered',
         'review_count',
     ];
 
     protected $casts = [
-        'mastered' => 'boolean',
+        'mastered'  => 'boolean',
+        'options'   => 'array',     // JSON column auto-cast to/from PHP array
     ];
 
     public function deck(): \Illuminate\Database\Eloquent\Relations\BelongsTo

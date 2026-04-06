@@ -15,7 +15,6 @@ class FlashcardService
 
     public function getFlashcards(int $deckId, int $userId): Collection
     {
-
         $deck = Deck::where('id', $deckId)
                     ->where('user_id', $userId)
                     ->first();
@@ -31,7 +30,6 @@ class FlashcardService
 
     public function saveFlashcards(int $deckId, int $userId, array $cards): void
     {
-      
         $deck = Deck::where('id', $deckId)
                     ->where('user_id', $userId)
                     ->first();
@@ -49,8 +47,17 @@ class FlashcardService
         $flashcards = array_map(fn($card) => [
             'deck_id'      => $deckId,
             'user_id'      => $userId,
+            'type'         => $card['type']        ?? 'identification',
             'question'     => $card['question'],
             'answer'       => $card['answer'],
+
+            // options and explanation are only populated for multiple_choice cards.
+            // json_encode because insert() bypasses Eloquent model casts.
+            'options'      => isset($card['options'])
+                                ? json_encode($card['options'])
+                                : null,
+            'explanation'  => $card['explanation'] ?? null,
+
             'mastered'     => false,
             'review_count' => 0,
             'created_at'   => $now,
@@ -59,7 +66,6 @@ class FlashcardService
 
         $this->flashcardRepository->createMany($flashcards);
 
-   
         $deck->update(['card_count' => count($flashcards)]);
     }
 }

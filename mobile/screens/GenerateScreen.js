@@ -1,16 +1,74 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, TextInput,
-    Switch, Alert, ActivityIndicator,
+    Alert, ActivityIndicator, ScrollView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
-import { generateFlashcardsWithGemini } from '../services/geminiService';
+import {
+    generateFlashcardsWithGemini,
+    CARD_TYPES,
+    CARD_TYPE_META,
+} from '../services/geminiService';
 import { pickDocument, parseDocument } from '../services/documentParser';
 import api from '../services/api';
+
+// ---------------------------------------------------------------------------
+// Card type selector — multi-select chip list
+// ---------------------------------------------------------------------------
+
+const CardTypeSelector = ({ selectedTypes, onToggle, disabled, colors }) => (
+    <View style={styles.chipContainer}>
+        {Object.values(CARD_TYPES).map((type) => {
+            const meta     = CARD_TYPE_META[type];
+            const selected = selectedTypes.includes(type);
+
+            return (
+                <TouchableOpacity
+                    key={type}
+                    style={[
+                        styles.chip,
+                        {
+                            backgroundColor: selected ? colors.primary : colors.card,
+                            borderColor:     selected ? colors.primary : colors.border,
+                        },
+                    ]}
+                    onPress={() => onToggle(type)}
+                    disabled={disabled}
+                    activeOpacity={0.75}
+                >
+                    <MaterialCommunityIcons
+                        name={meta.icon}
+                        size={16}
+                        color={selected ? '#000' : colors.subtext}
+                        style={{ marginRight: 6 }}
+                    />
+                    <View>
+                        <Text style={[
+                            styles.chipLabel,
+                            { color: selected ? '#000' : colors.text },
+                        ]}>
+                            {meta.label}
+                        </Text>
+                        <Text style={[
+                            styles.chipDescription,
+                            { color: selected ? '#000' : colors.subtext },
+                        ]}>
+                            {meta.description}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            );
+        })}
+    </View>
+);
+
+// ---------------------------------------------------------------------------
+// Main screen
+// ---------------------------------------------------------------------------
 
 const GenerateScreen = () => {
     const { colors, theme }                         = useTheme();
@@ -18,14 +76,42 @@ const GenerateScreen = () => {
     const navigation                                = useNavigation();
 
     const [deckName, setDeckName]                   = useState('');
-    const [simpleDefinition, setSimpleDefinition]   = useState(false);
+    const [selectedTypes, setSelectedTypes]         = useState([CARD_TYPES.MIXED]);
     const [numberOfCards, setNumberOfCards]         = useState(35);
     const [selectedFileName, setSelectedFileName]   = useState('No file selected');
-    const [selectedFileUri, setSelectedFileUri]     = useState(null);
     const [fileContent, setFileContent]             = useState('');
     const [isLoading, setIsLoading]                 = useState(false);
     const [loadingMessage, setLoadingMessage]       = useState('');
 
+    // -----------------------------------------------------------------------
+    // Type toggle — enforces at least one selection at all times
+    // -----------------------------------------------------------------------
+
+    const handleTypeToggle = (type) => {
+        setSelectedTypes((prev) => {
+            // If tapping an already-selected type and it's the only one, do nothing
+            if (prev.includes(type) && prev.length === 1) return prev;
+
+            // If MIXED is selected and user picks something else, clear MIXED
+            if (type !== CARD_TYPES.MIXED && prev.includes(CARD_TYPES.MIXED)) {
+                return [type];
+            }
+
+            // If user picks MIXED, clear everything else
+            if (type === CARD_TYPES.MIXED) {
+                return [CARD_TYPES.MIXED];
+            }
+
+            // Toggle normally
+            return prev.includes(type)
+                ? prev.filter((t) => t !== type)
+                : [...prev, type];
+        });
+    };
+
+    // -----------------------------------------------------------------------
+    // File selection
+    // -----------------------------------------------------------------------
 
     const handleSelectFile = async () => {
         if (isLoading) return;
@@ -34,15 +120,10 @@ const GenerateScreen = () => {
         setLoadingMessage('Reading file...');
 
         try {
-         
             const file = await pickDocument();
-
-            
             if (!file) return;
 
             setLoadingMessage('Parsing document...');
-
-         
             const result = await parseDocument(file);
 
             if (!result.text || !result.text.trim()) {
@@ -52,10 +133,9 @@ const GenerateScreen = () => {
             }
 
             const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, '');
-
             setFileContent(result.text);
-            setSelectedFileName(file.name);      
-            setDeckName(nameWithoutExtension);  
+            setSelectedFileName(file.name);
+            setDeckName(nameWithoutExtension);
 
             Alert.alert('File Ready', `"${file.name}" has been parsed and is ready for flashcard generation.`);
 
@@ -71,6 +151,10 @@ const GenerateScreen = () => {
             setLoadingMessage('');
         }
     };
+
+    // -----------------------------------------------------------------------
+    // Generation
+    // -----------------------------------------------------------------------
 
     const handleGenerateFlashcards = async () => {
         if (!deckName.trim()) {
@@ -96,16 +180,16 @@ const GenerateScreen = () => {
         await proceedWithGeneration();
     };
 
-    
     const proceedWithGeneration = async () => {
         setIsLoading(true);
 
         try {
             setLoadingMessage('AI is analyzing your document...');
+
             const flashcards = await generateFlashcardsWithGemini(
                 fileContent,
                 numberOfCards,
-                simpleDefinition
+                selectedTypes,          // pass the array of selected types
             );
 
             if (!flashcards || flashcards.length === 0) {
@@ -115,7 +199,7 @@ const GenerateScreen = () => {
             setLoadingMessage('Saving deck...');
             const deckResponse = await api.post('/decks', {
                 title:      deckName.trim(),
-                source:     selectedFileName,  
+                source:     selectedFileName,
                 card_count: flashcards.length,
                 mastery:    0,
                 progress:   0,
@@ -126,9 +210,12 @@ const GenerateScreen = () => {
 
             setLoadingMessage('Saving flashcards...');
             await api.post(`/decks/${newDeck.id}/flashcards`, {
-                flashcards: flashcards.map(card => ({
-                    question: card.question,
-                    answer:   card.answer,
+                flashcards: flashcards.map((card) => ({
+                    type:        card.type,
+                    question:    card.question,
+                    answer:      card.answer,
+                    options:     card.options     ?? null,
+                    explanation: card.explanation ?? null,
                 })),
             });
 
@@ -154,21 +241,28 @@ const GenerateScreen = () => {
         }
     };
 
-  
     const resetFileState = () => {
         setDeckName('');
         setSelectedFileName('No file selected');
-        setSelectedFileUri(null);
         setFileContent('');
         setNumberOfCards(35);
+        setSelectedTypes([CARD_TYPES.MIXED]);
     };
 
-    const isGenerateDisabled = isLoading || selectedFileName === 'No file selected' || !deckName.trim();
+    const isGenerateDisabled = isLoading
+        || selectedFileName === 'No file selected'
+        || !deckName.trim();
 
+    // -----------------------------------------------------------------------
+    // Render
+    // -----------------------------------------------------------------------
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-
+        <ScrollView
+            style={{ backgroundColor: colors.background }}
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+        >
             {isLoading && (
                 <View style={styles.loadingOverlay}>
                     <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
@@ -180,9 +274,13 @@ const GenerateScreen = () => {
                 </View>
             )}
 
-       
+            {/* File picker */}
             <TouchableOpacity
-                style={[styles.selectFileButton, { backgroundColor: colors.primary }, isLoading && styles.disabled]}
+                style={[
+                    styles.selectFileButton,
+                    { backgroundColor: colors.primary },
+                    isLoading && styles.disabled,
+                ]}
                 onPress={handleSelectFile}
                 disabled={isLoading}
             >
@@ -190,9 +288,13 @@ const GenerateScreen = () => {
                 <Text style={styles.selectFileButtonText}>Select File (PDF, DOCX, PPTX)</Text>
             </TouchableOpacity>
 
+            {/* Deck name */}
             <Text style={[styles.label, { color: colors.text }]}>Deck Name</Text>
             <TextInput
-                style={[styles.textInput, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+                style={[
+                    styles.textInput,
+                    { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
+                ]}
                 value={deckName}
                 onChangeText={setDeckName}
                 placeholder="Enter deck name"
@@ -206,17 +308,19 @@ const GenerateScreen = () => {
                     : `Generate from "${selectedFileName}"`}
             </Text>
 
-            <View style={[styles.optionRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.optionLabel, { color: colors.text }]}>Simple Definition</Text>
-                <Switch
-                    trackColor={{ false: colors.border, true: colors.primary }}
-                    thumbColor={theme === 'dark' ? colors.card : '#f4f3f4'}
-                    onValueChange={setSimpleDefinition}
-                    value={simpleDefinition}
-                    disabled={isLoading}
-                />
-            </View>
+            {/* Card type selector */}
+            <Text style={[styles.label, { color: colors.text }]}>Card Type</Text>
+            <Text style={[styles.sublabel, { color: colors.subtext }]}>
+                Select one or more types. Mixed lets the AI decide per card.
+            </Text>
+            <CardTypeSelector
+                selectedTypes={selectedTypes}
+                onToggle={handleTypeToggle}
+                disabled={isLoading}
+                colors={colors}
+            />
 
+            {/* Number of cards */}
             <Text style={[styles.label, { color: colors.text }]}>
                 Number of Cards ({Math.round(numberOfCards)} / 60)
             </Text>
@@ -236,8 +340,13 @@ const GenerateScreen = () => {
                 {Math.round(numberOfCards)}
             </Text>
 
+            {/* Generate button */}
             <TouchableOpacity
-                style={[styles.generateButton, { backgroundColor: colors.primary }, isGenerateDisabled && styles.disabled]}
+                style={[
+                    styles.generateButton,
+                    { backgroundColor: colors.primary },
+                    isGenerateDisabled && styles.disabled,
+                ]}
                 onPress={handleGenerateFlashcards}
                 disabled={isGenerateDisabled}
             >
@@ -246,30 +355,33 @@ const GenerateScreen = () => {
                 </Text>
             </TouchableOpacity>
 
-        
-
-        </View>
+        </ScrollView>
     );
 };
 
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-    container:            { flex: 1, padding: 20, paddingTop: 40 },
+    container:            { padding: 20, paddingTop: 40, paddingBottom: 60 },
     loadingOverlay:       { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     loadingBox:           { padding: 30, borderRadius: 15, alignItems: 'center', minWidth: 200 },
     loadingText:          { marginTop: 15, fontSize: 16, textAlign: 'center' },
     selectFileButton:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 10, marginBottom: 30, marginTop: 20, elevation: 3 },
     selectFileButtonText: { color: 'black', fontSize: 18, fontWeight: '600', marginLeft: 10 },
-    label:                { fontSize: 16, fontWeight: '600', marginBottom: 8 },
+    label:                { fontSize: 16, fontWeight: '600', marginBottom: 6 },
+    sublabel:             { fontSize: 13, marginBottom: 12 },
     textInput:            { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 20, elevation: 1 },
     generatedFromFileText:{ fontSize: 14, marginBottom: 25, fontStyle: 'italic' },
-    optionRow:            { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 8, padding: 15, marginBottom: 20, elevation: 1 },
-    optionLabel:          { fontSize: 16, fontWeight: '500' },
+    chipContainer:        { flexDirection: 'column', gap: 10, marginBottom: 28 },
+    chip:                 { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 14 },
+    chipLabel:            { fontSize: 15, fontWeight: '600' },
+    chipDescription:      { fontSize: 12, marginTop: 1 },
     slider:               { width: '100%', height: 40, marginTop: 10, marginBottom: 5 },
     sliderValueText:      { fontSize: 16, textAlign: 'center', marginBottom: 30 },
     generateButton:       { padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 5, elevation: 3 },
     generateButtonText:   { color: 'black', fontSize: 18, fontWeight: '600' },
-    footerNote:           { textAlign: 'center', fontSize: 12, marginTop: 15, fontStyle: 'italic' },
     disabled:             { opacity: 0.5 },
 });
 
