@@ -9,7 +9,7 @@ import hideIcon from './../../assets/hide.png';
 import userIcon from './../../assets/user.png';
 import confirmPassIcon from './../../assets/confirm-pass.png';
 
-// ── Password rules ──────────────────────────────────────────────────────────
+
 const PASSWORD_RULES = [
   { key: 'lowercase', test: (p) => /[a-z]/.test(p) },
   { key: 'uppercase', test: (p) => /[A-Z]/.test(p) },
@@ -18,7 +18,7 @@ const PASSWORD_RULES = [
   { key: 'length',    test: (p) => p.length >= 8 },
 ];
 
-// ── Strength levels (index === score) ───────────────────────────────────────
+
 const STRENGTH_LEVELS = [
   null,
   { label: 'Too Weak',    color: '#ef4444', bars: 1 },
@@ -47,15 +47,11 @@ function UserRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showStrengthMeter, setShowStrengthMeter]     = useState(false);
 
-  // ── ADDED: Consent state ──────────────────────────────────────────────────
-  // WHY consentChecked: explicit affirmative consent required by GDPR Art. 7,
-  // Apple App Store guideline 5.1.1, and Google Play User Data policy.
-  // WHY consentTouched: only show the error AFTER a submit attempt —
-  // not on initial page load. Standard progressive disclosure UX pattern.
+
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentTouched, setConsentTouched] = useState(false);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -98,10 +94,6 @@ function UserRegister() {
     e.preventDefault();
     setShowStrengthMeter(false);
 
-    // ── ADDED: Consent guard (Layer 1 — UI logic) ─────────────────────────
-    // WHY: Mark as touched to show the error message, then hard-stop.
-    // Button is also visually disabled, but we guard here too to prevent
-    // any programmatic or accessibility bypass of the disabled state.
     setConsentTouched(true);
     if (!consentChecked) return;
 
@@ -129,16 +121,16 @@ function UserRegister() {
     }
   };
 
-  // ── Derived state ─────────────────────────────────────────────────────────
+ 
   if (redirect) return <Navigate to="/login" />;
 
   const strength = getStrength(formData.password);
 
-  // Button disabled when: loading OR consent not checked
-  // WHY: Visual feedback (disabled style) + logic guard in handleSubmit
+
+
   const isSubmitDisabled = loading || !consentChecked;
 
-  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className={styles.pageContainer}>
       {loading && (
@@ -147,7 +139,7 @@ function UserRegister() {
         </div>
       )}
 
-      {/* ── Animated background ── */}
+
       <div className={styles.bgCanvas}>
         <svg
           className={styles.bgSvg}
@@ -197,7 +189,7 @@ function UserRegister() {
         </svg>
       </div>
 
-      {/* ── Top bar ── */}
+    
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -210,10 +202,10 @@ function UserRegister() {
         </nav>
       </div>
 
-      {/* ── Main content ── */}
+ 
       <div className={styles.mainContent}>
 
-        {/* Hero */}
+   
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -232,7 +224,7 @@ function UserRegister() {
           </div>
         </div>
 
-        {/* Registration card */}
+ 
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -246,7 +238,7 @@ function UserRegister() {
 
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
 
-              {/* General error */}
+         
               {errors.general && (
                 <div className={styles.errorAlert} role="alert">
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -256,7 +248,6 @@ function UserRegister() {
                 </div>
               )}
 
-              {/* Username */}
               <div className={styles.formGroup}>
                 <label htmlFor="username" className={styles.label}>Username</label>
                 <div className={styles.inputContainer}>
@@ -284,7 +275,7 @@ function UserRegister() {
                 )}
               </div>
 
-              {/* Email */}
+         
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>Email address</label>
                 <div className={styles.inputContainer}>
@@ -311,10 +302,10 @@ function UserRegister() {
                 )}
               </div>
 
-              {/* Password row */}
+    
               <div className={styles.formRow}>
 
-                {/* Password column */}
+        
                 <div>
                   <div className={styles.formGroup}>
                     <label htmlFor="password" className={styles.label}>Password</label>
@@ -356,7 +347,7 @@ function UserRegister() {
                     )}
                   </div>
 
-                  {/* Password strength meter */}
+             
                   {showStrengthMeter && formData.password.length > 0 && (
                     <div
                       id="password-strength"
@@ -385,7 +376,7 @@ function UserRegister() {
                   )}
                 </div>
 
-                {/* Confirm password column */}
+         
                 <div className={styles.formGroup}>
                   <label htmlFor="password_confirmation" className={styles.label}>
                     Confirm password
@@ -430,16 +421,7 @@ function UserRegister() {
 
               </div>{/* end formRow */}
 
-              {/* ── ADDED: Consent Checkbox ─────────────────────────────────────
-                  WHAT: Replaced the implicit "By creating an account..." pattern
-                  with an explicit checkbox the user must tick before submitting.
-                  WHY: GDPR Article 7, Apple App Store guideline 5.1.1, and
-                  Google Play User Data policy all require explicit affirmative
-                  consent — passive notice text does not meet the bar.
-                  The Terms and Privacy links open the actual legal pages
-                  in the same tab via React Router (web, not browser redirect).
-                  Error only shows after a submit attempt — not on load.
-              ──────────────────────────────────────────────────────────────── */}
+           
               <div className={`${styles.consentWrapper} ${consentTouched && !consentChecked ? styles.consentWrapperError : ''}`}>
                 <label className={styles.consentLabel}>
                   <div className={styles.consentCheckboxWrap}>
@@ -456,7 +438,7 @@ function UserRegister() {
                       className={styles.consentCheckboxNative}
                       aria-describedby="consent-error"
                     />
-                    {/* Custom checkbox visual */}
+             
                     <div className={`${styles.consentCheckbox} ${consentChecked ? styles.consentCheckboxChecked : ''} ${consentTouched && !consentChecked ? styles.consentCheckboxError : ''}`}>
                       {consentChecked && (
                         <svg width="11" height="9" viewBox="0 0 11 9" fill="none" aria-hidden="true">
@@ -490,7 +472,7 @@ function UserRegister() {
                   </span>
                 </label>
 
-                {/* Error — only shown after submit attempt without consent */}
+          
                 {consentTouched && !consentChecked && (
                   <span id="consent-error" className={styles.consentError} role="alert">
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -501,7 +483,7 @@ function UserRegister() {
                 )}
               </div>
 
-              {/* Submit */}
+        
               <button
                 type="submit"
                 disabled={isSubmitDisabled}

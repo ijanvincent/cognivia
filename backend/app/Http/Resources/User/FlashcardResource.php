@@ -10,14 +10,17 @@ class FlashcardResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'           => $this->id,
-            'deck_id'      => $this->deck_id,
-            'question'     => $this->question,
-            'answer'       => $this->answer,
-            'mastered'     => $this->mastered,
-            'review_count' => $this->review_count,
-            'created_at'   => $this->created_at,
-            'updated_at'   => $this->updated_at,
+            'id'          => $this->id,
+            'deck_id'     => $this->deck_id,
+            'type'        => $this->type,
+            'question'    => $this->question,
+            'answer'      => $this->answer,
+            'options'     => $this->options,          // null for non-MCQ cards
+            'explanation' => $this->explanation,      // null for non-MCQ cards
+            'mastered'    => $this->mastered,
+            'review_count'=> $this->review_count,
+            'created_at'  => $this->created_at,
+            'updated_at'  => $this->updated_at,
         ];
     }
 }
