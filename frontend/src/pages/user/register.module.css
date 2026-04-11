@@ -157,7 +157,7 @@
 .mainContent {
   position: relative;
   z-index: 5;
-  flex: 1;
+  height: calc(100vh - 65px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -171,6 +171,10 @@
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .heroSection {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: stretch;
   animation: fadeLeft 0.7s ease-out 0.1s both;
 }
 
@@ -271,6 +275,7 @@
 .cardWrapper {
   flex-shrink: 0;
   width: 460px;
+  align-self: center;
   animation: fadeRight 0.7s ease-out 0.2s both;
 }
 
@@ -283,7 +288,7 @@
   background: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   border-radius: 20px;
-  padding: 36px 36px 32px;
+  padding: 28px 32px 24px;
   backdrop-filter: blur(24px);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
@@ -291,7 +296,7 @@
     0 0 80px rgba(34, 211, 238, 0.04);
 }
 
-.cardHeader { margin-bottom: 28px; }
+.cardHeader { margin-bottom: 18px; }
 
 .cardHeaderRow {
   display: flex;
@@ -303,15 +308,15 @@
 .cardTitle {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
-  font-size: 28px;
+  font-size: 26px;
   color: #f1f5f9;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
   letter-spacing: -0.3px;
   line-height: 1.2;
 }
 
 .cardSubtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
   font-weight: 400;
@@ -328,9 +333,9 @@
   border: 1px solid rgba(248, 113, 113, 0.25);
   border-left: 3px solid var(--error);
   color: var(--error);
-  padding: 11px 14px;
+  padding: 10px 14px;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -494,21 +499,64 @@
   display: block;
   color: var(--error);
   font-size: 11.5px;
-  margin-top: 6px;
+  margin-top: 5px;
   font-weight: 500;
   padding-left: 2px;
 }
 
-/* ── Password strength meter ────────────────────────────────────────────── */
-.strengthMeter {
-  margin-top: 10px;
-  margin-bottom: 4px;
-  animation: fadeIn 0.25s ease both;
+/* ── Strength meter anchor ──────────────────────────────────────────────── */
+/*
+  CHANGE: New class — position:relative positioning context.
+  WHY: The strength meter uses position:absolute to float outside document
+  flow. Absolute elements anchor to their nearest positioned ancestor. This
+  wrapper provides that anchor scoped tightly to the password field column,
+  so the meter appears directly below the field and nowhere else.
+*/
+.strengthMeterAnchor {
+  position: relative;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Password strength meter ────────────────────────────────────────────── */
+/*
+  CHANGE: Complete rewrite from max-height inline flow to position:absolute
+  overlay with opacity + translateY transition.
+  WHY: The previous approach (max-height expansion) lived in the document
+  flow — when it grew, it physically pushed the confirm password field,
+  consent block, and submit button downward, causing visible layout shift.
+  position:absolute removes the meter from flow entirely. It now floats
+  above the layout as an overlay, anchored below the password field via
+  the .strengthMeterAnchor parent. Nothing below it can ever be affected
+  by its presence or absence. This is the same pattern used by Auth0,
+  GitHub, and Linear for password strength indicators.
+  z-index:50 ensures it renders above sibling form elements without
+  competing with the loading overlay (z-index:1000).
+*/
+.strengthMeter {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(7, 8, 15, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity   0.2s ease,
+    transform 0.2s ease;
+}
+
+.strengthMeterVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .strengthHeader {
@@ -532,10 +580,10 @@
   transition: color 0.3s ease;
 }
 
+/* Flush continuous segmented bar */
 .strengthBars {
   display: flex;
   gap: 0;
-  margin-bottom: 10px;
   border-radius: 100px;
   overflow: hidden;
 }
@@ -551,7 +599,7 @@
 /* ── Submit button ──────────────────────────────────────────────────────── */
 .submitButton {
   width: 100%;
-  padding: 14px;
+  padding: 13px;
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -566,7 +614,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 4px;
   outline: none;
 }
 
@@ -584,7 +632,6 @@
   transform: none;
 }
 
-/* ADDED: Extra visual cue when consent not yet given */
 .submitButtonDisabled {
   opacity: 0.35 !important;
   cursor: not-allowed !important;
@@ -601,8 +648,8 @@
 
 /* ── Footer links ───────────────────────────────────────────────────────── */
 .linksSection {
-  margin-top: 20px;
-  padding-top: 18px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   text-align: center;
 }
@@ -632,24 +679,14 @@
   outline-offset: 2px;
 }
 
-/* ── ADDED: Consent Checkbox ────────────────────────────────────────────── */
-/*
-  WHY these styles:
-  - Native <input type="checkbox"> is hidden (opacity:0, size 0) and replaced
-    with a custom div so it matches the dark design system exactly.
-  - The native input stays in the DOM for accessibility — screen readers and
-    keyboard navigation still work correctly.
-  - Wrapper gets an error border when consentTouched && !consentChecked,
-    consistent with how inputError works on the text fields above.
-*/
-
+/* ── Consent Checkbox ───────────────────────────────────────────────────── */
 .consentWrapper {
-  margin-top: 4px;
-  margin-bottom: 16px;
+  margin-top: 0;
+  margin-bottom: 8px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
-  padding: 12px 14px;
+  padding: 10px 12px;
   transition: border-color 0.2s ease;
 }
 
@@ -666,7 +703,6 @@
   user-select: none;
 }
 
-/* Hide native checkbox but keep it accessible */
 .consentCheckboxNative {
   position: absolute;
   opacity: 0;
@@ -681,7 +717,6 @@
   margin-top: 1px;
 }
 
-/* Custom checkbox box */
 .consentCheckbox {
   width: 18px;
   height: 18px;
@@ -695,18 +730,14 @@
   cursor: pointer;
 }
 
-.consentCheckbox:hover {
-  border-color: var(--accent-cyan);
-}
+.consentCheckbox:hover { border-color: var(--accent-cyan); }
 
 .consentCheckboxChecked {
   background: var(--accent-cyan);
   border-color: var(--accent-cyan);
 }
 
-.consentCheckboxError {
-  border-color: var(--error);
-}
+.consentCheckboxError { border-color: var(--error); }
 
 .consentText {
   font-size: 13px;
@@ -715,7 +746,6 @@
   font-weight: 300;
 }
 
-/* Legal links inside consent text — no underline, bold white */
 .consentLink {
   color: var(--text-primary);
   font-weight: 600;
@@ -723,16 +753,13 @@
   transition: color 0.2s ease;
 }
 
-.consentLink:hover {
-  color: var(--accent-cyan);
-}
+.consentLink:hover { color: var(--accent-cyan); }
 
-/* Consent error message */
 .consentError {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 11.5px;
   color: var(--error);
   font-weight: 500;
@@ -744,9 +771,14 @@
   .topBarNav { display: none; }
 
   .mainContent {
+    height: auto;
     flex-direction: column;
     padding: 40px 24px;
     align-items: flex-start;
+  }
+
+  .heroSection {
+    display: block;
   }
 
   .cardWrapper {
@@ -756,11 +788,19 @@
   }
 
   .formRow { grid-template-columns: 1fr; }
+
+  /*
+    CHANGE: On single-column mobile layout, meter spans full width of the
+    password field since the grid is now 1fr (stacked).
+    WHY: The absolute meter inherits left:0 right:0 from its anchor, which
+    already covers the full column width in both desktop and mobile — no
+    additional override needed. This comment is here for clarity only.
+  */
 }
 
 @media (max-width: 540px) {
   .topBar    { padding: 16px 24px; }
-  .loginCard { padding: 28px 20px; }
+  .loginCard { padding: 24px 18px; }
   .heroTitle { font-size: 32px; letter-spacing: -1px; }
   .inputField { font-size: 16px; } /* prevents iOS zoom */
   .formRow { grid-template-columns: 1fr; }
@@ -775,9 +815,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wavePath       { animation: none; }
-  .bgCanvas       { display: none; }
-  .strengthMeter  { animation: none; }
-  .strengthBar    { transition: none; }
-  .strengthLabel  { transition: none; }
+  .wavePath        { animation: none; }
+  .bgCanvas        { display: none; }
+  .strengthBar     { transition: none; }
+  .strengthLabel   { transition: none; }
+  .strengthMeter   { transition: none; }
 }

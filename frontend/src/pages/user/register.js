@@ -18,7 +18,6 @@ const PASSWORD_RULES = [
   { key: 'length',    test: (p) => p.length >= 8 },
 ];
 
-
 const STRENGTH_LEVELS = [
   null,
   { label: 'Too Weak',    color: '#ef4444', bars: 1 },
@@ -47,10 +46,8 @@ function UserRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showStrengthMeter, setShowStrengthMeter]     = useState(false);
 
-
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentTouched, setConsentTouched] = useState(false);
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -121,15 +118,11 @@ function UserRegister() {
     }
   };
 
- 
   if (redirect) return <Navigate to="/login" />;
 
   const strength = getStrength(formData.password);
-
-
-
   const isSubmitDisabled = loading || !consentChecked;
-
+  const strengthMeterVisible = showStrengthMeter && formData.password.length > 0;
 
   return (
     <div className={styles.pageContainer}>
@@ -138,7 +131,6 @@ function UserRegister() {
           <div className={styles.loadingSpinner}></div>
         </div>
       )}
-
 
       <div className={styles.bgCanvas}>
         <svg
@@ -189,7 +181,6 @@ function UserRegister() {
         </svg>
       </div>
 
-    
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -202,10 +193,8 @@ function UserRegister() {
         </nav>
       </div>
 
- 
       <div className={styles.mainContent}>
 
-   
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -224,7 +213,6 @@ function UserRegister() {
           </div>
         </div>
 
- 
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -238,7 +226,6 @@ function UserRegister() {
 
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
 
-         
               {errors.general && (
                 <div className={styles.errorAlert} role="alert">
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -275,7 +262,6 @@ function UserRegister() {
                 )}
               </div>
 
-         
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>Email address</label>
                 <div className={styles.inputContainer}>
@@ -302,11 +288,19 @@ function UserRegister() {
                 )}
               </div>
 
-    
               <div className={styles.formRow}>
 
-        
-                <div>
+                {/*
+                  CHANGE: Wrapped the password formGroup in a new
+                  styles.strengthMeterAnchor div.
+                  WHY: The strength meter is now position:absolute. It requires
+                  a position:relative parent to anchor correctly. Without this
+                  wrapper, the meter would escape to the nearest positioned
+                  ancestor (likely the page root) and render in the wrong place.
+                  This wrapper provides that isolated positioning context while
+                  keeping all existing formGroup styles intact.
+                */}
+                <div className={styles.strengthMeterAnchor}>
                   <div className={styles.formGroup}>
                     <label htmlFor="password" className={styles.label}>Password</label>
                     <div className={styles.inputContainer}>
@@ -318,6 +312,7 @@ function UserRegister() {
                         value={formData.password}
                         onChange={handleChange}
                         onFocus={() => setShowStrengthMeter(true)}
+                        onBlur={() => setShowStrengthMeter(false)}
                         className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
                         placeholder="Min. 8 characters"
                         disabled={loading}
@@ -347,36 +342,41 @@ function UserRegister() {
                     )}
                   </div>
 
-             
-                  {showStrengthMeter && formData.password.length > 0 && (
-                    <div
-                      id="password-strength"
-                      className={styles.strengthMeter}
-                      aria-live="polite"
-                      aria-label={`Password strength: ${strength.label || 'none'}`}
-                    >
-                      <div className={styles.strengthHeader}>
-                        <span className={styles.strengthTitle}>Strength</span>
-                        {strength.score > 0 && (
-                          <span className={styles.strengthLabel} style={{ color: strength.color }}>
-                            {strength.label}
-                          </span>
-                        )}
-                      </div>
-                      <div className={styles.strengthBars}>
-                        {[0, 1, 2, 3].map((i) => (
-                          <div
-                            key={i}
-                            className={styles.strengthBar}
-                            style={i < strength.bars ? { background: strength.color } : undefined}
-                          />
-                        ))}
-                      </div>
+                  {/*
+                    CHANGE: Strength meter is now position:absolute (via CSS),
+                    floating below the password field as an overlay.
+                    WHY: Removes it from document flow entirely. The confirm
+                    password column, consent block, and submit button are now
+                    100% isolated from meter expand/collapse — zero layout shift.
+                    This is the same overlay pattern used by Auth0, GitHub,
+                    and Linear. onBlur on the password input collapses it.
+                  */}
+                  <div
+                    id="password-strength"
+                    className={`${styles.strengthMeter} ${strengthMeterVisible ? styles.strengthMeterVisible : ''}`}
+                    aria-live="polite"
+                    aria-label={`Password strength: ${strength.label || 'none'}`}
+                  >
+                    <div className={styles.strengthHeader}>
+                      <span className={styles.strengthTitle}>Strength</span>
+                      {strength.score > 0 && (
+                        <span className={styles.strengthLabel} style={{ color: strength.color }}>
+                          {strength.label}
+                        </span>
+                      )}
                     </div>
-                  )}
+                    <div className={styles.strengthBars}>
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className={styles.strengthBar}
+                          style={i < strength.bars ? { background: strength.color } : undefined}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-         
                 <div className={styles.formGroup}>
                   <label htmlFor="password_confirmation" className={styles.label}>
                     Confirm password
@@ -421,7 +421,6 @@ function UserRegister() {
 
               </div>{/* end formRow */}
 
-           
               <div className={`${styles.consentWrapper} ${consentTouched && !consentChecked ? styles.consentWrapperError : ''}`}>
                 <label className={styles.consentLabel}>
                   <div className={styles.consentCheckboxWrap}>
@@ -438,7 +437,6 @@ function UserRegister() {
                       className={styles.consentCheckboxNative}
                       aria-describedby="consent-error"
                     />
-             
                     <div className={`${styles.consentCheckbox} ${consentChecked ? styles.consentCheckboxChecked : ''} ${consentTouched && !consentChecked ? styles.consentCheckboxError : ''}`}>
                       {consentChecked && (
                         <svg width="11" height="9" viewBox="0 0 11 9" fill="none" aria-hidden="true">
@@ -472,7 +470,6 @@ function UserRegister() {
                   </span>
                 </label>
 
-          
                 {consentTouched && !consentChecked && (
                   <span id="consent-error" className={styles.consentError} role="alert">
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -483,7 +480,6 @@ function UserRegister() {
                 )}
               </div>
 
-        
               <button
                 type="submit"
                 disabled={isSubmitDisabled}
