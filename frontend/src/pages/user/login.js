@@ -119,6 +119,24 @@ function UserLogin() {
 
   return (
     <div className={styles.pageContainer}>
+
+      {/* ── SESSION ALERT — centered modal overlay, never touches the card ── */}
+      {errors.general && (
+        <div className={styles.toastScrim} role="dialog" aria-modal="true" aria-labelledby="session-alert-title">
+          <div className={styles.toast}>
+            <div className={styles.toastIconWrap} aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 16 16" fill="var(--error)">
+                <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <p id="session-alert-title" className={styles.toastTitle}>Session conflict detected</p>
+            <p className={styles.toastBody}>{errors.general}</p>
+            <div className={styles.toastDivider}></div>
+            <span className={styles.toastHint} aria-live="polite">Active session found on another device</span>
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingSpinner}></div>
@@ -195,15 +213,6 @@ function UserLogin() {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
-
-              {errors.general && (
-                <div className={styles.errorAlert} role="alert">
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-                  </svg>
-                  <span>{errors.general}</span>
-                </div>
-              )}
 
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="email">Email address</label>
