@@ -17,11 +17,23 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password',  [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 });
 
-// Admin Auth 
+// Admin Auth
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminAuthController::class, 'login'])
          ->middleware('throttle:3,5');
 });
+
+// ADDED — what: explicit broadcasting auth route outside platform.match.
+// why: the conflict_token has platform='conflict' so EnsurePlatformMatch
+// would reject it with 400 before the channel auth could complete.
+// Placing it here with only auth:sanctum means Sanctum validates the token
+// exists and is not expired, then channels.php enforces that the user can
+// only subscribe to their own private channel. Security is preserved.
+Route::post('/broadcasting/auth',
+    function (\Illuminate\Http\Request $request) {
+        return Broadcast::auth($request);
+    }
+)->middleware(['auth:sanctum']);
 
 // Authenticated User Routes
 Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function () {
@@ -35,15 +47,15 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
     Route::put('/decks/{id}',    [DeckController::class, 'update']);
     Route::delete('/decks/{id}', [DeckController::class, 'destroy']);
 
-    // Flashcards 
+    // Flashcards
     Route::get('/decks/{deckId}/flashcards',  [FlashcardController::class, 'index']);
     Route::post('/decks/{deckId}/flashcards', [FlashcardController::class, 'store']);
 
-    // Document Parser 
+    // Document Parser
     Route::post('/document/parse', [DocumentParserController::class, 'parse']);
 });
 
-// Authenticated Admin Routes 
+// Authenticated Admin Routes
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::post('/logout',       [AdminAuthController::class, 'logout']);
     Route::get('/me',            [AdminAuthController::class, 'me']);

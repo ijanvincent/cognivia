@@ -10,6 +10,8 @@ use App\Services\Auth\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\File;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -70,6 +72,14 @@ class AuthController extends Controller
                 'error_code' => 'WRONG_PASSWORD',
             ], 401);
 
+        } catch (\App\Exceptions\Auth\PlatformConflictException $e) {
+            return response()->json([
+                'message'          => $e->getMessage(),
+                'error_code'       => 'PLATFORM_CONFLICT',
+                'conflict_user_id' => $e->userId,
+                'conflict_token'   => $e->conflictToken,
+            ], 422);
+
         } catch (ValidationException $e) {
             RateLimiter::hit($throttleKey, 60);
 
@@ -77,9 +87,7 @@ class AuthController extends Controller
             $message = collect($errors)->flatten()->first();
 
             $code = 'VALIDATION_ERROR';
-            if (str_contains($message, 'active on')) {
-                $code = 'PLATFORM_CONFLICT';
-            } elseif (str_contains($message, 'Invalid email or password')) {
+            if (str_contains($message, 'Invalid email or password')) {
                 $code = 'ADMIN_ACCOUNT';
             }
 
@@ -121,17 +129,29 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $throttleKey = 'forgot-password:' . $request->ip();
+        // CHANGED — what: added per-email throttle on top of per-IP throttle.
+        // why: per-IP alone is bypassable via botnet/proxies. Per-email
+        // ensures a single account cannot be spammed with reset emails
+        // regardless of how many IPs the attacker controls.
+        $ipKey    = 'forgot-password-ip:'    . $request->ip();
+        $emailKey = 'forgot-password-email:' . strtolower($request->input('email'));
 
-        if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-
+        if (RateLimiter::tooManyAttempts($ipKey, 5)) {
+            $seconds = RateLimiter::availableIn($ipKey);
             return response()->json([
                 'message' => "Too many requests. Please try again in {$seconds} seconds.",
             ], 429);
         }
 
-        RateLimiter::hit($throttleKey, 600);
+        if (RateLimiter::tooManyAttempts($emailKey, 3)) {
+            $seconds = RateLimiter::availableIn($emailKey);
+            return response()->json([
+                'message' => "Too many requests. Please try again in {$seconds} seconds.",
+            ], 429);
+        }
+
+        RateLimiter::hit($ipKey, 600);
+        RateLimiter::hit($emailKey, 3600);
 
         $this->authService->sendPasswordResetLink($request->input('email'));
 
@@ -195,16 +215,61 @@ class AuthController extends Controller
         $data = $request->only(['username']);
 
         if ($request->hasFile('avatar')) {
-            $file      = $request->file('avatar');
-            $extension = $file->guessExtension() ?? 'jpg';
-            $filename  = sprintf(
-                'avatar_%d_%d_%s.%s',
+            $file = $request->file('avatar');
+
+            // CHANGED — what: verify real MIME type from actual file bytes.
+            // why: mimes: validation only checks the file extension which
+            // an attacker can fake by renaming malicious.php to malicious.jpg.
+            // finfo reads the actual file header bytes to confirm it is
+            // genuinely an image — extension spoofing cannot bypass this.
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+            $realMime     = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file->getRealPath());
+
+            if (!in_array($realMime, $allowedMimes)) {
+                return response()->json([
+                    'message' => 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.',
+                ], 422);
+            }
+
+            // CHANGED — what: re-encode image through GD to strip all metadata.
+            // why: uploaded images can contain malicious EXIF data, embedded
+            // scripts, or GPS coordinates that expose user location. Re-encoding
+            // through GD destroys all metadata and produces a clean image file.
+            $imageData = file_get_contents($file->getRealPath());
+            $image     = imagecreatefromstring($imageData);
+
+            if (!$image) {
+                return response()->json([
+                    'message' => 'Could not process image. Please upload a valid image file.',
+                ], 422);
+            }
+
+            $filename = sprintf(
+                'avatar_%d_%d_%s.jpg',
                 $request->user()->id,
                 time(),
-                bin2hex(random_bytes(4)),
-                $extension
+                bin2hex(random_bytes(4))
             );
-            $path = $file->storeAs('avatars', $filename, 'public');
+
+            $tempDir  = storage_path('app/temp');
+            $tempPath = $tempDir . '/' . $filename;
+
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Re-encode as JPEG at quality 85 — strips all original metadata
+            imagejpeg($image, $tempPath, 85);
+            imagedestroy($image);
+
+            $path = Storage::disk('public')->putFileAs(
+                'avatars',
+                new File($tempPath),
+                $filename
+            );
+
+            unlink($tempPath);
+
             $data['avatar'] = '/storage/' . $path;
         }
 
