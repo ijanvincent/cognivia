@@ -2,7 +2,9 @@
 
 namespace App\Services\Auth;
 
+use App\Events\ForceLogout;
 use App\Exceptions\Auth\EmailNotFoundException;
+use App\Exceptions\Auth\PlatformConflictException;
 use App\Exceptions\Auth\WrongPasswordException;
 use App\Mail\PasswordResetMail;
 use App\Models\User;
@@ -60,12 +62,22 @@ class AuthService
             ->exists();
 
         if ($hasOtherSession) {
-            throw ValidationException::withMessages([
-                'email' => [
-                    "This account is currently active on {$otherPlatform}. " .
-                    "Please log out from {$otherPlatform} first before logging in here."
-                ],
-            ]);
+            // CHANGED — what: issue a short-lived conflict_token on PLATFORM_CONFLICT.
+            // why: web needs to subscribe to private Echo channel user.{id} to detect
+            // when mobile logs out. User has no session token yet so we issue a
+            // dedicated 5-minute token with restricted ability so it cannot call
+            // any real API route — only authenticates the broadcast channel.
+            $conflictToken = $user->createToken(
+                'conflict_token',
+                ['broadcast.conflict.only'],
+                now()->addMinutes(5)
+            )->plainTextToken;
+
+            throw new PlatformConflictException(
+                $otherPlatform,
+                $user->id,
+                $conflictToken
+            );
         }
 
         $this->authRepository->revokeTokensByPlatform($user, $platform);
@@ -88,9 +100,19 @@ class AuthService
         ];
     }
 
+    // CHANGED — what: fires ForceLogout broadcast BEFORE deleting the token.
+    // why: the token must still exist when broadcastOn() authenticates the
+    // private channel. Deleting first breaks channel auth and web never
+    // receives the event. Platform is read from the token itself so the
+    // event payload tells web exactly which platform just logged out.
     public function logout(User $user): void
     {
-        $user->currentAccessToken()->delete();
+        $currentToken = $user->currentAccessToken();
+        $platform     = $currentToken->platform ?? 'unknown';
+
+        broadcast(new ForceLogout($platform, $user->id));
+
+        $currentToken->delete();
     }
 
     public function sendPasswordResetLink(string $email): void
