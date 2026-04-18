@@ -19,6 +19,7 @@ function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [attempts, setAttempts]         = useState(0);
   const [locked, setLocked]             = useState(false);
+  const [shakingFields, setShakingFields] = useState({});
 
   const attemptsRef = useRef(0);
   const MAX_ATTEMPTS = 3;
@@ -41,17 +42,24 @@ function AdminLogin() {
     return newErrors;
   };
 
+  const triggerShake = (fieldKeys) => {
+    const shakes = fieldKeys.reduce((acc, k) => ({ ...acc, [k]: true }), {});
+    setShakingFields(shakes);
+    setTimeout(() => setShakingFields({}), 500);
+  };
+
   async function handleSubmit(event) {
     event.preventDefault();
 
     if (locked) {
-      setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
+      setErrors({ general: 'Access locked — try again in 5 min.' });
       return;
     }
 
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      triggerShake(Object.keys(newErrors));
       return;
     }
 
@@ -73,7 +81,7 @@ function AdminLogin() {
 
       if (err.response?.status === 429 || currentAttempts >= MAX_ATTEMPTS) {
         setLocked(true);
-        setErrors({ general: 'Too many failed attempts. Please try again in 5 minutes.' });
+        setErrors({ general: 'Access locked — try again in 5 min.' });
       } else if (err.response?.data?.errors?.email) {
         setErrors({ general: err.response.data.errors.email[0] });
       } else if (err.response?.data?.message) {
@@ -83,12 +91,12 @@ function AdminLogin() {
         setErrors({
           general: hasAttemptInfo
             ? serverMessage
-            : `${serverMessage} ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`,
+            : `${serverMessage} — ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} left.`,
         });
       } else {
         const remainingAttempts = MAX_ATTEMPTS - currentAttempts;
         setErrors({
-          general: `Invalid credentials. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`,
+          general: `Invalid credentials — ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} left.`,
         });
       }
     } finally {
@@ -99,6 +107,8 @@ function AdminLogin() {
   if (redirect) {
     return <Navigate to='/admin/dashboard' replace />;
   }
+
+  const hasError = Boolean(errors.general);
 
   return (
     <div className={styles.pageContainer}>
@@ -144,6 +154,7 @@ function AdminLogin() {
       </div>
 
       <div className={styles.mainContent}>
+
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -163,6 +174,7 @@ function AdminLogin() {
 
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
+
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderRow}>
                 <div>
@@ -170,46 +182,33 @@ function AdminLogin() {
                   <p className={styles.cardSubtitle}>Authorized personnel only</p>
                 </div>
               </div>
+            </div>
+
+            {/*
+              STATUS SLOT — fixed height, zero layout shift.
+              Badge is default. Error alert replaces it in-place via CSS transition.
+            */}
+            <div className={`${styles.statusSlot} ${hasError ? styles.hasError : ''}`}>
               <div className={styles.securityBadge}>
                 <span className={styles.securityDot}></span>
                 Authorized Access Only
+              </div>
+
+              <div className={styles.errorAlert} role="alert" aria-live="polite">
+                {/* Clean single warning icon — no double borders */}
+                <svg className={styles.errorAlertIcon} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3A.75.75 0 018 4.5zm0 7a.875.875 0 110-1.75.875.875 0 010 1.75z"/>
+                </svg>
+                <span className={styles.errorAlertText}>{errors.general}</span>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className={styles.form}>
 
-              {/*
-                CHANGE C (JSX) — Two structural changes to the error slot:
-
-                1. `.hasError` class conditionally added to `errorAlertSlot`.
-                   WHY: The CSS grid-template-rows collapse transition requires a
-                   class toggle to switch between 0fr (hidden) and 1fr (visible).
-                   Without this, the slot stays collapsed forever regardless of
-                   whether an error exists.
-
-                2. `errorAlertInner` wrapper div added inside the slot.
-                   WHY: The grid row-collapse pattern requires an inner element
-                   with overflow:hidden and min-height:0. The grid row collapses
-                   the outer container to zero height; the inner wrapper clips the
-                   content as the row height animates. Without this wrapper, the
-                   content would remain visible even when the row is at 0fr.
-              */}
-              <div className={`${styles.errorAlertSlot}${errors.general ? ` ${styles.hasError}` : ''}`}>
-                <div className={styles.errorAlertInner}>
-                  {errors.general && (
-                    <div className={styles.errorAlert}>
-                      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
-                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-                      </svg>
-                      <span>{errors.general}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
+              {/* EMAIL */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>Admin Email</label>
-                <div className={styles.inputContainer}>
+                <div className={`${styles.inputContainer} ${shakingFields.email ? styles.inputShake : ''}`}>
                   <img src={emailIcon} alt="" className={styles.inputIcon} />
                   <input
                     type="email"
@@ -225,9 +224,10 @@ function AdminLogin() {
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
               </div>
 
+              {/* PASSWORD */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>Admin Password</label>
-                <div className={styles.inputContainer}>
+                <div className={`${styles.inputContainer} ${shakingFields.password ? styles.inputShake : ''}`}>
                   <img src={lockIcon} alt="" className={styles.inputIcon} />
                   <input
                     type={showPassword ? 'text' : 'password'}

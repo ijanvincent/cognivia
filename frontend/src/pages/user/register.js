@@ -45,9 +45,11 @@ function UserRegister() {
   const [showPassword, setShowPassword]               = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showStrengthMeter, setShowStrengthMeter]     = useState(false);
+  const [shakingFields, setShakingFields]             = useState({});
 
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentTouched, setConsentTouched] = useState(false);
+  const [shakeConsent, setShakeConsent]     = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -87,15 +89,34 @@ function UserRegister() {
     return newErrors;
   };
 
+  const triggerShake = (fieldKeys) => {
+    const shakes = fieldKeys.reduce((acc, k) => ({ ...acc, [k]: true }), {});
+    setShakingFields(shakes);
+    setTimeout(() => setShakingFields({}), 500);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setShowStrengthMeter(false);
 
-    setConsentTouched(true);
-    if (!consentChecked) return;
-
     const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    const hasFieldErrors = Object.keys(newErrors).length > 0;
+    const hasConsentError = !consentChecked;
+
+    // Mark consent touched regardless
+    setConsentTouched(true);
+
+    if (hasFieldErrors || hasConsentError) {
+      if (hasFieldErrors) {
+        setErrors(newErrors);
+        triggerShake(Object.keys(newErrors));
+      }
+      if (hasConsentError) {
+        setShakeConsent(true);
+        setTimeout(() => setShakeConsent(false), 500);
+      }
+      return;
+    }
 
     setLoading(true);
     setErrors({});
@@ -106,6 +127,7 @@ function UserRegister() {
     } catch (error) {
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
+        triggerShake(Object.keys(error.response.data.errors));
       } else if (error.response?.status === 422) {
         setErrors({ general: 'This email is already registered. Please use a different email.' });
       } else if (error.response?.data?.message) {
@@ -235,9 +257,10 @@ function UserRegister() {
                 </div>
               )}
 
+              {/* USERNAME */}
               <div className={styles.formGroup}>
                 <label htmlFor="username" className={styles.label}>Username</label>
-                <div className={styles.inputContainer}>
+                <div className={`${styles.inputContainer} ${shakingFields.username ? styles.inputShake : ''}`}>
                   <img src={userIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                   <input
                     id="username"
@@ -262,9 +285,10 @@ function UserRegister() {
                 )}
               </div>
 
+              {/* EMAIL */}
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>Email address</label>
-                <div className={styles.inputContainer}>
+                <div className={`${styles.inputContainer} ${shakingFields.email ? styles.inputShake : ''}`}>
                   <img src={emailIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                   <input
                     id="email"
@@ -290,20 +314,11 @@ function UserRegister() {
 
               <div className={styles.formRow}>
 
-                {/*
-                  CHANGE: Wrapped the password formGroup in a new
-                  styles.strengthMeterAnchor div.
-                  WHY: The strength meter is now position:absolute. It requires
-                  a position:relative parent to anchor correctly. Without this
-                  wrapper, the meter would escape to the nearest positioned
-                  ancestor (likely the page root) and render in the wrong place.
-                  This wrapper provides that isolated positioning context while
-                  keeping all existing formGroup styles intact.
-                */}
+                {/* PASSWORD */}
                 <div className={styles.strengthMeterAnchor}>
                   <div className={styles.formGroup}>
                     <label htmlFor="password" className={styles.label}>Password</label>
-                    <div className={styles.inputContainer}>
+                    <div className={`${styles.inputContainer} ${shakingFields.password ? styles.inputShake : ''}`}>
                       <img src={lockIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                       <input
                         id="password"
@@ -342,15 +357,6 @@ function UserRegister() {
                     )}
                   </div>
 
-                  {/*
-                    CHANGE: Strength meter is now position:absolute (via CSS),
-                    floating below the password field as an overlay.
-                    WHY: Removes it from document flow entirely. The confirm
-                    password column, consent block, and submit button are now
-                    100% isolated from meter expand/collapse — zero layout shift.
-                    This is the same overlay pattern used by Auth0, GitHub,
-                    and Linear. onBlur on the password input collapses it.
-                  */}
                   <div
                     id="password-strength"
                     className={`${styles.strengthMeter} ${strengthMeterVisible ? styles.strengthMeterVisible : ''}`}
@@ -377,11 +383,12 @@ function UserRegister() {
                   </div>
                 </div>
 
+                {/* CONFIRM PASSWORD */}
                 <div className={styles.formGroup}>
                   <label htmlFor="password_confirmation" className={styles.label}>
                     Confirm password
                   </label>
-                  <div className={styles.inputContainer}>
+                  <div className={`${styles.inputContainer} ${shakingFields.password_confirmation ? styles.inputShake : ''}`}>
                     <img src={confirmPassIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                     <input
                       id="password_confirmation"
@@ -421,7 +428,8 @@ function UserRegister() {
 
               </div>{/* end formRow */}
 
-              <div className={`${styles.consentWrapper} ${consentTouched && !consentChecked ? styles.consentWrapperError : ''}`}>
+              {/* CONSENT */}
+              <div className={`${styles.consentWrapper} ${consentTouched && !consentChecked ? styles.consentWrapperError : ''} ${shakeConsent ? styles.inputShake : ''}`}>
                 <label className={styles.consentLabel}>
                   <div className={styles.consentCheckboxWrap}>
                     <input
