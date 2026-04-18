@@ -32,7 +32,6 @@ function AdminLogin() {
       context.handleSetAppHeaderNone(false);
       context.handleSetAppContentClass('');
     };
-  
   }, []);
 
   const validateForm = () => {
@@ -78,9 +77,19 @@ function AdminLogin() {
       } else if (err.response?.data?.errors?.email) {
         setErrors({ general: err.response.data.errors.email[0] });
       } else if (err.response?.data?.message) {
-        setErrors({ general: err.response.data.message });
+        const serverMessage     = err.response.data.message;
+        const remainingAttempts = MAX_ATTEMPTS - currentAttempts;
+        const hasAttemptInfo    = /attempt/i.test(serverMessage);
+        setErrors({
+          general: hasAttemptInfo
+            ? serverMessage
+            : `${serverMessage} ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`,
+        });
       } else {
-        setErrors({ general: 'Invalid email or password. Please try again.' });
+        const remainingAttempts = MAX_ATTEMPTS - currentAttempts;
+        setErrors({
+          general: `Invalid credentials. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`,
+        });
       }
     } finally {
       setLoading(false);
@@ -91,8 +100,6 @@ function AdminLogin() {
     return <Navigate to='/admin/dashboard' replace />;
   }
 
-  const remainingAttempts = MAX_ATTEMPTS - attempts;
-
   return (
     <div className={styles.pageContainer}>
       {loading && (
@@ -101,7 +108,6 @@ function AdminLogin() {
         </div>
       )}
 
-    
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -125,7 +131,6 @@ function AdminLogin() {
         </svg>
       </div>
 
-    
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -139,8 +144,6 @@ function AdminLogin() {
       </div>
 
       <div className={styles.mainContent}>
-
-      
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -158,7 +161,6 @@ function AdminLogin() {
           </div>
         </div>
 
-     
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -175,16 +177,36 @@ function AdminLogin() {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.form}>
-              {errors.general && (
-                <div className={styles.errorAlert}>
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
-                    <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-                  </svg>
-                  <span>{errors.general}</span>
-                </div>
-              )}
 
-            
+              {/*
+                CHANGE C (JSX) — Two structural changes to the error slot:
+
+                1. `.hasError` class conditionally added to `errorAlertSlot`.
+                   WHY: The CSS grid-template-rows collapse transition requires a
+                   class toggle to switch between 0fr (hidden) and 1fr (visible).
+                   Without this, the slot stays collapsed forever regardless of
+                   whether an error exists.
+
+                2. `errorAlertInner` wrapper div added inside the slot.
+                   WHY: The grid row-collapse pattern requires an inner element
+                   with overflow:hidden and min-height:0. The grid row collapses
+                   the outer container to zero height; the inner wrapper clips the
+                   content as the row height animates. Without this wrapper, the
+                   content would remain visible even when the row is at 0fr.
+              */}
+              <div className={`${styles.errorAlertSlot}${errors.general ? ` ${styles.hasError}` : ''}`}>
+                <div className={styles.errorAlertInner}>
+                  {errors.general && (
+                    <div className={styles.errorAlert}>
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
+                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                      </svg>
+                      <span>{errors.general}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className={styles.formGroup}>
                 <label className={styles.label}>Admin Email</label>
                 <div className={styles.inputContainer}>
@@ -203,7 +225,6 @@ function AdminLogin() {
                 {errors.email && <span className={styles.errorText}>{errors.email}</span>}
               </div>
 
-     
               <div className={styles.formGroup}>
                 <label className={styles.label}>Admin Password</label>
                 <div className={styles.inputContainer}>
@@ -233,16 +254,6 @@ function AdminLogin() {
                 </div>
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </div>
-
-          
-              {attempts > 0 && !locked && (
-                <div className={styles.attemptsWarning}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                  </svg>
-                  {remainingAttempts} attempt{remainingAttempts !== 1 ? 's' : ''} remaining before lockout
-                </div>
-              )}
 
               <button
                 type="submit"
