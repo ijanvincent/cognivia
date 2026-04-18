@@ -447,7 +447,7 @@ function UserRegister() {
                   </div>
 
                   <span className={styles.consentText}>
-                    I have read and agree to the{' '}
+                    I accept the{' '}
                     <Link
                       to="/terms"
                       className={styles.consentLink}
