@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator,
     StyleSheet, KeyboardAvoidingView, Platform,
-    ScrollView, TextInput, Dimensions, Linking,
+    ScrollView, TextInput, Dimensions, Linking, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,11 +16,6 @@ const { height: H } = Dimensions.get('window');
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://cognivia.com';
 
-/**
- * Opens the legal page in the device's default browser.
- * WHY: Linking.openURL() is the React Native standard for external URLs.
- * @param {'terms' | 'privacy'} page
- */
 const openLegal = async (page) => {
     const url = `${WEB_URL}/${page}`;
     const supported = await Linking.canOpenURL(url);
@@ -29,7 +24,9 @@ const openLegal = async (page) => {
     }
 };
 
-
+// ─────────────────────────────────────────────────────────────────────────────
+// WaveBackground
+// ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -66,52 +63,239 @@ const WaveBackground = () => (
     </Svg>
 );
 
-const Input = ({
-    value, onChangeText, placeholder, secureTextEntry,
-    keyboardType, icon, rightIcon, onRightIconPress,
-    editable, autoCapitalize, onFocusCallback, onBlurCallback,
-}) => {
-    const [focused, setFocused] = useState(false);
+// ─────────────────────────────────────────────────────────────────────────────
+// useFloatAnim
+// ─────────────────────────────────────────────────────────────────────────────
+const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const floatAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+    useEffect(() => {
+        if (!isFocused) {
+            Animated.timing(floatAnim, {
+                toValue:         value ? 1 : 0,
+                duration:        0,
+                useNativeDriver: false,
+            }).start();
+        }
+    }, [value]);
+
+    const handleFocus = () => {
+        setIsFocused(true);
+        Animated.timing(floatAnim, {
+            toValue:         1,
+            duration:        180,
+            useNativeDriver: false,
+        }).start();
+        onFocusCallback?.();
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+        if (!value) {
+            Animated.timing(floatAnim, {
+                toValue:         0,
+                duration:        180,
+                useNativeDriver: false,
+            }).start();
+        }
+        onBlurCallback?.();
+    };
+
+    return { isFocused, floatAnim, handleFocus, handleBlur };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FloatingLabel
+// ─────────────────────────────────────────────────────────────────────────────
+const FloatingLabel = ({ label, floatAnim, isFocused }) => {
+    const labelTranslateY = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [0, -28],
+    });
+    const labelFontSize = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [15, 11],
+    });
+    const labelColor = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [
+            'rgba(255,255,255,0.35)',
+            isFocused ? COLORS.cyan : 'rgba(255,255,255,0.55)',
+        ],
+    });
+    const labelBgOpacity = floatAnim.interpolate({
+        inputRange:  [0, 0.8, 1],
+        outputRange: [0, 0, 1],
+    });
+
     return (
-        <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
-            <MaterialCommunityIcons
-                name={icon}
-                size={20}
-                color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
-                style={styles.inputIcon}
+        <Animated.View
+            pointerEvents="none"
+            style={[
+                styles.floatingLabelWrapper,
+                { transform: [{ translateY: labelTranslateY }] },
+            ]}
+        >
+            <Animated.View
+                style={[styles.labelBgPatch, { opacity: labelBgOpacity }]}
             />
-            <TextInput
-                style={styles.input}
-                value={value}
-                onChangeText={onChangeText}
-                placeholder={placeholder}
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                secureTextEntry={secureTextEntry}
-                keyboardType={keyboardType || 'default'}
-                autoCapitalize={autoCapitalize || 'none'}
-                autoCorrect={false}
-                onFocus={() => { setFocused(true); onFocusCallback?.(); }}
-                onBlur={() => { setFocused(false); onBlurCallback?.(); }}
-                editable={editable !== false}
-            />
+            <Animated.Text
+                style={[
+                    styles.floatingLabel,
+                    { fontSize: labelFontSize, color: labelColor },
+                ]}
+                numberOfLines={1}
+            >
+                {label}
+            </Animated.Text>
+        </Animated.View>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FloatingLabelInput
+// ─────────────────────────────────────────────────────────────────────────────
+const FloatingLabelInput = ({
+    label,
+    value,
+    onChangeText,
+    secureTextEntry,
+    keyboardType,
+    icon,
+    rightIcon,
+    onRightIconPress,
+    editable,
+    autoCapitalize,
+    onFocusCallback,
+    onBlurCallback,
+}) => {
+    const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({
+        value,
+        onFocusCallback,
+        onBlurCallback,
+    });
+
+    return (
+        <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+            {/*
+             * THE FIX: Instead of applying style directly to the icon (which is
+             * a sibling in a flex-start row shifted by paddingTop), we wrap it
+             * in a View with alignSelf:'stretch' + justifyContent:'center'.
+             *
+             * alignSelf:'stretch' makes this wrapper fill the full height of
+             * inputWrap (60px), bypassing the paddingTop offset entirely.
+             * justifyContent:'center' then centers the icon within that full
+             * height — perfectly aligned with the text input area at all times.
+             *
+             * This is the standard pattern used by libraries like
+             * react-native-paper and NativeBase for floating label inputs.
+             */}
+            <View style={styles.iconWrap}>
+                <MaterialCommunityIcons
+                    name={icon}
+                    size={20}
+                    color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                />
+            </View>
+            <View style={styles.floatContainer}>
+                <FloatingLabel label={label} floatAnim={floatAnim} isFocused={isFocused} />
+                <TextInput
+                    style={styles.input}
+                    value={value}
+                    onChangeText={onChangeText}
+                    placeholder=""
+                    secureTextEntry={secureTextEntry}
+                    keyboardType={keyboardType || 'default'}
+                    autoCapitalize={autoCapitalize || 'none'}
+                    autoCorrect={false}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    editable={editable !== false}
+                />
+            </View>
             {rightIcon && (
-                <TouchableOpacity
-                    onPress={onRightIconPress}
-                    style={styles.eyeBtn}
-                    disabled={editable === false}
-                >
-                    <MaterialCommunityIcons
-                        name={rightIcon}
-                        size={20}
-                        color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
-                    />
-                </TouchableOpacity>
+                <View style={styles.eyeWrap}>
+                    <TouchableOpacity
+                        onPress={onRightIconPress}
+                        disabled={editable === false}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <MaterialCommunityIcons
+                            name={rightIcon}
+                            size={20}
+                            color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                        />
+                    </TouchableOpacity>
+                </View>
             )}
         </View>
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PasswordInput
+// ─────────────────────────────────────────────────────────────────────────────
+const PasswordInput = ({
+    label,
+    value,
+    onChangeText,
+    secureTextEntry,
+    onToggleSecure,
+    editable,
+    onFocusCallback,
+    onBlurCallback,
+}) => {
+    const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({
+        value,
+        onFocusCallback,
+        onBlurCallback,
+    });
 
+    return (
+        <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+            <View style={styles.iconWrap}>
+                <MaterialCommunityIcons
+                    name="lock-outline"
+                    size={20}
+                    color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                />
+            </View>
+            <View style={styles.floatContainer}>
+                <FloatingLabel label={label} floatAnim={floatAnim} isFocused={isFocused} />
+                <TextInput
+                    style={styles.input}
+                    value={value}
+                    onChangeText={onChangeText}
+                    placeholder=""
+                    secureTextEntry={secureTextEntry}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    editable={editable !== false}
+                />
+            </View>
+            <View style={styles.eyeWrap}>
+                <TouchableOpacity
+                    onPress={onToggleSecure}
+                    disabled={editable === false}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <MaterialCommunityIcons
+                        name={secureTextEntry ? 'eye-outline' : 'eye-off-outline'}
+                        size={20}
+                        color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                    />
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PasswordRequirement
+// ─────────────────────────────────────────────────────────────────────────────
 const PasswordRequirement = ({ met, label }) => (
     <View style={styles.reqRow}>
         {met ? (
@@ -123,7 +307,6 @@ const PasswordRequirement = ({ met, label }) => (
     </View>
 );
 
-
 const PASSWORD_RULES = [
     { key: 'lowercase', label: 'At least one lowercase letter', test: (p) => /[a-z]/.test(p) },
     { key: 'uppercase', label: 'At least one uppercase letter', test: (p) => /[A-Z]/.test(p) },
@@ -132,8 +315,9 @@ const PASSWORD_RULES = [
     { key: 'length',    label: 'Minimum 8 characters',          test: (p) => p.length >= 8 },
 ];
 
-
-
+// ─────────────────────────────────────────────────────────────────────────────
+// ConsentCheckbox
+// ─────────────────────────────────────────────────────────────────────────────
 const ConsentCheckbox = ({ checked, onToggle, onTermsPress, onPrivacyPress, hasError }) => (
     <View style={styles.consentWrapper}>
         <TouchableOpacity
@@ -144,7 +328,6 @@ const ConsentCheckbox = ({ checked, onToggle, onTermsPress, onPrivacyPress, hasE
             accessibilityState={{ checked }}
             accessibilityLabel="I agree to the Terms of Service and Privacy Policy"
         >
-    
             <View style={[
                 styles.checkbox,
                 checked  && styles.checkboxChecked,
@@ -154,21 +337,13 @@ const ConsentCheckbox = ({ checked, onToggle, onTermsPress, onPrivacyPress, hasE
                     <MaterialCommunityIcons name="check" size={13} color="#07080f" />
                 )}
             </View>
-
-            
             <Text style={styles.consentText}>
                 I accept the{' '}
-                <Text style={styles.consentLink} onPress={onTermsPress}>
-                  Terms
-                </Text>
+                <Text style={styles.consentLink} onPress={onTermsPress}>Terms</Text>
                 {' '}and{' '}
-                <Text style={styles.consentLink} onPress={onPrivacyPress}>
-                    Privacy Policy
-                </Text>
+                <Text style={styles.consentLink} onPress={onPrivacyPress}>Privacy Policy</Text>
             </Text>
         </TouchableOpacity>
-
-      
         {hasError && (
             <View style={styles.consentErrorRow}>
                 <MaterialCommunityIcons name="alert-circle-outline" size={13} color={COLORS.error} />
@@ -180,6 +355,9 @@ const ConsentCheckbox = ({ checked, onToggle, onTermsPress, onPrivacyPress, hasE
     </View>
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RegisterScreen
+// ─────────────────────────────────────────────────────────────────────────────
 const RegisterScreen = () => {
     const navigation = useNavigation();
 
@@ -196,10 +374,8 @@ const RegisterScreen = () => {
     const [passwordFocused, setPasswordFocused]         = useState(false);
     const [confirmFocused, setConfirmFocused]           = useState(false);
     const [strengthDismissed, setStrengthDismissed]     = useState(false);
-
-
-    const [consentChecked, setConsentChecked] = useState(false);
-    const [consentTouched, setConsentTouched] = useState(false);
+    const [consentChecked, setConsentChecked]           = useState(false);
+    const [consentTouched, setConsentTouched]           = useState(false);
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -234,8 +410,6 @@ const RegisterScreen = () => {
 
     const handleRegister = async () => {
         setStrengthDismissed(true);
-
-     
         setConsentTouched(true);
         if (!consentChecked) return;
 
@@ -273,11 +447,9 @@ const RegisterScreen = () => {
         }
     };
 
-
     const showPasswordRules = !strengthDismissed &&
         (passwordFocused || (!confirmFocused && formData.password.length > 0));
 
-    
     const isButtonDisabled = isLoading || !consentChecked;
 
     return (
@@ -295,7 +467,6 @@ const RegisterScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Login')}
                         style={styles.backBtn}
@@ -303,7 +474,6 @@ const RegisterScreen = () => {
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
-                  
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Join and start learning smarter today.
@@ -312,7 +482,7 @@ const RegisterScreen = () => {
 
                     <View style={styles.formSection}>
 
-                     
+                        {/* ── General error ── */}
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
                                 <MaterialCommunityIcons name="alert-circle-outline" size={16} color={COLORS.error} />
@@ -320,22 +490,22 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
-                  
-                        <Input
+                        {/* ── Username ── */}
+                        <FloatingLabelInput
+                            label="Username"
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
-                            placeholder="Username"
                             icon="account-outline"
                             editable={!isLoading}
                             onFocusCallback={() => setStrengthDismissed(true)}
                         />
                         {!!errors.username && <Text style={styles.fieldError}>{errors.username}</Text>}
 
-                      
-                        <Input
+                        {/* ── Email ── */}
+                        <FloatingLabelInput
+                            label="Email"
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
-                            placeholder="Email"
                             keyboardType="email-address"
                             icon="email-outline"
                             editable={!isLoading}
@@ -343,43 +513,54 @@ const RegisterScreen = () => {
                         />
                         {!!errors.email && <Text style={styles.fieldError}>{errors.email}</Text>}
 
-                    
-                        <View style={[styles.inputWrap, passwordFocused && styles.inputWrapFocused]}>
-                            <MaterialCommunityIcons
-                                name="lock-outline"
-                                size={20}
-                                color={passwordFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
-                                style={styles.inputIcon}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                value={formData.password}
-                                onChangeText={v => updateField('password', v)}
-                                placeholder="Password"
-                                placeholderTextColor="rgba(255,255,255,0.3)"
-                                secureTextEntry={!showPassword}
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                                onFocus={() => {
-                                    setPasswordFocused(true);
-                                    setStrengthDismissed(false);
-                                }}
-                                onBlur={() => setPasswordFocused(false)}
-                                editable={!isLoading}
-                            />
-                            <TouchableOpacity
-                                onPress={() => setShowPassword(p => !p)}
-                                style={styles.eyeBtn}
-                            >
-                                <MaterialCommunityIcons
-                                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                                    size={20}
-                                    color={passwordFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                        {/* ── Password + Confirm Password (side-by-side) ── */}
+                        <View style={styles.passwordRow}>
+
+                            {/* Left column — Password */}
+                            <View style={styles.passwordCol}>
+                                <PasswordInput
+                                    label="Password"
+                                    value={formData.password}
+                                    onChangeText={v => updateField('password', v)}
+                                    secureTextEntry={!showPassword}
+                                    onToggleSecure={() => setShowPassword(p => !p)}
+                                    editable={!isLoading}
+                                    onFocusCallback={() => {
+                                        setPasswordFocused(true);
+                                        setStrengthDismissed(false);
+                                    }}
+                                    onBlurCallback={() => setPasswordFocused(false)}
                                 />
-                            </TouchableOpacity>
+                                {!!errors.password && (
+                                    <Text style={styles.fieldError}>{errors.password}</Text>
+                                )}
+                            </View>
+
+                            {/* Right column — Confirm Password */}
+                            <View style={styles.passwordCol}>
+                                <FloatingLabelInput
+                                    label="Confirm"
+                                    value={formData.password_confirmation}
+                                    onChangeText={v => updateField('password_confirmation', v)}
+                                    secureTextEntry={!showConfirmPassword}
+                                    icon="lock-check-outline"
+                                    rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                                    onRightIconPress={() => setShowConfirmPassword(p => !p)}
+                                    editable={!isLoading}
+                                    onFocusCallback={() => {
+                                        setConfirmFocused(true);
+                                        setStrengthDismissed(true);
+                                    }}
+                                    onBlurCallback={() => setConfirmFocused(false)}
+                                />
+                                {!!errors.password_confirmation && (
+                                    <Text style={styles.fieldError}>{errors.password_confirmation}</Text>
+                                )}
+                            </View>
+
                         </View>
 
-                     
+                        {/* ── Password strength rules (below the password row) ── */}
                         {showPasswordRules && (
                             <View style={styles.reqContainer}>
                                 {PASSWORD_RULES.map(rule => (
@@ -391,29 +572,8 @@ const RegisterScreen = () => {
                                 ))}
                             </View>
                         )}
-                        {!!errors.password && <Text style={styles.fieldError}>{errors.password}</Text>}
 
-             
-                        <Input
-                            value={formData.password_confirmation}
-                            onChangeText={v => updateField('password_confirmation', v)}
-                            placeholder="Confirm Password"
-                            secureTextEntry={!showConfirmPassword}
-                            icon="lock-check-outline"
-                            rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                            onRightIconPress={() => setShowConfirmPassword(p => !p)}
-                            editable={!isLoading}
-                            onFocusCallback={() => {
-                                setConfirmFocused(true);
-                                setStrengthDismissed(true);
-                            }}
-                            onBlurCallback={() => setConfirmFocused(false)}
-                        />
-                        {!!errors.password_confirmation && (
-                            <Text style={styles.fieldError}>{errors.password_confirmation}</Text>
-                        )}
-
-                     
+                        {/* ── Consent ── */}
                         <ConsentCheckbox
                             checked={consentChecked}
                             onToggle={() => setConsentChecked(p => !p)}
@@ -437,7 +597,6 @@ const RegisterScreen = () => {
                             }
                         </TouchableOpacity>
 
-                     
                         <View style={styles.loginRow}>
                             <Text style={styles.loginPrompt}>Already have an account? </Text>
                             <TouchableOpacity
@@ -455,51 +614,133 @@ const RegisterScreen = () => {
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    safeArea:          { flex: 1, backgroundColor: COLORS.bg },
-    flex:              { flex: 1 },
-    overlay:           { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
-    scrollContent:     { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
-    backBtn:           { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
-    brandSection:      { alignItems: 'center', marginBottom: 32 },
-    brandName:         { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 20 },
-    brandWelcome:      { fontFamily: 'Syne_700Bold', fontSize: 22, fontWeight: '800', color: '#ffffff', letterSpacing: 1.5, textTransform: 'uppercase', textAlign: 'center', marginBottom: 6 },
-    brandSub:          { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
-    formSection:       { width: '100%' },
-    inputWrap:         { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
-    inputWrapNoMb:     { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
-    inputWrapFocused:  { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
-    inputIcon:         { marginRight: 12 },
-    input:             { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
-    eyeBtn:            { paddingLeft: 10 },
-    errorAlert:        { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText:    { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-    fieldError:        { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
+    safeArea:      { flex: 1, backgroundColor: COLORS.bg },
+    flex:          { flex: 1 },
+    overlay:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    scrollContent: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
+    backBtn:       { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
+    brandSection:  { alignItems: 'center', marginBottom: 32 },
+    brandSub:      { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
+    formSection:   { width: '100%' },
 
-    consentWrapper:    { marginBottom: 20, marginTop: 4 },
-    consentRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)' },
-    consentRowError:   { borderColor: 'rgba(239,68,68,0.4)' },
-    checkbox:          { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
-    checkboxChecked:   { backgroundColor: COLORS.cyan, borderColor: COLORS.cyan },
-    checkboxError:     { borderColor: COLORS.error },
-    consentText:       { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 20, fontWeight: '300' },
-    consentLink:       { color: '#ffffff', fontWeight: '700' },
-    consentErrorRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, marginLeft: 2 },
-    consentErrorText:  { fontSize: 12, color: COLORS.error, fontWeight: '500', flex: 1 },
+    // ── Input shell ───────────────────────────────────────────────────────────
+    // UNCHANGED from original. alignItems:'flex-start' stays — the icon/eye
+    // centering is now solved by iconWrap/eyeWrap independently.
+    inputWrap: {
+        flexDirection:     'row',
+        alignItems:        'flex-start',
+        borderWidth:       1,
+        borderColor:       'rgba(255,255,255,0.15)',
+        borderRadius:      12,
+        paddingHorizontal: 16,
+        paddingTop:        18,
+        paddingBottom:     6,
+        height:            60,
+        marginBottom:      20,
+        backgroundColor:   'rgba(255,255,255,0.04)',
+        overflow:          'visible',
+    },
+    inputWrapFocused: {
+        borderColor:     COLORS.cyan,
+        backgroundColor: 'rgba(34,211,238,0.04)',
+    },
 
-   
-    btnCreate:         { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-    btnDisabled:       { opacity: 0.35 },
-    btnCreateText:     { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
-    loginRow:          { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    loginPrompt:       { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-    loginLink:         { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+    // ── THE FIX: iconWrap & eyeWrap ──────────────────────────────────────────
+    // Problem: the icon/eye were direct children of a flex-start row that has
+    // paddingTop:18, so they started 18px from the top — not visually centered.
+    //
+    // Solution: wrap each in a View with alignSelf:'stretch' + justifyContent:'center'.
+    //   - alignSelf:'stretch' ignores the parent's paddingTop and expands the
+    //     wrapper to the full inputWrap height (60px).
+    //   - justifyContent:'center' then places the icon at the true vertical
+    //     midpoint of those 60px — perfectly aligned with the text input.
+    //
+    // This is the same pattern used by react-native-paper's TextInput component.
+    iconWrap: {
+        alignSelf:      'stretch',
+        justifyContent: 'center',
+        marginRight:    12,
+    },
+    eyeWrap: {
+        alignSelf:      'stretch',
+        justifyContent: 'center',
+        paddingLeft:    10,
+    },
 
-    reqContainer:      { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 14, gap: 6 },
-    reqRow:            { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    reqDot:            { width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
-    reqText:           { fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: '400' },
-    reqTextMet:        { color: '#22c55e', fontWeight: '500' },
+    // ── Floating label ────────────────────────────────────────────────────────
+    floatContainer: {
+        flex:           1,
+        position:       'relative',
+        justifyContent: 'center',
+    },
+    floatingLabelWrapper: {
+        position:      'absolute',
+        top:           '50%',
+        marginTop:     -8,
+        left:          0,
+        flexDirection: 'row',
+        alignItems:    'center',
+        zIndex:        10,
+    },
+    labelBgPatch: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor:  COLORS.bg,
+        marginHorizontal: -3,
+        borderRadius:     2,
+    },
+    floatingLabel: {
+        fontWeight:    '400',
+        letterSpacing: 0.1,
+    },
+
+    // ── TextInput ─────────────────────────────────────────────────────────────
+    input: {
+        flex:            1,
+        fontSize:        15,
+        color:           '#ffffff',
+        paddingVertical: 0,
+        paddingTop:      2,
+    },
+
+    // ── Password side-by-side row ─────────────────────────────────────────────
+    passwordRow: { flexDirection: 'row', gap: 10, marginBottom: 0 },
+    passwordCol: { flex: 1 },
+
+    // ── Errors ────────────────────────────────────────────────────────────────
+    errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
+    errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
+
+    // ── Consent ───────────────────────────────────────────────────────────────
+    consentWrapper:   { marginBottom: 20, marginTop: 4 },
+    consentRow:       { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)' },
+    consentRowError:  { borderColor: 'rgba(239,68,68,0.4)' },
+    checkbox:         { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
+    checkboxChecked:  { backgroundColor: COLORS.cyan, borderColor: COLORS.cyan },
+    checkboxError:    { borderColor: COLORS.error },
+    consentText:      { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 20, fontWeight: '300' },
+    consentLink:      { color: '#ffffff', fontWeight: '700' },
+    consentErrorRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, marginLeft: 2 },
+    consentErrorText: { fontSize: 12, color: COLORS.error, fontWeight: '500', flex: 1 },
+
+    // ── Submit ────────────────────────────────────────────────────────────────
+    btnCreate:     { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    btnDisabled:   { opacity: 0.35 },
+    btnCreateText: { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    loginRow:      { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    loginPrompt:   { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    loginLink:     { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+
+    // ── Password strength ─────────────────────────────────────────────────────
+    reqContainer: { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 14, gap: 6 },
+    reqRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    reqDot:       { width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
+    reqText:      { fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: '400' },
+    reqTextMet:   { color: '#22c55e', fontWeight: '500' },
 });
 
 export default RegisterScreen;
