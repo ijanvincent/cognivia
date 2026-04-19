@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator,
     StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
-    TextInput, Dimensions,
+    TextInput, Dimensions, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,9 @@ import api from '../services/api';
 
 const { height: H } = Dimensions.get('window');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WaveBackground
+// ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -50,39 +53,145 @@ const WaveBackground = () => (
     </Svg>
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// useFloatAnim  (ported from RegisterScreen)
+// ─────────────────────────────────────────────────────────────────────────────
+const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const floatAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
 
-const Input = ({ value, onChangeText, placeholder, keyboardType, icon, editable }) => {
-    const [focused, setFocused] = useState(false);
+    useEffect(() => {
+        if (!isFocused) {
+            Animated.timing(floatAnim, {
+                toValue:         value ? 1 : 0,
+                duration:        0,
+                useNativeDriver: false,
+            }).start();
+        }
+    }, [value]);
+
+    const handleFocus = () => {
+        setIsFocused(true);
+        Animated.timing(floatAnim, {
+            toValue:         1,
+            duration:        180,
+            useNativeDriver: false,
+        }).start();
+        onFocusCallback?.();
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+        if (!value) {
+            Animated.timing(floatAnim, {
+                toValue:         0,
+                duration:        180,
+                useNativeDriver: false,
+            }).start();
+        }
+        onBlurCallback?.();
+    };
+
+    return { isFocused, floatAnim, handleFocus, handleBlur };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FloatingLabel  (ported from RegisterScreen)
+// ─────────────────────────────────────────────────────────────────────────────
+const FloatingLabel = ({ label, floatAnim, isFocused }) => {
+    const labelTranslateY = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [0, -28],
+    });
+    const labelFontSize = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [15, 11],
+    });
+    const labelColor = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [
+            'rgba(255,255,255,0.35)',
+            isFocused ? COLORS.cyan : 'rgba(255,255,255,0.55)',
+        ],
+    });
+    const labelBgOpacity = floatAnim.interpolate({
+        inputRange:  [0, 0.8, 1],
+        outputRange: [0, 0, 1],
+    });
+
     return (
-        <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
-            <MaterialCommunityIcons
-                name={icon}
-                size={20}
-                color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
-                style={styles.inputIcon}
+        <Animated.View
+            pointerEvents="none"
+            style={[
+                styles.floatingLabelWrapper,
+                { transform: [{ translateY: labelTranslateY }] },
+            ]}
+        >
+            <Animated.View
+                style={[styles.labelBgPatch, { opacity: labelBgOpacity }]}
             />
-            <TextInput
-                style={styles.input}
-                value={value}
-                onChangeText={onChangeText}
-                placeholder={placeholder}
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                keyboardType={keyboardType || 'default'}
-                autoCapitalize="none"
-                autoCorrect={false}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                editable={editable !== false}
-            />
+            <Animated.Text
+                style={[
+                    styles.floatingLabel,
+                    { fontSize: labelFontSize, color: labelColor },
+                ]}
+                numberOfLines={1}
+            >
+                {label}
+            </Animated.Text>
+        </Animated.View>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FloatingLabelInput  (ported from RegisterScreen)
+// ─────────────────────────────────────────────────────────────────────────────
+const FloatingLabelInput = ({
+    label,
+    value,
+    onChangeText,
+    keyboardType,
+    icon,
+    editable,
+}) => {
+    const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({ value });
+
+    return (
+        <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+            <View style={styles.iconWrap}>
+                <MaterialCommunityIcons
+                    name={icon}
+                    size={20}
+                    color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                />
+            </View>
+            <View style={styles.floatContainer}>
+                <FloatingLabel label={label} floatAnim={floatAnim} isFocused={isFocused} />
+                <TextInput
+                    style={styles.input}
+                    value={value}
+                    onChangeText={onChangeText}
+                    placeholder=""
+                    keyboardType={keyboardType || 'default'}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    editable={editable !== false}
+                />
+            </View>
         </View>
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ForgotPasswordScreen
+// ─────────────────────────────────────────────────────────────────────────────
 const ForgotPasswordScreen = () => {
-    const navigation            = useNavigation();
-    const [email, setEmail]     = useState('');
-    const [error, setError]     = useState('');
-    const [success, setSuccess] = useState(false);
+    const navigation              = useNavigation();
+    const [email, setEmail]       = useState('');
+    const [error, setError]       = useState('');
+    const [success, setSuccess]   = useState(false);
     const [isLoading, setLoading] = useState(false);
 
     const validate = () => {
@@ -99,7 +208,7 @@ const ForgotPasswordScreen = () => {
         try {
             await api.post('/auth/forgot-password', { email: email.trim() });
         } catch {
-            
+            // always show success to avoid email enumeration
         } finally {
             setLoading(false);
             setSuccess(true);
@@ -121,7 +230,6 @@ const ForgotPasswordScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                  
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
                         style={styles.backBtn}
@@ -129,14 +237,12 @@ const ForgotPasswordScreen = () => {
                         <MaterialCommunityIcons name="arrow-left" size={22} color="rgba(255,255,255,0.6)" />
                     </TouchableOpacity>
 
-                   
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Provide email and we'll send you a reset link.
                         </Text>
                     </View>
 
-                 
                     <View style={styles.formSection}>
 
                         {success ? (
@@ -159,10 +265,10 @@ const ForgotPasswordScreen = () => {
                                     </View>
                                 )}
 
-                                <Input
+                                <FloatingLabelInput
+                                    label="Email"
                                     value={email}
                                     onChangeText={(v) => { setEmail(v); setError(''); }}
-                                    placeholder="Email"
                                     keyboardType="email-address"
                                     icon="email-outline"
                                     editable={!isLoading}
@@ -188,6 +294,7 @@ const ForgotPasswordScreen = () => {
                                 <Text style={styles.loginLink}>Sign in</Text>
                             </TouchableOpacity>
                         </View>
+
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -195,11 +302,14 @@ const ForgotPasswordScreen = () => {
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    safeArea:       { flex: 1, backgroundColor: COLORS.bg },
-    flex:           { flex: 1 },
-    overlay:        { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
-    scrollContent:  {
+    safeArea:      { flex: 1, backgroundColor: COLORS.bg },
+    flex:          { flex: 1 },
+    overlay:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    scrollContent: {
         flexGrow:          1,
         paddingHorizontal: 28,
         paddingTop:        16,
@@ -208,68 +318,90 @@ const styles = StyleSheet.create({
         minHeight:         H,
     },
 
-  
-    backBtn:        { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
+    backBtn:      { position: 'absolute', top: 16, left: 28, zIndex: 10, padding: 4 },
 
-   
-    brandSection:   { alignItems: 'flex-start', marginBottom: 32 },
-    brandName:      {
-        fontFamily:    'Syne_700Bold',
-        fontSize:      20,
-        fontWeight:    '700',
-        color:         '#f1f5f9',
-        letterSpacing: -0.3,
-        marginBottom:  20,
-    },
-    brandWelcome:   {
-        fontFamily:    'Syne_700Bold',
-        fontSize:      26,
-        fontWeight:    '700',
-        color:         '#ffffff',
-        letterSpacing: -0.3,
-        marginBottom:  6,
-    },
-    brandSub:       {
-        fontSize:      14,
-        color:         'rgba(255,255,255,0.45)',
-        fontWeight:    '300',
-    },
+    brandSection: { alignItems: 'flex-start', marginBottom: 32 },
+    brandSub:     { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300' },
 
-  
-    formSection:    { width: '100%' },
-    inputWrap:      {
+    formSection:  { width: '100%' },
+
+    // ── Input shell (matches RegisterScreen) ─────────────────────────────────
+    inputWrap: {
         flexDirection:     'row',
-        alignItems:        'center',
+        alignItems:        'flex-start',
         borderWidth:       1,
         borderColor:       'rgba(255,255,255,0.15)',
         borderRadius:      12,
         paddingHorizontal: 16,
-        height:            56,
-        marginBottom:      14,
+        paddingTop:        18,
+        paddingBottom:     6,
+        height:            60,
+        marginBottom:      20,
         backgroundColor:   'rgba(255,255,255,0.04)',
+        overflow:          'visible',
     },
     inputWrapFocused: {
-        borderColor:       COLORS.cyan,
-        backgroundColor:   'rgba(34,211,238,0.04)',
+        borderColor:     COLORS.cyan,
+        backgroundColor: 'rgba(34,211,238,0.04)',
     },
-    inputIcon:      { marginRight: 12 },
-    input:          { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
 
-   
+    // ── Icon wrapper (vertically centered via alignSelf stretch) ─────────────
+    iconWrap: {
+        alignSelf:      'stretch',
+        justifyContent: 'center',
+        marginRight:    12,
+    },
+
+    // ── Floating label ────────────────────────────────────────────────────────
+    floatContainer: {
+        flex:           1,
+        position:       'relative',
+        justifyContent: 'center',
+    },
+    floatingLabelWrapper: {
+        position:      'absolute',
+        top:           '50%',
+        marginTop:     -8,
+        left:          0,
+        flexDirection: 'row',
+        alignItems:    'center',
+        zIndex:        10,
+    },
+    labelBgPatch: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor:  COLORS.bg,
+        marginHorizontal: -3,
+        borderRadius:     2,
+    },
+    floatingLabel: {
+        fontWeight:    '400',
+        letterSpacing: 0.1,
+    },
+
+    // ── TextInput ─────────────────────────────────────────────────────────────
+    input: {
+        flex:            1,
+        fontSize:        15,
+        color:           '#ffffff',
+        paddingVertical: 0,
+        paddingTop:      2,
+    },
+
+    // ── Alerts ────────────────────────────────────────────────────────────────
     successAlert:   { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: COLORS.successBg, borderLeftWidth: 3, borderLeftColor: COLORS.successBorder, borderRadius: 10, padding: 16, marginBottom: 24 },
     successText:    { flex: 1, fontSize: 14, color: COLORS.successBorder, fontWeight: '500', lineHeight: 22 },
     errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
     errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
 
-    
-    btnSubmit:      { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    btnDisabled:    { opacity: 0.6 },
-    btnSubmitText:  { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    // ── Submit ────────────────────────────────────────────────────────────────
+    btnSubmit:     { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    btnDisabled:   { opacity: 0.6 },
+    btnSubmitText: { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
 
-  
-    loginRow:       { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    loginPrompt:    { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-    loginLink:      { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+    // ── Footer ────────────────────────────────────────────────────────────────
+    loginRow:    { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    loginPrompt: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    loginLink:   { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
 });
 
 export default ForgotPasswordScreen;
