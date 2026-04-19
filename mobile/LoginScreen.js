@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator,
     StyleSheet, KeyboardAvoidingView, Platform,
-    ScrollView, TextInput, Dimensions,
+    ScrollView, TextInput, Dimensions, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +15,9 @@ import api from './services/api';
 
 const { height: H } = Dimensions.get('window');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WaveBackground
+// ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
         style={StyleSheet.absoluteFill}
@@ -51,48 +54,166 @@ const WaveBackground = () => (
     </Svg>
 );
 
-const Input = ({ value, onChangeText, placeholder, secureTextEntry,
-    keyboardType, icon, rightIcon, onRightIconPress, editable }) => {
-    const [focused, setFocused] = useState(false);
+// ─────────────────────────────────────────────────────────────────────────────
+// useFloatAnim
+// ─────────────────────────────────────────────────────────────────────────────
+const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const floatAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+    useEffect(() => {
+        if (!isFocused) {
+            Animated.timing(floatAnim, {
+                toValue:         value ? 1 : 0,
+                duration:        0,
+                useNativeDriver: false,
+            }).start();
+        }
+    }, [value]);
+
+    const handleFocus = () => {
+        setIsFocused(true);
+        Animated.timing(floatAnim, {
+            toValue:         1,
+            duration:        180,
+            useNativeDriver: false,
+        }).start();
+        onFocusCallback?.();
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+        if (!value) {
+            Animated.timing(floatAnim, {
+                toValue:         0,
+                duration:        180,
+                useNativeDriver: false,
+            }).start();
+        }
+        onBlurCallback?.();
+    };
+
+    return { isFocused, floatAnim, handleFocus, handleBlur };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FloatingLabel
+// ─────────────────────────────────────────────────────────────────────────────
+const FloatingLabel = ({ label, floatAnim, isFocused }) => {
+    const labelTranslateY = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [0, -28],
+    });
+    const labelFontSize = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [15, 11],
+    });
+    const labelColor = floatAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [
+            'rgba(255,255,255,0.35)',
+            isFocused ? COLORS.cyan : 'rgba(255,255,255,0.55)',
+        ],
+    });
+    const labelBgOpacity = floatAnim.interpolate({
+        inputRange:  [0, 0.8, 1],
+        outputRange: [0, 0, 1],
+    });
+
     return (
-        <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
-            <MaterialCommunityIcons
-                name={icon}
-                size={20}
-                color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
-                style={styles.inputIcon}
+        <Animated.View
+            pointerEvents="none"
+            style={[
+                styles.floatingLabelWrapper,
+                { transform: [{ translateY: labelTranslateY }] },
+            ]}
+        >
+            <Animated.View
+                style={[styles.labelBgPatch, { opacity: labelBgOpacity }]}
             />
-            <TextInput
-                style={styles.input}
-                value={value}
-                onChangeText={onChangeText}
-                placeholder={placeholder}
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                secureTextEntry={secureTextEntry}
-                keyboardType={keyboardType || 'default'}
-                autoCapitalize="none"
-                autoCorrect={false}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                editable={editable !== false}
-            />
+            <Animated.Text
+                style={[
+                    styles.floatingLabel,
+                    { fontSize: labelFontSize, color: labelColor },
+                ]}
+                numberOfLines={1}
+            >
+                {label}
+            </Animated.Text>
+        </Animated.View>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FloatingLabelInput
+// ─────────────────────────────────────────────────────────────────────────────
+const FloatingLabelInput = ({
+    label,
+    value,
+    onChangeText,
+    secureTextEntry,
+    keyboardType,
+    icon,
+    rightIcon,
+    onRightIconPress,
+    editable,
+    autoCapitalize,
+    onFocusCallback,
+    onBlurCallback,
+}) => {
+    const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({
+        value,
+        onFocusCallback,
+        onBlurCallback,
+    });
+
+    return (
+        <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+            <View style={styles.iconWrap}>
+                <MaterialCommunityIcons
+                    name={icon}
+                    size={20}
+                    color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                />
+            </View>
+            <View style={styles.floatContainer}>
+                <FloatingLabel label={label} floatAnim={floatAnim} isFocused={isFocused} />
+                <TextInput
+                    style={styles.input}
+                    value={value}
+                    onChangeText={onChangeText}
+                    placeholder=""
+                    secureTextEntry={secureTextEntry}
+                    keyboardType={keyboardType || 'default'}
+                    autoCapitalize={autoCapitalize || 'none'}
+                    autoCorrect={false}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    editable={editable !== false}
+                />
+            </View>
             {rightIcon && (
-                <TouchableOpacity
-                    onPress={onRightIconPress}
-                    style={styles.eyeBtn}
-                    disabled={editable === false}
-                >
-                    <MaterialCommunityIcons
-                        name={rightIcon}
-                        size={20}
-                        color={focused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
-                    />
-                </TouchableOpacity>
+                <View style={styles.eyeWrap}>
+                    <TouchableOpacity
+                        onPress={onRightIconPress}
+                        disabled={editable === false}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <MaterialCommunityIcons
+                            name={rightIcon}
+                            size={20}
+                            color={isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'}
+                        />
+                    </TouchableOpacity>
+                </View>
             )}
         </View>
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LoginScreen
+// ─────────────────────────────────────────────────────────────────────────────
 const LoginScreen = () => {
     const navigation = useNavigation();
     const [formData, setFormData]         = useState({ email: '', password: '' });
@@ -113,26 +234,20 @@ const LoginScreen = () => {
         return e;
     };
 
-  
     const extractErrorMessage = (error) => {
-        
         if (error.response?.data?.message) {
             return error.response.data.message;
         }
-      
         if (error.response?.data?.errors) {
             const firstKey = Object.keys(error.response.data.errors)[0];
             return error.response.data.errors[firstKey][0];
         }
-        
         if (error.response?.status === 401) {
             return 'Invalid email or password.';
         }
-       
         if (error.message === 'Network Error') {
             return 'Cannot connect to server. Please check your connection.';
         }
-     
         return 'Login failed. Please try again.';
     };
 
@@ -187,14 +302,12 @@ const LoginScreen = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                   
                     <View style={styles.brandSection}>
                         <Text style={styles.brandSub}>
                             Sign in to your account to continue
                         </Text>
                     </View>
 
-                  
                     <View style={styles.formSection}>
 
                         {!!errors.general && (
@@ -208,10 +321,10 @@ const LoginScreen = () => {
                             </View>
                         )}
 
-                        <Input
+                        <FloatingLabelInput
+                            label="Email"
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
-                            placeholder="Email"
                             keyboardType="email-address"
                             icon="email-outline"
                             editable={!isLoading}
@@ -220,10 +333,10 @@ const LoginScreen = () => {
                             <Text style={styles.fieldError}>{errors.email}</Text>
                         )}
 
-                        <Input
+                        <FloatingLabelInput
+                            label="Password"
                             value={formData.password}
                             onChangeText={v => updateField('password', v)}
-                            placeholder="Password"
                             secureTextEntry={!showPassword}
                             icon="lock-outline"
                             rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -234,7 +347,6 @@ const LoginScreen = () => {
                             <Text style={styles.fieldError}>{errors.password}</Text>
                         )}
 
-                    
                         <TouchableOpacity
                             onPress={() => navigation.navigate('ForgotPassword')}
                             disabled={isLoading}
@@ -243,7 +355,6 @@ const LoginScreen = () => {
                             <Text style={styles.forgotLink}>Forgot your password?</Text>
                         </TouchableOpacity>
 
-                   
                         <TouchableOpacity
                             onPress={handleLogin}
                             disabled={isLoading}
@@ -256,7 +367,6 @@ const LoginScreen = () => {
                             }
                         </TouchableOpacity>
 
-                      
                         <View style={styles.registerRow}>
                             <Text style={styles.registerPrompt}>
                                 Don't have an account?{' '}
@@ -268,6 +378,7 @@ const LoginScreen = () => {
                                 <Text style={styles.registerLink}>Sign up</Text>
                             </TouchableOpacity>
                         </View>
+
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -275,32 +386,101 @@ const LoginScreen = () => {
     );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles — identical to RegisterScreen for consistency
+// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    safeArea:         { flex: 1, backgroundColor: COLORS.bg },
-    flex:             { flex: 1 },
-    overlay:          { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
-    scrollContent:    { flexGrow: 1, paddingHorizontal: 28, paddingVertical: 40, justifyContent: 'center', minHeight: H },
-    brandSection:     { alignItems: 'center', marginBottom: 40 },
-    brandName:        { fontFamily: 'Syne_700Bold', fontSize: 20, fontWeight: '700', color: '#f1f5f9', letterSpacing: -0.3, marginBottom: 28 },
-    brandWelcome:     { fontFamily: 'Syne_700Bold', fontSize: 26, fontWeight: '700', color: '#ffffff', letterSpacing: -0.3, marginBottom: 6 },
-    brandSub:         { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300' },
-    formSection:      { width: '100%' },
-    inputWrap:        { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 16, height: 56, marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
-    inputWrapFocused: { borderColor: COLORS.cyan, backgroundColor: 'rgba(34,211,238,0.04)' },
-    inputIcon:        { marginRight: 12 },
-    input:            { flex: 1, fontSize: 16, color: '#ffffff', paddingVertical: 0 },
-    eyeBtn:           { paddingLeft: 10 },
-    errorAlert:       { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText:   { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-    fieldError:       { fontSize: 12, color: COLORS.error, marginTop: -8, marginBottom: 10, marginLeft: 4 },
-    forgotRow:        { alignItems: 'flex-end', marginBottom: 24 },
-    forgotLink:       { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
-    btnSignIn:        { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-    btnDisabled:      { opacity: 0.6 },
-    btnSignInText:    { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
-    registerRow:      { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    registerPrompt:   { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-    registerLink:     { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+    safeArea:      { flex: 1, backgroundColor: COLORS.bg },
+    flex:          { flex: 1 },
+    overlay:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    scrollContent: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
+    brandSection:  { alignItems: 'center', marginBottom: 32 },
+    brandSub:      { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
+    formSection:   { width: '100%' },
+
+    // ── Input shell ───────────────────────────────────────────────────────────
+    inputWrap: {
+        flexDirection:     'row',
+        alignItems:        'flex-start',
+        borderWidth:       1,
+        borderColor:       'rgba(255,255,255,0.15)',
+        borderRadius:      12,
+        paddingHorizontal: 16,
+        paddingTop:        18,
+        paddingBottom:     6,
+        height:            60,
+        marginBottom:      20,
+        backgroundColor:   'rgba(255,255,255,0.04)',
+        overflow:          'visible',
+    },
+    inputWrapFocused: {
+        borderColor:     COLORS.cyan,
+        backgroundColor: 'rgba(34,211,238,0.04)',
+    },
+
+    // ── iconWrap & eyeWrap ────────────────────────────────────────────────────
+    iconWrap: {
+        alignSelf:      'stretch',
+        justifyContent: 'center',
+        marginRight:    12,
+    },
+    eyeWrap: {
+        alignSelf:      'stretch',
+        justifyContent: 'center',
+        paddingLeft:    10,
+    },
+
+    // ── Floating label ────────────────────────────────────────────────────────
+    floatContainer: {
+        flex:           1,
+        position:       'relative',
+        justifyContent: 'center',
+    },
+    floatingLabelWrapper: {
+        position:      'absolute',
+        top:           '50%',
+        marginTop:     -8,
+        left:          0,
+        flexDirection: 'row',
+        alignItems:    'center',
+        zIndex:        10,
+    },
+    labelBgPatch: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor:  COLORS.bg,
+        marginHorizontal: -3,
+        borderRadius:     2,
+    },
+    floatingLabel: {
+        fontWeight:    '400',
+        letterSpacing: 0.1,
+    },
+
+    // ── TextInput ─────────────────────────────────────────────────────────────
+    input: {
+        flex:            1,
+        fontSize:        15,
+        color:           '#ffffff',
+        paddingVertical: 0,
+        paddingTop:      2,
+    },
+
+    // ── Errors ────────────────────────────────────────────────────────────────
+    errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
+    errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
+
+    // ── Forgot password ───────────────────────────────────────────────────────
+    forgotRow:  { alignItems: 'flex-end', marginBottom: 24 },
+    forgotLink: { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
+
+    // ── Submit ────────────────────────────────────────────────────────────────
+    btnSignIn:      { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    btnDisabled:    { opacity: 0.6 },
+    btnSignInText:  { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
+    registerRow:    { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    registerPrompt: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
+    registerLink:   { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
 });
 
 export default LoginScreen;
