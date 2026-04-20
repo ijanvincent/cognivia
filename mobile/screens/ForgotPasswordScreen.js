@@ -260,7 +260,13 @@ const ForgotPasswordScreen = () => {
                             <>
                                 {!!error && (
                                     <View style={styles.errorAlert}>
-                                        <MaterialCommunityIcons name="alert-circle-outline" size={16} color={COLORS.error} />
+                                        <View style={styles.errorAlertIconWrap}>
+                                            <MaterialCommunityIcons
+                                                name="alert-circle-outline"
+                                                size={18}
+                                                color={COLORS.error}
+                                            />
+                                        </View>
                                         <Text style={styles.errorAlertText}>{error}</Text>
                                     </View>
                                 )}
@@ -345,7 +351,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(34,211,238,0.04)',
     },
 
-    // ── Icon wrapper (vertically centered via alignSelf stretch) ─────────────
+    // ── Icon wrapper ──────────────────────────────────────────────────────────
     iconWrap: {
         alignSelf:      'stretch',
         justifyContent: 'center',
@@ -388,10 +394,63 @@ const styles = StyleSheet.create({
     },
 
     // ── Alerts ────────────────────────────────────────────────────────────────
-    successAlert:   { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: COLORS.successBg, borderLeftWidth: 3, borderLeftColor: COLORS.successBorder, borderRadius: 10, padding: 16, marginBottom: 24 },
-    successText:    { flex: 1, fontSize: 14, color: COLORS.successBorder, fontWeight: '500', lineHeight: 22 },
-    errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    /*
+      CHANGE 1 — successAlert:
+        borderLeftWidth: 3, borderLeftColor removed.
+        Replaced with borderWidth: 1, borderColor: rgba(52,211,153,0.35).
+        Why: directional border on borderRadius container produces a visible
+        gap artifact on Android between the curved corner and the straight
+        border edge — the same double-line issue fixed in LoginScreen.
+
+      CHANGE 2 — errorAlert:
+        borderLeftWidth: 3, borderLeftColor removed.
+        Replaced with borderWidth: 1, borderColor: rgba(248,113,113,0.35).
+        alignItems changed from 'center' to 'flex-start' so the icon anchors
+        to the first line of text when the message wraps.
+        errorAlertIconWrap added for consistent vertical icon offset.
+        errorAlertText lineHeight: 20 added for breathing room on wrap.
+    */
+    successAlert: {
+        flexDirection:   'row',
+        alignItems:      'flex-start',
+        gap:             12,
+        backgroundColor: COLORS.successBg,
+        borderWidth:     1,
+        borderColor:     'rgba(52, 211, 153, 0.35)',
+        borderRadius:    12,
+        padding:         16,
+        marginBottom:    24,
+    },
+    successText: {
+        flex:       1,
+        fontSize:   14,
+        color:      COLORS.successBorder,
+        fontWeight: '500',
+        lineHeight: 22,
+    },
+
+    errorAlert: {
+        flexDirection:   'row',
+        alignItems:      'flex-start',
+        gap:             12,
+        backgroundColor: COLORS.errorBg,
+        borderWidth:     1,
+        borderColor:     'rgba(248, 113, 113, 0.35)',
+        borderRadius:    12,
+        padding:         14,
+        marginBottom:    16,
+    },
+    errorAlertIconWrap: {
+        marginTop:  1,
+        flexShrink: 0,
+    },
+    errorAlertText: {
+        flex:       1,
+        fontSize:   13.5,
+        lineHeight: 20,
+        color:      COLORS.error,
+        fontWeight: '500',
+    },
 
     // ── Submit ────────────────────────────────────────────────────────────────
     btnSubmit:     { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
