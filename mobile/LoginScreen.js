@@ -310,13 +310,24 @@ const LoginScreen = () => {
 
                     <View style={styles.formSection}>
 
+                        {/*
+                          CHANGE 1 — Error alert redesign.
+                          Old: borderLeftWidth: 3 + borderLeftColor on a rounded container
+                               → Android renders a visib`le gap between the curved corner
+                                 and the straight border, producing the double-line artifact.
+                          New: Uniform borderWidth: 1 with a subtle red tint + icon row.
+                               Industry standard pattern (Expo, Firebase, Supabase mobile UIs).
+                               No directional border = zero artifact risk on any platform.
+                        */}
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
-                                <MaterialCommunityIcons
-                                    name="alert-circle-outline"
-                                    size={16}
-                                    color={COLORS.error}
-                                />
+                                <View style={styles.errorAlertIconWrap}>
+                                    <MaterialCommunityIcons
+                                        name="alert-circle-outline"
+                                        size={18}
+                                        color={COLORS.error}
+                                    />
+                                </View>
                                 <Text style={styles.errorAlertText}>{errors.general}</Text>
                             </View>
                         )}
@@ -387,7 +398,7 @@ const LoginScreen = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Styles — identical to RegisterScreen for consistency
+// Styles
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
     safeArea:      { flex: 1, backgroundColor: COLORS.bg },
@@ -465,10 +476,52 @@ const styles = StyleSheet.create({
         paddingTop:      2,
     },
 
-    // ── Errors ────────────────────────────────────────────────────────────────
-    errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
-    errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
-    fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
+    // ── Error alert ───────────────────────────────────────────────────────────
+    /*
+      CHANGE 1 — What was removed and why:
+        borderLeftWidth: 3      → removed. A thick directional border on a
+        borderLeftColor: ...      borderRadius container creates a visible gap
+                                  artifact on Android where the corner curve
+                                  separates from the straight edge, rendering
+                                  as a double line. No directional borders on
+                                  rounded containers.
+
+      What was added:
+        borderWidth: 1          → single uniform border, fully compatible with
+        borderColor: ...          borderRadius on all platforms.
+        errorAlertIconWrap      → dedicated icon container with consistent
+                                  vertical centering, independent of text height.
+
+      CHANGE 2 — errorAlertText:
+        fontSize: 13 → 13.5, lineHeight: 20 added.
+        Multi-line error messages were cramped. lineHeight gives breathing
+        room without changing the card's padding or layout.
+    */
+    errorAlert: {
+        flexDirection:   'row',
+        alignItems:      'flex-start',
+        gap:             12,
+        backgroundColor: COLORS.errorBg,
+        borderWidth:     1,
+        borderColor:     'rgba(248, 113, 113, 0.35)',
+        borderRadius:    12,
+        padding:         14,
+        marginBottom:    16,
+    },
+    errorAlertIconWrap: {
+        marginTop: 1,
+        flexShrink: 0,
+    },
+    errorAlertText: {
+        flex:       1,
+        fontSize:   13.5,
+        lineHeight: 20,
+        color:      COLORS.error,
+        fontWeight: '500',
+    },
+
+    // ── Field-level errors ────────────────────────────────────────────────────
+    fieldError: { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
 
     // ── Forgot password ───────────────────────────────────────────────────────
     forgotRow:  { alignItems: 'flex-end', marginBottom: 24 },
