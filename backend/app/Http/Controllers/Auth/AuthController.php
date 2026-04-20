@@ -59,16 +59,24 @@ class AuthController extends Controller
         } catch (\App\Exceptions\Auth\EmailNotFoundException $e) {
             RateLimiter::hit($throttleKey, 60);
 
+            // CHANGED — what: replaced hardcoded string with $e->getMessage().
+            // why: controller was ignoring the exception message entirely,
+            // making changes to EmailNotFoundException have zero effect.
+            // The exception class is now the single source of truth for
+            // this message — no other file needs to be touched to update it.
             return response()->json([
-                'message'    => 'No account found with this email address.',
+                'message'    => $e->getMessage(),
                 'error_code' => 'EMAIL_NOT_FOUND',
             ], 401);
 
         } catch (\App\Exceptions\Auth\WrongPasswordException $e) {
             RateLimiter::hit($throttleKey, 60);
 
+            // CHANGED — what: replaced hardcoded string with $e->getMessage().
+            // why: same reason as above. WrongPasswordException is now the
+            // single source of truth for the wrong-password message.
             return response()->json([
-                'message'    => 'The password you entered is incorrect.',
+                'message'    => $e->getMessage(),
                 'error_code' => 'WRONG_PASSWORD',
             ], 401);
 
@@ -129,10 +137,6 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        // CHANGED — what: added per-email throttle on top of per-IP throttle.
-        // why: per-IP alone is bypassable via botnet/proxies. Per-email
-        // ensures a single account cannot be spammed with reset emails
-        // regardless of how many IPs the attacker controls.
         $ipKey    = 'forgot-password-ip:'    . $request->ip();
         $emailKey = 'forgot-password-email:' . strtolower($request->input('email'));
 
@@ -217,11 +221,6 @@ class AuthController extends Controller
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
 
-            // CHANGED — what: verify real MIME type from actual file bytes.
-            // why: mimes: validation only checks the file extension which
-            // an attacker can fake by renaming malicious.php to malicious.jpg.
-            // finfo reads the actual file header bytes to confirm it is
-            // genuinely an image — extension spoofing cannot bypass this.
             $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
             $realMime     = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file->getRealPath());
 
@@ -231,10 +230,6 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            // CHANGED — what: re-encode image through GD to strip all metadata.
-            // why: uploaded images can contain malicious EXIF data, embedded
-            // scripts, or GPS coordinates that expose user location. Re-encoding
-            // through GD destroys all metadata and produces a clean image file.
             $imageData = file_get_contents($file->getRealPath());
             $image     = imagecreatefromstring($imageData);
 
@@ -258,7 +253,6 @@ class AuthController extends Controller
                 mkdir($tempDir, 0755, true);
             }
 
-            // Re-encode as JPEG at quality 85 — strips all original metadata
             imagejpeg($image, $tempPath, 85);
             imagedestroy($image);
 
