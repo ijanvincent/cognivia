@@ -17,8 +17,8 @@ function ForgotPassword() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!email.trim())                          newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(email))       newErrors.email = 'Please enter a valid email';
+    if (!email.trim())                        newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email))     newErrors.email = 'Please enter a valid email';
     return newErrors;
   };
 
@@ -30,10 +30,8 @@ function ForgotPassword() {
     setErrors({});
     try {
       await api.post('/auth/forgot-password', { email });
-      
       setSubmitted(true);
     } catch (error) {
-   
       setSubmitted(true);
     } finally {
       setLoading(false);
@@ -48,7 +46,6 @@ function ForgotPassword() {
         </div>
       )}
 
-    
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -75,7 +72,6 @@ function ForgotPassword() {
         </svg>
       </div>
 
-   
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -88,10 +84,8 @@ function ForgotPassword() {
         </nav>
       </div>
 
-
       <div className={styles.mainContent}>
 
-   
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -104,7 +98,7 @@ function ForgotPassword() {
             we'll send you a secure reset link.
           </p>
           <div className={styles.heroActions}>
-            <Link to="/login" className={styles.heroBtnPrimary}>Back to Login</Link>
+            <Link to="/login"    className={styles.heroBtnPrimary}>Back to Login</Link>
             <Link to="/register" className={styles.heroBtnOutline}>Register</Link>
           </div>
         </div>
@@ -126,28 +120,60 @@ function ForgotPassword() {
               </div>
             </div>
 
-       
             {submitted ? (
-              <div>
-                <div className={styles.successAlert}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clipRule="evenodd"/>
+
+              /* ── Success state ─────────────────────────────────────────── */
+              <div className={styles.successState}>
+
+                {/* Checkmark badge */}
+                <div className={styles.successIconBadge}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="#34d399" strokeWidth="2.2"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span>
-                    If <strong>{email}</strong> is registered with CogniVia,
-                    you'll receive a password reset link shortly.
-                    Check your spam folder if you don't see it.
-                  </span>
                 </div>
+
+                {/* Primary confirmation copy */}
+                <p className={styles.successMessage}>
+                  Reset link sent — check your inbox.
+                </p>
+
+                {/* Email chip — lets user confirm the address at a glance */}
+                <div className={styles.successEmail}>
+                  <svg width="13" height="13" viewBox="0 0 16 16"
+                    fill="currentColor" aria-hidden="true">
+                    <path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v1.5l-6 3.75L2 5.5V4zm0 2.5V12a2 2 0 002 2h8a2 2 0 002-2V6.5l-6 3.75L2 6.5z"/>
+                  </svg>
+                  <span>{email}</span>
+                </div>
+
+                {/* Secondary hint + inline retry action */}
+                <p className={styles.successHint}>
+                  Didn't receive it? Check your spam folder or{' '}
+                  <button
+                    type="button"
+                    className={styles.successRetry}
+                    onClick={() => setSubmitted(false)}
+                  >
+                    try another email
+                  </button>
+                  .
+                </p>
+
                 <div className={styles.linksSection}>
                   <span className={styles.registerPrompt}>
                     Remembered it?{' '}
                     <Link to="/login" className={styles.registerLink}>Sign in</Link>
                   </span>
                 </div>
+
               </div>
+
             ) : (
-           
+
+              /* ── Request form ───────────────────────────────────────────── */
               <form onSubmit={handleSubmit} className={styles.form}>
                 {errors.general && (
                   <div className={styles.errorAlert}>
@@ -158,7 +184,6 @@ function ForgotPassword() {
                   </div>
                 )}
 
-              
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Email address</label>
                   <div className={styles.inputContainer}>
@@ -178,7 +203,6 @@ function ForgotPassword() {
                   {errors.email && <span className={styles.errorText}>{errors.email}</span>}
                 </div>
 
-            
                 <button type="submit" disabled={loading} className={styles.submitButton}>
                   {loading ? (
                     <><div className={styles.buttonSpinner}></div>Sending Link...</>
@@ -194,6 +218,7 @@ function ForgotPassword() {
                   </span>
                 </div>
               </form>
+
             )}
           </div>
         </div>

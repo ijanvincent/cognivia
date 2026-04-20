@@ -902,22 +902,85 @@
   outline-offset: 2px;
 }
 
-.successAlert {
-  background: rgba(52, 211, 153, 0.08);
-  border: 1px solid rgba(52, 211, 153, 0.25);
-  border-left: 3px solid #34d399;
-  color: #34d399;
-  padding: 14px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+
+/* ── Success state ───────────────────────────────────────────
+   No alert box. Hierarchy via spacing + typography.
+   Pattern: Vercel / Linear / Stripe confirmation screens.
+──────────────────────────────────────────────────────────────── */
+.successState {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.6;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 4px 0 4px;
 }
 
+.successIconBadge {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.successMessage {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 14px 0;
+  letter-spacing: -0.2px;
+}
+
+.successEmail {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.successEmail span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.successHint {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0;
+  max-width: 280px;
+}
+
+.successRetry {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 0.2s;
+}
+
+.successRetry:hover { opacity: 0.72; }
 .strengthWrapper {
   display: flex;
   align-items: center;
