@@ -218,7 +218,7 @@ export default function Legal() {
         <nav className={styles.topBarNav}>
           <Link to="/about"     className={styles.navLink}>About</Link>
           <Link to="/solutions" className={styles.navLink}>Solutions</Link>
-          <Link to="/pricing"   className={styles.navLink}>Pricing</Link>
+          <Link to="/howitworks"   className={styles.navLink}>How It Works</Link>
           <Link to="/faq"       className={styles.navLink}>FAQ</Link>
         </nav>
         <Link to="/login" className={styles.navCta}>Sign In</Link>
