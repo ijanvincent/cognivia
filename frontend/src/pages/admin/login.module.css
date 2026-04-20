@@ -151,26 +151,42 @@
 
 
 /* ─── MAIN CONTENT ──────────────────────────────────── */
+/*
+  CHANGE 1:
+  - align-items: flex-start → align-items: center
+    Vertically centers both hero and card in the flex row,
+    matching the user login layout exactly.
+  - padding: 24px 48px 80px 80px → 40px 48px 40px 80px
+    Symmetric vertical padding removes the top-heavy offset.
+  - min-height: calc(100vh - 65px) REMOVED
+    This forced the container taller than the viewport, which
+    pushed the flex children toward the top instead of center.
+*/
 .mainContent {
   position: relative;
   z-index: 5;
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 24px 48px 80px 80px;
+  padding: 40px 48px 40px 80px;
   gap: 24px;
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
-  min-height: calc(100vh - 65px);
 }
 
 
 /* ─── HERO SECTION ──────────────────────────────────── */
+/*
+  CHANGE 2:
+  - align-self: center REMOVED
+    The parent now handles centering via align-items: center.
+    An explicit align-self here is redundant and can cause
+    independent drift when hero and card differ in height.
+*/
 .heroSection {
   flex: 1;
-  align-self: center;
   animation: fadeLeft 0.7s ease-out 0.1s both;
 }
 
@@ -267,12 +283,21 @@
 
 
 /* ─── CARD WRAPPER ──────────────────────────────────── */
+/*
+  CHANGE 3:
+  - align-self: flex-start REMOVED
+    Was pinning the card to the top edge of the flex container
+    independent of align-items on the parent.
+  - position: sticky REMOVED
+  - top: 24px REMOVED
+    sticky + flex-start is the primary cause of the card
+    sitting at top-right while the hero drifted separately.
+    The admin form is short enough that sticky adds no value,
+    and it directly broke the vertical centering.
+*/
 .cardWrapper {
   flex-shrink: 0;
   width: 420px;
-  align-self: flex-start;
-  position: sticky;
-  top: 24px;
   animation: fadeRight 0.7s ease-out 0.2s both;
 }
 
@@ -376,12 +401,7 @@
   50%       { opacity: 0.5; transform: scale(0.85); }
 }
 
-/* ── Error alert — hidden by default, fades in on error ──
-   FIXED: removed the ugly double-border (border + inset box-shadow).
-   Now uses a single clean border with a subtle background tint.
-   The icon is a solid filled circle — crisp at small sizes, no stroke artifacts.
-   This is the pattern used by Stripe, Vercel, and GitHub auth forms.
-── */
+/* ── Error alert — hidden by default, fades in on error ── */
 .errorAlert {
   position: absolute;
   inset: 0;
@@ -389,13 +409,11 @@
   align-items: center;
   gap: 10px;
   padding: 0 14px;
-  /* Single clean border — no box-shadow stacking */
   background: rgba(248, 113, 113, 0.10);
   border: 1px solid rgba(248, 113, 113, 0.30);
   border-radius: 10px;
   color: var(--error);
   overflow: hidden;
-  /* Hidden by default */
   opacity: 0;
   transform: translateY(5px);
   pointer-events: none;
@@ -408,7 +426,6 @@
   pointer-events: auto;
 }
 
-/* Solid filled icon — no stroke, no double-rendering artifacts */
 .errorAlertIcon {
   flex-shrink: 0;
   opacity: 0.9;
@@ -430,10 +447,6 @@
 
 
 /* ─── FORM GROUP ────────────────────────────────────── */
-/*
-  position: relative + padding-bottom reserves space for the absolute
-  errorText. Card height never changes on validation — zero layout shift.
-*/
 .formGroup {
   position: relative;
   padding-bottom: var(--error-reserved);
@@ -474,11 +487,7 @@
 .inputContainer:focus-within::after { width: 100%; left: 0%; }
 
 
-/* ─── SHAKE ANIMATION ───────────────────────────────────
-   Applied to .inputContainer via JS state on failed submit.
-   Pure transform — never affects layout.
-   Same pattern as Stripe, Linear, Notion.
-──────────────────────────────────────────────────────── */
+/* ─── SHAKE ANIMATION ───────────────────────────────── */
 @keyframes shake {
   0%,  100% { transform: translateX(0); }
   15%       { transform: translateX(-6px); }
@@ -585,10 +594,7 @@
 .eyeButton:hover .eyeIcon { opacity: 0.9; }
 
 
-/* ─── ERROR TEXT (field-level) ──────────────────────────
-   position: absolute — sits inside the padding-bottom slot.
-   Never pushes any sibling element. Fades in smoothly.
-──────────────────────────────────────────────────────── */
+/* ─── ERROR TEXT (field-level) ──────────────────────── */
 .errorText {
   position: absolute;
   bottom: 2px;
@@ -687,17 +693,29 @@
 
 
 /* ─── RESPONSIVE ─────────────────────────────────────── */
+/*
+  CHANGE 4:
+  - .mainContent align-items: flex-start → align-items: center
+    Keeps the centered layout consistent at tablet widths.
+  - .heroSection align-self: auto REMOVED
+    No longer needed since align-self was removed from the
+    desktop rule above. Leaving it here would be a stale override.
+  - .cardWrapper position: static kept — correctly overrides
+    the (now-removed) sticky from the desktop rule. Safe to keep.
+*/
 @media (max-width: 900px) {
   .topBarNav { display: none; }
+
   .mainContent {
     flex-direction: column;
     padding: 32px 24px 80px;
-    align-items: flex-start;
+    align-items: center;
   }
+
   .heroSection {
-    align-self: auto;
     max-width: 100%;
   }
+
   .cardWrapper {
     position: static;
     width: 100%;
