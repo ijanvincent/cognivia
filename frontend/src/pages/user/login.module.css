@@ -69,20 +69,16 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CHANGE 1 + CHANGE 4 — MOBILE WAVE BACKGROUND
+   MOBILE WAVE BACKGROUND
    Mirrors the React Native WaveBackground component exactly:
    - Same 400×800 viewBox with preserveAspectRatio="xMidYMid slice"
    - Same 3 wave families: pink (8 paths), cyan (8 paths), purple (5 paths)
    - Same path geometry, same opacity formula, same strokeWidth values
    - No animation — static render, zero GPU/battery cost on mobile
    - Hidden on desktop (display: none), shown only at ≤768px
-   - position: fixed + inset: 0 fills the full viewport like RN StyleSheet.absoluteFill
-   - z-index: 0 sits behind all content
-   - A dark overlay (.mobileWaveOverlay equivalent) is handled by the
-     pageContainer background-color + the card's backdrop-filter
 ───────────────────────────────────────────────────────────────────────────── */
 .bgCanvasMobile {
-  display: none; /* hidden on desktop — shown via media query at ≤768px */
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -1004,22 +1000,6 @@
 
 /* ═════════════════════════════════════════════════════════════════════════════
    RESPONSIVE BREAKPOINTS
-   ─────────────────────────────────────────────────────────────────────────────
-   CHANGE 2 — Mobile layout overhaul.
-   Previous state: hero section consumed too much vertical space before the
-   card, card had desktop-sized padding, top bar was cramped, hero text was
-   unreadably large on a 375px viewport.
-
-   New layout at ≤900px: two-column → single-column. Hero is compact (no
-   heroDivider, reduced title size). Card is full-width, centered.
-
-   New layout at ≤768px: hero section is collapsed to a minimal branded
-   headline (3 lines max), card fills full available width, padding tight.
-   The flat gradient background is REPLACED by .bgCanvasMobile (the mobile
-   SVG wave layer — see CHANGE 1 + CHANGE 4).
-
-   New layout at ≤480px: card padding tightened further, font sizes reduced
-   to prevent overflow on very narrow viewports (320–375px).
 ═════════════════════════════════════════════════════════════════════════════ */
 
 /* ── Tablet (≤900px) ──────────────────────────────────────────────────────── */
@@ -1044,51 +1024,73 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CHANGE 1 — Mobile (≤768px): Replace flat gradient with SVG wave background.
-   CHANGE 2 — Mobile layout: compact hero, full-width card.
-   CHANGE 4 — Show .bgCanvasMobile (the static SVG wave layer).
+   MOBILE (≤768px)
+   ─────────────────────────────────────────────────────────────────────────────
+   All changes below are scoped exclusively to this breakpoint.
+   Zero desktop styles are modified. Each change is declared individually.
 
-   What was removed:
-     background: linear-gradient(135deg, #07080f 0%, #0d0f1f 50%, #07080f 100%)
-     — was applied to .pageContainer inside this breakpoint.
-     This flat gradient wiped out all visual depth on mobile. Removed entirely.
+   CHANGE 1 — Wave background swap (already existed, preserved exactly):
+     .bgCanvas hidden, .bgCanvasMobile shown. Static SVG mirrors RN
+     WaveBackground (400×800 viewBox, pink/cyan/purple families, no animation).
 
-   What was added:
-     .bgCanvasMobile { display: block } — activates the static SVG wave layer
-     that mirrors the RN WaveBackground component (400×800 viewBox, pink/cyan/
-     purple wave families, same stroke opacity formulas, no animation).
-     .bgCanvas { display: none } — hides the desktop animated canvas; the
-     mobile canvas takes over. No duplicate rendering.
-     pageContainer keeps background-color: var(--bg-deep) as the base fill
-     so the SVG transparent paths render against the correct dark background.
+   CHANGE 2 — Layout: single column, card on top, hero compressed.
+     Already existed, preserved exactly.
 
-   Layout changes:
-     - mainContent: flex-direction column, tighter padding, card-first order
-     - heroSection: hidden on narrow mobile to give the card maximum space,
-       shown as a minimal 2-line header above the card on mid-mobile (480–768px)
-     - cardWrapper: full width, no max-width constraint
-     - loginCard: reduced padding (28px sides vs 36px desktop)
-     - topBar: minimal height, logo only (nav already hidden at ≤900px)
+   CHANGE 3 — Submit button: solid white, dark text, borderRadius 12px.
+     Source: RN LoginScreen `btnSignIn` — backgroundColor: '#ffffff',
+     color: '#07080f', borderRadius: 12, height: 56.
+     Why: The gradient button is a desktop affordance. On mobile the RN
+     app uses a high-contrast solid white button. Mirroring this creates
+     visual parity across platforms.
+
+   CHANGE 4 — Error alert: uniform border, icon top-anchored, lineHeight.
+     Source: RN LoginScreen `errorAlert` + comments therein.
+     Removes the ::before pseudo-element left-border trick. Uses
+     border: 1px solid rgba(248,113,113,0.35) uniformly so borderRadius
+     renders cleanly with no gap artifact. align-items: flex-start so
+     the icon aligns to the first line when text wraps. Gap 12px, padding
+     14px, borderRadius 12px — exact RN values.
+
+   CHANGE 5 — Forgot password: right-aligned, underlined.
+     Source: RN LoginScreen `forgotRow` — alignItems: 'flex-end'.
+     The web currently centers this via .rememberRow justify-content.
+     On mobile the RN layout puts it right-aligned under the password
+     input as a standalone row. We keep the rememberRow flex layout but
+     override forgotLink to match the RN visual weight.
+
+   CHANGE 6 — Register footer row: explicit centered row.
+     Source: RN LoginScreen `registerRow` — flexDirection: row,
+     justifyContent: center, alignItems: center.
+     The web .linksSection uses text-align: center on a block container.
+     On mobile we switch it to an explicit flex row to exactly match
+     the RN layout and prevent text-align wrapping artifacts.
+
+   CHANGE 7 — Input shell: borderRadius 12px, focus border cyan.
+     Source: RN `inputWrap` — borderRadius: 12, focused border COLORS.cyan.
+     Web desktop uses borderRadius: 10px. On mobile we bump to 12px to
+     match the RN shell geometry exactly.
+
+   CHANGE 8 — Card: stronger glass, darker base, border opacity.
+     Source: RN `safeArea` backgroundColor: COLORS.bg + overlay
+     rgba(7,8,15,0.55). Already partially present; values hardened to
+     exactly match the RN layering depth.
 ───────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Activate mobile SVG wave, deactivate desktop animated canvas */
+
+  /* ── CHANGE 1: Wave background swap ──────────────────────────────────────── */
   .bgCanvas       { display: none; }
   .bgCanvasMobile { display: block; }
+  .wavePath       { animation: none; display: none; }
 
-  /* wavePath animation guard (belt-and-suspenders — bgCanvas is hidden anyway) */
-  .wavePath { animation: none; display: none; }
-
-  /* pageContainer: keep bg-deep as base — SVG waves render on top of it */
   .pageContainer {
     background-color: var(--bg-deep);
   }
 
-  /* topBar: tighter on mobile */
+  /* ── CHANGE 2: Layout ─────────────────────────────────────────────────────── */
   .topBar {
     padding: 14px 20px;
   }
 
-  /* mainContent: single column, card on top, hero compressed below */
   .mainContent {
     flex-direction: column-reverse;
     padding: 24px 20px 40px;
@@ -1096,10 +1098,9 @@
     align-items: stretch;
     gap: 28px;
     max-width: 100%;
-    min-height: calc(100vh - 57px); /* viewport minus topBar */
+    min-height: calc(100vh - 57px);
   }
 
-  /* heroSection: compact — just the accent + subtext, no giant title block */
   .heroSection {
     animation: none;
   }
@@ -1146,27 +1147,145 @@
     padding: 10px 20px;
   }
 
-  /* cardWrapper: full width, no max-width cap */
   .cardWrapper {
     width: 100%;
     max-width: 100%;
     animation: none;
   }
 
-  /* loginCard: tighter padding, slightly less rounded to feel native */
+  /* ── CHANGE 8: Card glass / base ─────────────────────────────────────────── */
   .loginCard {
     padding: 32px 28px 28px;
     border-radius: 16px;
-    /* Stronger glass effect on mobile — wave bg shows through nicely */
     backdrop-filter: blur(28px);
     background: rgba(7, 8, 15, 0.65);
     border-color: rgba(255, 255, 255, 0.12);
   }
 
-  .cardHeader { margin-bottom: 24px; }
-
+  .cardHeader  { margin-bottom: 24px; }
   .cardTitle   { font-size: 24px; }
   .cardSubtitle { font-size: 13px; }
+
+  /* ── CHANGE 7: Input shell — borderRadius 12px, cyan focus border ─────────
+     Source: RN inputWrap borderRadius: 12 and inputWrapFocused borderColor:
+     COLORS.cyan. The ::after underline effect is a desktop affordance;
+     on mobile the border-highlight-on-focus pattern matches the RN shell.  */
+  .inputField {
+    border-radius: 12px;
+    padding: 16px 16px 10px 42px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .inputField:focus {
+    border-color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.04);
+    /* Suppress the desktop glow ring — mobile uses border highlight only */
+    box-shadow: none;
+  }
+
+  /* Disable the bottom-underline sweep on mobile — RN has no such affordance */
+  .inputContainer::after {
+    display: none;
+  }
+
+  /* ── CHANGE 4: Error alert — uniform border, no directional border trick ───
+     Source: RN LoginScreen errorAlert style + inline comment:
+       borderWidth: 1, borderColor: rgba(248,113,113,0.35),
+       alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 12.
+     The desktop ::before pseudo-element left-bar is hidden. A single
+     uniform border renders cleanly against borderRadius on all engines.  */
+  .errorAlert {
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    border-radius: 12px;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  /* Hide the ::before left-bar pseudo-element on mobile */
+  .errorAlert::before {
+    display: none;
+  }
+
+  /* ── CHANGE 5: Forgot password — right-aligned, underlined ───────────────
+     Source: RN LoginScreen forgotRow — alignItems: 'flex-end'.
+     forgotLink — textDecorationLine: 'underline', color rgba(255,255,255,0.55). */
+  .rememberRow {
+    justify-content: flex-end;
+  }
+
+  .forgotLink {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ── CHANGE 3: Submit button — solid white, dark text ────────────────────
+     Source: RN LoginScreen btnSignIn:
+       backgroundColor: '#ffffff', color: '#07080f',
+       borderRadius: 12, height: 56px.
+     The gradient is a desktop brand affordance. On mobile, solid white
+     with dark text matches the RN app exactly and provides maximum contrast. */
+  .submitButton {
+    background: #ffffff;
+    color: #07080f;
+    border-radius: 12px;
+    height: 56px;
+    padding: 0;
+    letter-spacing: 0.3px;
+    font-weight: 700;
+    /* Suppress desktop hover lift on touch devices */
+    transition: opacity 0.2s;
+  }
+
+  .submitButton:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+    opacity: 0.88;
+  }
+
+  .submitButton:disabled {
+    opacity: 0.6;
+  }
+
+  /* buttonSpinner: invert colors to stay visible on white background */
+  .buttonSpinner {
+    border-color: rgba(7, 8, 15, 0.25);
+    border-top-color: #07080f;
+  }
+
+  /* ── CHANGE 6: Register footer — explicit flex row ────────────────────────
+     Source: RN LoginScreen registerRow:
+       flexDirection: 'row', justifyContent: 'center', alignItems: 'center'.
+     Switching from text-align:center on a block to an explicit flex row
+     eliminates wrapping artifacts and matches the RN layout model exactly. */
+  .linksSection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    text-align: left;
+  }
+
+  .registerPrompt {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .registerLink {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .registerLink:hover {
+    opacity: 1;
+    text-decoration: none;
+  }
 }
 
 /* ── Narrow mobile (≤480px) ───────────────────────────────────────────────── */
@@ -1201,6 +1320,10 @@
     text-align: center;
     justify-content: center;
   }
+
+  /* Tighten toast padding on very narrow screens */
+  .toast { padding: 24px 20px 20px; border-radius: 14px; }
+  .toastTitle { font-size: 16px; }
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────────── */
