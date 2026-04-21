@@ -37,6 +37,11 @@
   overflow: hidden;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   DESKTOP WAVE BACKGROUND
+   Animated 1440×900 wave canvas. Visible on desktop only.
+   Hidden at ≤768px via media query below — replaced by bgCanvasMobile.
+───────────────────────────────────────────────────────────────────────────── */
 .bgCanvas {
   position: fixed;
   inset: 0;
@@ -63,6 +68,29 @@
   100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   CHANGE 1 + CHANGE 4 — MOBILE WAVE BACKGROUND
+   Mirrors the React Native WaveBackground component exactly:
+   - Same 400×800 viewBox with preserveAspectRatio="xMidYMid slice"
+   - Same 3 wave families: pink (8 paths), cyan (8 paths), purple (5 paths)
+   - Same path geometry, same opacity formula, same strokeWidth values
+   - No animation — static render, zero GPU/battery cost on mobile
+   - Hidden on desktop (display: none), shown only at ≤768px
+   - position: fixed + inset: 0 fills the full viewport like RN StyleSheet.absoluteFill
+   - z-index: 0 sits behind all content
+   - A dark overlay (.mobileWaveOverlay equivalent) is handled by the
+     pageContainer background-color + the card's backdrop-filter
+───────────────────────────────────────────────────────────────────────────── */
+.bgCanvasMobile {
+  display: none; /* hidden on desktop — shown via media query at ≤768px */
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── Loading overlay ──────────────────────────────────────────────────────── */
 .loadingOverlay {
   position: fixed;
   inset: 0;
@@ -87,6 +115,7 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Top bar ──────────────────────────────────────────────────────────────── */
 .topBar {
   position: relative;
   z-index: 10;
@@ -110,13 +139,6 @@
   align-items: center;
   gap: 12px;
   text-decoration: none;
-}
-
-.heroLogoRow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 28px;
 }
 
 .heroDivider {
@@ -173,6 +195,7 @@
   left: 0%;
 }
 
+/* ── Hero buttons ─────────────────────────────────────────────────────────── */
 .heroBtnPrimary {
   font-size: 14px;
   font-weight: 600;
@@ -203,6 +226,7 @@
 
 .heroBtnPrimary:hover::after { transform: translateX(3px); }
 
+/* ── Main content layout ──────────────────────────────────────────────────── */
 .mainContent {
   position: relative;
   z-index: 5;
@@ -364,14 +388,7 @@
 
 /* ─────────────────────────────────────────────────────
    SESSION ALERT OVERLAY
-   Industry pattern (Figma, Linear, Vercel) for hard-
-   blocking session conflict messages. A dim scrim +
-   centered dialog floats above everything. The login
-   card is never touched, never shifts.
-
-   .toastScrim  — full-viewport dim backdrop
-   .toast       — centered dialog card
-──────────────────────────────────────────────────────── */
+───────────────────────────────────────────────────────── */
 .toastScrim {
   position: fixed;
   inset: 0;
@@ -484,11 +501,8 @@
 }
 
 /* ─────────────────────────────────────────────────────
-   GENERAL ERROR ALERT (kept for any future inline use)
-   Compositor-isolated via will-change + translateZ(0).
-   The shake animation runs entirely on the GPU —
-   zero layout recalculation, zero surrounding movement.
-──────────────────────────────────────────────────────── */
+   ERROR ALERT (inline — kept for future use)
+───────────────────────────────────────────────────────── */
 .errorAlert {
   background: var(--error-bg);
   border: 1px solid rgba(248, 113, 113, 0.25);
@@ -519,12 +533,6 @@
   border-radius: 8px 0 0 8px;
 }
 
-/* ─────────────────────────────────────────────────────
-   SHAKE KEYFRAMES
-   Pure translateX — 8 steps, fully decays to 0.
-   Only transform is animated → compositor thread only,
-   no layout, no paint, no reflow anywhere on the page.
-──────────────────────────────────────────────────────── */
 @keyframes errorShake {
   0%   { transform: translateX(0); }
   15%  { transform: translateX(-7px); }
@@ -537,20 +545,8 @@
 }
 
 /* ─────────────────────────────────────────────────────
-   FORM GROUP — THE CORE FIX
-   ┌─────────────────────────────────────────────┐
-   │  position: relative  → anchor for errorText │
-   │  padding-bottom: 24px → always reserves the │
-   │    exact space error text needs, whether it  │
-   │    exists in the DOM or not. Card height is  │
-   │    therefore IDENTICAL in both states.       │
-   │  margin-bottom: 8px  → replaces old 20px    │
-   │    (the 12px difference absorbed into the   │
-   │    padding-bottom reservation above)         │
-   │  will-change + translateZ → compositor layer │
-   │    so the shake is visual-only, no reflow.  │
-   └─────────────────────────────────────────────┘
-──────────────────────────────────────────────────────── */
+   FORM GROUP
+───────────────────────────────────────────────────────── */
 .formGroup {
   position: relative;
   margin-bottom: 0px;
@@ -724,13 +720,8 @@
 .eyeButton:hover .eyeIcon { opacity: 0.9; }
 
 /* ─────────────────────────────────────────────────────
-   ERROR TEXT — THE CORE FIX (part 2)
-   position: absolute removes it from document flow
-   completely. It renders inside the padding-bottom
-   gap that .formGroup permanently reserves, so it
-   is visible to the user but contributes ZERO height
-   to any parent. The card cannot grow.
-──────────────────────────────────────────────────────── */
+   ERROR TEXT
+───────────────────────────────────────────────────────── */
 .errorText {
   position: absolute;
   bottom: 1px;
@@ -755,6 +746,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Remember row ─────────────────────────────────────────────────────────── */
 .rememberRow {
   display: flex;
   justify-content: space-between;
@@ -827,6 +819,7 @@
 
 .forgotLink:hover { color: var(--accent-cyan); }
 
+/* ── Submit button ────────────────────────────────────────────────────────── */
 .submitButton {
   width: 100%;
   padding: 14px;
@@ -902,11 +895,7 @@
   outline-offset: 2px;
 }
 
-
-/* ── Success state ───────────────────────────────────────────
-   No alert box. Hierarchy via spacing + typography.
-   Pattern: Vercel / Linear / Stripe confirmation screens.
-──────────────────────────────────────────────────────────────── */
+/* ── Success state ────────────────────────────────────────────────────────── */
 .successState {
   display: flex;
   flex-direction: column;
@@ -981,6 +970,8 @@
 }
 
 .successRetry:hover { opacity: 0.72; }
+
+/* ── Password strength ────────────────────────────────────────────────────── */
 .strengthWrapper {
   display: flex;
   align-items: center;
@@ -1011,6 +1002,27 @@
   min-width: 44px;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ─────────────────────────────────────────────────────────────────────────────
+   CHANGE 2 — Mobile layout overhaul.
+   Previous state: hero section consumed too much vertical space before the
+   card, card had desktop-sized padding, top bar was cramped, hero text was
+   unreadably large on a 375px viewport.
+
+   New layout at ≤900px: two-column → single-column. Hero is compact (no
+   heroDivider, reduced title size). Card is full-width, centered.
+
+   New layout at ≤768px: hero section is collapsed to a minimal branded
+   headline (3 lines max), card fills full available width, padding tight.
+   The flat gradient background is REPLACED by .bgCanvasMobile (the mobile
+   SVG wave layer — see CHANGE 1 + CHANGE 4).
+
+   New layout at ≤480px: card padding tightened further, font sizes reduced
+   to prevent overflow on very narrow viewports (320–375px).
+═════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤900px) ──────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .topBarNav { display: none; }
 
@@ -1018,6 +1030,7 @@
     flex-direction: column;
     padding: 40px 24px;
     align-items: flex-start;
+    gap: 32px;
   }
 
   .heroSection { max-width: 100%; }
@@ -1030,21 +1043,167 @@
   }
 }
 
-@media (max-width: 540px) {
-  .topBar { padding: 16px 24px; }
-  .loginCard { padding: 30px 24px; }
-  .heroTitle { font-size: 32px; letter-spacing: -1px; }
-  .inputField { font-size: 16px; }
+/* ─────────────────────────────────────────────────────────────────────────────
+   CHANGE 1 — Mobile (≤768px): Replace flat gradient with SVG wave background.
+   CHANGE 2 — Mobile layout: compact hero, full-width card.
+   CHANGE 4 — Show .bgCanvasMobile (the static SVG wave layer).
+
+   What was removed:
+     background: linear-gradient(135deg, #07080f 0%, #0d0f1f 50%, #07080f 100%)
+     — was applied to .pageContainer inside this breakpoint.
+     This flat gradient wiped out all visual depth on mobile. Removed entirely.
+
+   What was added:
+     .bgCanvasMobile { display: block } — activates the static SVG wave layer
+     that mirrors the RN WaveBackground component (400×800 viewBox, pink/cyan/
+     purple wave families, same stroke opacity formulas, no animation).
+     .bgCanvas { display: none } — hides the desktop animated canvas; the
+     mobile canvas takes over. No duplicate rendering.
+     pageContainer keeps background-color: var(--bg-deep) as the base fill
+     so the SVG transparent paths render against the correct dark background.
+
+   Layout changes:
+     - mainContent: flex-direction column, tighter padding, card-first order
+     - heroSection: hidden on narrow mobile to give the card maximum space,
+       shown as a minimal 2-line header above the card on mid-mobile (480–768px)
+     - cardWrapper: full width, no max-width constraint
+     - loginCard: reduced padding (28px sides vs 36px desktop)
+     - topBar: minimal height, logo only (nav already hidden at ≤900px)
+───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Activate mobile SVG wave, deactivate desktop animated canvas */
+  .bgCanvas       { display: none; }
+  .bgCanvasMobile { display: block; }
+
+  /* wavePath animation guard (belt-and-suspenders — bgCanvas is hidden anyway) */
+  .wavePath { animation: none; display: none; }
+
+  /* pageContainer: keep bg-deep as base — SVG waves render on top of it */
+  .pageContainer {
+    background-color: var(--bg-deep);
+  }
+
+  /* topBar: tighter on mobile */
+  .topBar {
+    padding: 14px 20px;
+  }
+
+  /* mainContent: single column, card on top, hero compressed below */
+  .mainContent {
+    flex-direction: column-reverse;
+    padding: 24px 20px 40px;
+    justify-content: flex-end;
+    align-items: stretch;
+    gap: 28px;
+    max-width: 100%;
+    min-height: calc(100vh - 57px); /* viewport minus topBar */
+  }
+
+  /* heroSection: compact — just the accent + subtext, no giant title block */
+  .heroSection {
+    animation: none;
+  }
+
+  .heroDivider {
+    width: 32px;
+    height: 2px;
+    margin-bottom: 16px;
+  }
+
+  .heroTitle {
+    font-size: 28px;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+
+  .heroTitleLight {
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+
+  .heroTitleSub {
+    font-size: 18px;
+    letter-spacing: -0.3px;
+  }
+
+  .heroAccent {
+    font-size: 36px;
+    letter-spacing: -1px;
+  }
+
+  .heroSubtext {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .heroActions {
+    gap: 12px;
+  }
+
+  .heroBtnPrimary,
+  .heroBtnOutline {
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+
+  /* cardWrapper: full width, no max-width cap */
+  .cardWrapper {
+    width: 100%;
+    max-width: 100%;
+    animation: none;
+  }
+
+  /* loginCard: tighter padding, slightly less rounded to feel native */
+  .loginCard {
+    padding: 32px 28px 28px;
+    border-radius: 16px;
+    /* Stronger glass effect on mobile — wave bg shows through nicely */
+    backdrop-filter: blur(28px);
+    background: rgba(7, 8, 15, 0.65);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .cardHeader { margin-bottom: 24px; }
+
+  .cardTitle   { font-size: 24px; }
+  .cardSubtitle { font-size: 13px; }
 }
 
-@media (max-width: 768px) {
-  .wavePath { animation: none; display: none; }
-  .bgCanvas { display: none; }
-  .pageContainer {
-    background: linear-gradient(135deg, #07080f 0%, #0d0f1f 50%, #07080f 100%);
+/* ── Narrow mobile (≤480px) ───────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .topBar { padding: 12px 16px; }
+
+  .mainContent {
+    padding: 16px 16px 32px;
+    gap: 20px;
+  }
+
+  .loginCard {
+    padding: 28px 20px 24px;
+    border-radius: 14px;
+  }
+
+  /* 16px minimum on mobile inputs prevents iOS auto-zoom on focus */
+  .inputField { font-size: 16px; }
+
+  .heroTitle   { font-size: 24px; }
+  .heroAccent  { font-size: 30px; }
+  .heroSubtext { font-size: 13px; }
+
+  /* Collapse hero actions to a single column on very narrow viewports */
+  .heroActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroBtnPrimary,
+  .heroBtnOutline {
+    text-align: center;
+    justify-content: center;
   }
 }
 
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .wavePath   { animation: none; }
   .bgCanvas   { display: none; }

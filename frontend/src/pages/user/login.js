@@ -8,7 +8,15 @@ import lockIcon  from './../../assets/lock.png';
 import eyeIcon   from './../../assets/eye.png';
 import hideIcon  from './../../assets/hide.png';
 
-const isMobile = window.innerWidth <= 768;
+/*
+ * CHANGE 3 — Removed: const isMobile = window.innerWidth <= 768
+ * Why: Module-level window.innerWidth is evaluated once at parse time.
+ * It never reacts to resize, breaks in SSR/hydration environments, and
+ * mixes a layout concern into JS when CSS media queries are the correct layer.
+ * The bgCanvas div is now rendered unconditionally; CSS controls
+ * visibility and animation per breakpoint (already handled via .wavePath
+ * and .bgCanvas rules in the stylesheet).
+ */
 
 function UserLogin() {
   const navigate = useNavigate();
@@ -262,30 +270,81 @@ function UserLogin() {
         </div>
       )}
 
-      {!isMobile && (
-        <div className={styles.bgCanvas}>
-          <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            {[...Array(18)].map((_, i) => (
-              <path key={`pink-${i}`} className={styles.wavePath}
-                style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
-                d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
-                fill="none" strokeWidth="1.2" />
-            ))}
-            {[...Array(18)].map((_, i) => (
-              <path key={`cyan-${i}`} className={styles.wavePath}
-                style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
-                d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
-                fill="none" strokeWidth="1.2" />
-            ))}
-            {[...Array(10)].map((_, i) => (
-              <path key={`purple-${i}`} className={styles.wavePath}
-                style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
-                d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
-                fill="none" strokeWidth="1" />
-            ))}
-          </svg>
-        </div>
-      )}
+      {/*
+        CHANGE 3 — bgCanvas is now always rendered.
+        Visibility and animation are controlled exclusively by CSS media
+        queries (.bgCanvas display, .wavePath animation: none at ≤768px).
+        On mobile, the static wave SVG overlay (.bgCanvasMobile) is shown
+        instead via CSS — no JS branching needed.
+      */}
+      <div className={styles.bgCanvas}>
+        <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          {[...Array(18)].map((_, i) => (
+            <path key={`pink-${i}`} className={styles.wavePath}
+              style={{ animationDelay: `${i * 0.15}s`, '--wave-color': `rgba(200, 80, 200, ${0.4 - i * 0.015})` }}
+              d={`M ${-100 + i * 8} ${300 + i * 6} C ${200 + i * 5} ${100 + i * 8}, ${500 + i * 3} ${500 + i * 4}, ${700 + i * 6} ${200 + i * 5} S ${900 + i * 4} ${600 + i * 3}, ${1100 + i * 5} ${300 + i * 4}`}
+              fill="none" strokeWidth="1.2" />
+          ))}
+          {[...Array(18)].map((_, i) => (
+            <path key={`cyan-${i}`} className={styles.wavePath}
+              style={{ animationDelay: `${i * 0.12 + 1}s`, '--wave-color': `rgba(30, 180, 255, ${0.4 - i * 0.015})` }}
+              d={`M ${500 + i * 6} ${900} C ${700 + i * 4} ${650 + i * 5}, ${900 + i * 3} ${800 + i * 3}, ${1100 + i * 5} ${550 + i * 6} S ${1300 + i * 4} ${750 + i * 3}, ${1500 + i * 5} ${600 + i * 4}`}
+              fill="none" strokeWidth="1.2" />
+          ))}
+          {[...Array(10)].map((_, i) => (
+            <path key={`purple-${i}`} className={styles.wavePath}
+              style={{ animationDelay: `${i * 0.2 + 0.5}s`, '--wave-color': `rgba(130, 80, 255, ${0.25 - i * 0.02})` }}
+              d={`M ${200 + i * 10} ${500 + i * 4} C ${400 + i * 6} ${300 + i * 5}, ${700 + i * 4} ${700 + i * 3}, ${1000 + i * 5} ${400 + i * 4}`}
+              fill="none" strokeWidth="1" />
+          ))}
+        </svg>
+      </div>
+
+      {/*
+        CHANGE 1 — Mobile wave background.
+        Mirrors the React Native WaveBackground component exactly:
+        same 3 wave families (pink, cyan, purple), same 400×800 viewBox,
+        same preserveAspectRatio="xMidYMid slice", same path geometry
+        and opacity values. Rendered in DOM always; CSS shows it only
+        at ≤768px (display: none on desktop). No animation — static,
+        zero GPU cost on mobile.
+      */}
+      <div className={styles.bgCanvasMobile} aria-hidden="true">
+        <svg
+          style={{ width: '100%', height: '100%' }}
+          viewBox="0 0 400 800"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {[...Array(8)].map((_, i) => (
+            <path
+              key={`m-pink-${i}`}
+              d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
+              fill="none"
+              stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
+              strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(8)].map((_, i) => (
+            <path
+              key={`m-cyan-${i}`}
+              d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
+              fill="none"
+              stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
+              strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(5)].map((_, i) => (
+            <path
+              key={`m-purple-${i}`}
+              d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
+              fill="none"
+              stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
+              strokeWidth="1"
+            />
+          ))}
+        </svg>
+      </div>
 
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
