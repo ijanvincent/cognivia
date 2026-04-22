@@ -302,12 +302,8 @@ function UserLogin() {
 
       {/*
         CHANGE 1 — Mobile wave background.
-        Mirrors the React Native WaveBackground component exactly:
-        same 3 wave families (pink, cyan, purple), same 400×800 viewBox,
-        same preserveAspectRatio="xMidYMid slice", same path geometry
-        and opacity values. Rendered in DOM always; CSS shows it only
-        at ≤768px (display: none on desktop). No animation — static,
-        zero GPU cost on mobile.
+        Mirrors the React Native WaveBackground component exactly.
+        Rendered in DOM always; CSS shows it only at ≤768px.
       */}
       <div className={styles.bgCanvasMobile} aria-hidden="true">
         <svg
@@ -390,7 +386,15 @@ function UserLogin() {
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
 
               <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="email">Email address</label>
+                {/*
+                  FIX-1 — Label text: "Email address" → "Email"
+                  What: Changed label content from "Email address" to "Email".
+                  Why:  RN FloatingLabelInput receives label="Email" — single word.
+                        Web had "Email address" which did not match. The floating
+                        label must display identically to RN when on mobile screen sizes.
+                        Zero other changes in this file.
+                */}
+                <label className={styles.label} htmlFor="email">Email</label>
                 <div className={`${styles.inputContainer} ${errors.email ? styles.inputContainerError : ''}`}>
                   <img src={emailIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                   <input
@@ -453,7 +457,15 @@ function UserLogin() {
                     className={styles.rememberCheckbox} />
                   Remember me
                 </label>
-                <Link to="/forgot-password" className={styles.forgotLink}>Forgot password?</Link>
+                {/*
+                  CHANGE M-FORGOT — Forgot password link text
+                  What: "Forgot password?" → "Forgot your password?"
+                  Why:  RN LoginScreen renders: 'Forgot your password?'
+                        Web had "Forgot password?" — missing "your".
+                        Must match RN exactly on mobile view.
+                        No functional change — href/route unchanged.
+                */}
+                <Link to="/forgot-password" className={styles.forgotLink}>Forgot your password?</Link>
               </div>
 
               <button type="submit" disabled={loading || isWaitingForMobile} className={styles.submitButton}>
