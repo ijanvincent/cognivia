@@ -259,7 +259,7 @@ function UserRegister() {
 
               {/* USERNAME */}
               <div className={styles.formGroup}>
-                <label htmlFor="username" className={styles.label}>Username</label>
+                <label htmlFor="username" className={styles.label}>Profile Name</label>
                 <div className={`${styles.inputContainer} ${shakingFields.username ? styles.inputShake : ''}`}>
                   <img src={userIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
                   <input
@@ -270,7 +270,7 @@ function UserRegister() {
                     onChange={handleChange}
                     onFocus={() => setShowStrengthMeter(false)}
                     className={`${styles.inputField} ${errors.username ? styles.inputError : ''}`}
-                    placeholder="Enter your username"
+                    placeholder="Profile Name"
                     disabled={loading}
                     autoComplete="username"
                     autoFocus
@@ -298,7 +298,7 @@ function UserRegister() {
                     onChange={handleChange}
                     onFocus={() => setShowStrengthMeter(false)}
                     className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
-                    placeholder="you@example.com"
+                    placeholder="Email Address"
                     disabled={loading}
                     autoComplete="email"
                     aria-invalid={!!errors.email}
@@ -329,7 +329,7 @@ function UserRegister() {
                         onFocus={() => setShowStrengthMeter(true)}
                         onBlur={() => setShowStrengthMeter(false)}
                         className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
-                        placeholder="Min. 8 characters"
+                        placeholder="Password"
                         disabled={loading}
                         autoComplete="new-password"
                         aria-invalid={!!errors.password}
@@ -398,7 +398,7 @@ function UserRegister() {
                       onChange={handleChange}
                       onFocus={() => setShowStrengthMeter(false)}
                       className={`${styles.inputField} ${errors.password_confirmation ? styles.inputError : ''}`}
-                      placeholder="Re-enter password"
+                      placeholder="Confirm Password"
                       disabled={loading}
                       autoComplete="new-password"
                       aria-invalid={!!errors.password_confirmation}

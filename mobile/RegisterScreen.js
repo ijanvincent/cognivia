@@ -498,7 +498,7 @@ const RegisterScreen = () => {
                         )}
 
                         <FloatingLabelInput
-                            label="Username"
+                            label="Profile Name"
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
                             icon="account-outline"

@@ -426,7 +426,7 @@ function UserLogin() {
                     id="password" type={showPassword ? 'text' : 'password'} name="password"
                     value={formData.password} onChange={handleChange}
                     className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
-                    placeholder="Enter your password"
+                    placeholder="Password"
                     disabled={loading || isWaitingForMobile}
                     autoComplete="current-password"
                     aria-invalid={!!errors.password}
