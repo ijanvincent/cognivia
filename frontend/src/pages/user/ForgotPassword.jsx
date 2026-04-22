@@ -185,7 +185,7 @@ function ForgotPassword() {
                 )}
 
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>Email address</label>
+                  <label className={styles.label}>Email</label>
                   <div className={styles.inputContainer}>
                     <img src={emailIcon} alt="" className={styles.inputIcon} />
                     <input
