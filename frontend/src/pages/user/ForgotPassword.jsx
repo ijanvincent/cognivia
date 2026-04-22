@@ -114,7 +114,7 @@ function ForgotPassword() {
                   <p className={styles.cardSubtitle}>
                     {submitted
                       ? 'A reset link has been sent if that email is registered'
-                      : 'Enter your email to receive a reset link'}
+                      : 'Provide your email and we\'ll send you a reset link'}
                   </p>
                 </div>
               </div>
