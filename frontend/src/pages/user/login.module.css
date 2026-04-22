@@ -1246,7 +1246,18 @@
     padding-right: 16px;
     padding-top: 0;
     padding-bottom: 0;
-    align-items: flex-end;
+    /*
+      FIX-ALIGN-1 — align-items: flex-end → center
+      What: Changed from flex-end to center.
+      Why:  flex-end anchored the inputField to the bottom of the 60px shell.
+            The ::before icon uses top:50% = 30px (geometric center of shell).
+            The label at rest uses top:30px. With flex-end the input text cursor
+            sat near the bottom (~y:52px) while icon and label were at y:30px —
+            visibly misaligned in screenshots. center aligns all three at the
+            same vertical midpoint (30px), matching RN iconWrap which uses
+            alignSelf:'stretch', justifyContent:'center' (also centers at 30px).
+    */
+    align-items: center;
     background: rgba(255, 255, 255, 0.04);
     overflow: visible;
     position: relative;
@@ -1297,10 +1308,18 @@
     box-shadow: none !important;
     -webkit-appearance: none;
     appearance: none;
-    padding: 0 0 8px 0 !important;
+    /*
+      FIX-ALIGN-2 — padding: 0 0 8px 0 → padding: 0 | align-self: flex-end removed
+      What: Removed bottom padding and align-self:flex-end override.
+      Why:  The 8px bottom padding was artificially shifting text downward,
+            misaligning it with the icon and resting label. With the container
+            now using align-items:center, align-self:flex-end would fight it.
+            Clean zero padding lets the browser center the input text naturally
+            within the shell, consistent with the icon at top:50% and label at top:30px.
+    */
+    padding: 0 !important;
     margin: 0 !important;
     height: auto !important;
-    align-self: flex-end;
     width: 100%;
     font-size: 15px;
     font-family: var(--font-body) !important;
@@ -1450,13 +1469,19 @@
     display: block;
     position: absolute;
     /*
-      CHANGE M-LABEL-1 — top:36px (was top:30px)
-      Content zone midpoint of 60px shell with paddingTop:18 = 36px.
+      FIX-ALIGN-3 — top: 36px → top: 30px
+      What: Changed label resting top from 36px back to 30px.
+      Why:  Previous rationale for 36px was based on align-items:flex-end
+            (content zone midpoint = paddingTop:18 + 18 = 36px). Now that
+            align-items:center is used, the input text cursor sits at the
+            shell's geometric center = 60px / 2 = 30px. The resting label
+            must match the cursor position. Icon ::before is also at top:50%
+            = 30px. All three now share the same vertical axis.
     */
-    top: 36px;
+    top: 30px;
     left: 44px;
     transform: translateY(-50%);
-    font-family: var(--font-body);       /* M-FONT-3: DM Sans explicit */
+    font-family: var(--font-body);
     font-size: 15px;
     font-weight: 400;
     letter-spacing: 0.1px;
@@ -1478,18 +1503,14 @@
   }
 
   /*
-    CHANGE M-LABEL-2 — Floated translateY: calc(-50% - 36px) (was calc(-50% - 30px))
-    ─────────────────────────────────────────────────────────────────────────────
-    What: translateY(calc(-50% - 30px)) → translateY(calc(-50% - 36px))
-    Why:
-      Label starts at top:36px + translateY(-50%) = label center at 36px.
-      To move label center to 0px (shell top border):
-        subtract exactly 36px more → translateY(-50% - 36px) ✓
-      Old value -30px left label center at 6px inside the shell,
-      visibly below the border rather than straddling it (mismatch with RN).
+    FIX-ALIGN-4 — floated translateY: calc(-50% - 36px) → calc(-50% - 30px)
+    What: Recalculated against new top:30px baseline.
+    Why:  Label center starts at top:30px + translateY(-50%) = 30px.
+          To move center to 0px (shell top border): subtract 30px.
+          translateY(calc(-50% - 30px)) → label center lands at 0px ✓
   */
   .formGroup:focus-within .label {
-    transform: translateY(calc(-50% - 36px));
+    transform: translateY(calc(-50% - 30px));
     font-size: 11px;
     font-weight: 600;
     color: var(--accent-cyan);
@@ -1504,7 +1525,7 @@
     Matches RN: when value is set, floatAnim stays at 1 on blur.
   */
   .formGroup:has(.inputField:not(:placeholder-shown)) .label {
-    transform: translateY(calc(-50% - 36px));
+    transform: translateY(calc(-50% - 30px));
     font-size: 11px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.55);
