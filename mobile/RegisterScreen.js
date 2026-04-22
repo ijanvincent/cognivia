@@ -25,7 +25,7 @@ const openLegal = async (page) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WaveBackground — unchanged
+// WaveBackground
 // ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
@@ -65,9 +65,6 @@ const WaveBackground = () => (
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shell geometry constants — single source of truth for label positioning.
-// Adjust TRANSLATE_Y_FLOATED to fine-tune the floated label vertical position:
-//   more negative (e.g. -35) → label moves UP
-//   less negative (e.g. -33) → label moves DOWN
 // ─────────────────────────────────────────────────────────────────────────────
 const SHELL_HEIGHT        = 60;
 const SHELL_PADDING_T     = 18;
@@ -75,25 +72,10 @@ const SHELL_PADDING_B     = 6;
 const SHELL_BORDER_W      = 1;
 const LABEL_SIZE_REST     = 15;
 const LABEL_SIZE_FLOAT    = 11;
-
-/*
- * CHANGE 1 — TRANSLATE_Y_FLOATED constant introduced.
- *
- * What:  Replaces the inline magic number -28 in the interpolate outputRange.
- *        Value set to -34 (same as LoginScreen and ForgotPasswordScreen).
- *
- * Why:   -28 was insufficient to lift the label onto the top border line.
- *        The floatContainer sits 19px below the shell top (1px border +
- *        18px paddingTop). top:'50%' resolves to 18px (half of 36px
- *        container height), so the label anchor is 29.5px from the shell
- *        top. -28 left the label 1.5px inside the shell. -34 centers the
- *        label midpoint on the top border, matching the web target.
- *        To fine-tune: adjust only this constant.
- */
 const TRANSLATE_Y_FLOATED = -34;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// useFloatAnim — unchanged
+// useFloatAnim
 // ─────────────────────────────────────────────────────────────────────────────
 const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -138,13 +120,6 @@ const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
 // FloatingLabel
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabel = ({ label, floatAnim, isFocused }) => {
-    /*
-     * CHANGE 2 — translateY outputRange: [0, -28] → [0, TRANSLATE_Y_FLOATED]
-     *
-     * What:  Animation end value changed from -28 to -34.
-     * Why:   See CHANGE 1. -34 lands the label centered on the top border.
-     *        Adjust TRANSLATE_Y_FLOATED at the top to fine-tune.
-     */
     const labelTranslateY = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [0, TRANSLATE_Y_FLOATED],
@@ -216,15 +191,6 @@ const FloatingLabelInput = ({
     });
 
     return (
-        /*
-         * CHANGE 3 — inputWrap: alignItems 'flex-start' → 'center'
-         *
-         * What:  Shell row alignment changed from 'flex-start' to 'center'.
-         * Why:   'flex-start' anchored direct children after paddingTop:18,
-         *        pushing the icon visually low. 'center' vertically centers
-         *        iconWrap and eyeWrap within the full 60px shell height.
-         *        The absolutely-positioned floating label is unaffected.
-         */
         <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
             <View style={styles.iconWrap}>
                 <MaterialCommunityIcons
@@ -329,7 +295,7 @@ const PasswordInput = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PasswordRequirement — unchanged
+// PasswordRequirement
 // ─────────────────────────────────────────────────────────────────────────────
 const PasswordRequirement = ({ met, label }) => (
     <View style={styles.reqRow}>
@@ -352,11 +318,6 @@ const PASSWORD_RULES = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ConsentNotice
-//
-// CHANGE 1 — ConsentCheckbox replaced with ConsentNotice.
-// What:  Interactive checkbox + error state removed. Replaced with a single
-//        static text line: "By signing up you agree to our Terms and Privacy Policy".
-// Why:   Implicit consent copy is the requested pattern. No interaction needed.
 // ─────────────────────────────────────────────────────────────────────────────
 const ConsentNotice = () => (
     <Text style={styles.consentNotice}>
@@ -368,11 +329,14 @@ const ConsentNotice = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RegisterScreen — unchanged
+// RegisterScreen
 // ─────────────────────────────────────────────────────────────────────────────
 const RegisterScreen = () => {
     const navigation = useNavigation();
 
+    // NOTE: formData key remains 'username' intentionally.
+    // 'username' is the DB column name, API contract field, and auth identifier.
+    // 'Profile Name' is the UX display label only.
     const [formData, setFormData] = useState({
         username:              '',
         email:                 '',
@@ -395,13 +359,18 @@ const RegisterScreen = () => {
 
     const validate = () => {
         const e = {};
+
+        // Profile name regex: /^[a-zA-Z0-9_ ]+$/
+        // Space is permitted. Internal field key, DB column, and API payload
+        // are unchanged. All three layers (web, mobile, backend) are in sync.
         if (!formData.username.trim()) {
-            e.username = 'Username is required.';
+            e.username = 'Profile name is required.';
         } else if (formData.username.trim().length < 3) {
-            e.username = 'Username must be at least 3 characters.';
-        } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
-            e.username = 'Letters, numbers and underscores only.';
+            e.username = 'Profile name must be at least 3 characters.';
+        } else if (!/^[a-zA-Z0-9_ ]+$/.test(formData.username.trim())) {
+            e.username = 'Letters, numbers, spaces, and underscores only.';
         }
+
         if (!formData.email.trim()) {
             e.email = 'Email is required.';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -497,11 +466,17 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
+                        {/* PROFILE NAME
+                            Internal field key = 'username' (DB column, API key — unchanged).
+                            Display label = 'Profile Name' (UX layer only).
+                            Spaces permitted: regex /^[a-zA-Z0-9_ ]+$/
+                            autoCapitalize='words' so first letters capitalise naturally. */}
                         <FloatingLabelInput
                             label="Profile Name"
                             value={formData.username}
                             onChangeText={v => updateField('username', v)}
                             icon="account-outline"
+                            autoCapitalize="words"
                             editable={!isLoading}
                             onFocusCallback={() => setStrengthDismissed(true)}
                         />
@@ -620,21 +595,9 @@ const styles = StyleSheet.create({
     brandSection:  { alignItems: 'center', marginBottom: 32 },
     brandSub:      { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
     formSection:   { width: '100%' },
-
-    // ── Input shell ───────────────────────────────────────────────────────────
-    /*
-     * CHANGE 3 — alignItems: 'flex-start' → 'center'
-     *
-     * What:  Shell row alignment changed from 'flex-start' to 'center'.
-     * Why:   'flex-start' anchored direct children after paddingTop:18,
-     *        pushing the icon and eye button visually low. 'center'
-     *        vertically centers iconWrap and eyeWrap within the full
-     *        60px shell height. The absolutely-positioned floating label
-     *        is unaffected by this change.
-     */
     inputWrap: {
         flexDirection:     'row',
-        alignItems:        'center',          // ← was 'flex-start'
+        alignItems:        'center',
         borderWidth:       SHELL_BORDER_W,
         borderColor:       'rgba(255,255,255,0.15)',
         borderRadius:      12,
@@ -650,28 +613,8 @@ const styles = StyleSheet.create({
         borderColor:     COLORS.cyan,
         backgroundColor: 'rgba(34,211,238,0.04)',
     },
-
-    // ── Icon / eye wrappers ───────────────────────────────────────────────────
-    /*
-     * CHANGE 4 — iconWrap / eyeWrap: removed alignSelf:'stretch' +
-     *            justifyContent:'center'
-     *
-     * What:  Both properties removed from iconWrap and eyeWrap.
-     * Why:   Those properties were the original workaround for a flex-start
-     *        parent — stretching the wrapper to full height and self-centering
-     *        within it. Now that inputWrap uses alignItems:'center', the
-     *        parent handles vertical centering automatically. Keeping
-     *        alignSelf:'stretch' would override the parent and reintroduce
-     *        the downward offset.
-     */
-    iconWrap: {
-        marginRight: 12,                      // alignSelf/justifyContent removed
-    },
-    eyeWrap: {
-        paddingLeft: 10,                      // alignSelf/justifyContent removed
-    },
-
-    // ── Floating label ────────────────────────────────────────────────────────
+    iconWrap: { marginRight: 12 },
+    eyeWrap:  { paddingLeft: 10 },
     floatContainer: {
         flex:           1,
         position:       'relative',
@@ -680,7 +623,7 @@ const styles = StyleSheet.create({
     floatingLabelWrapper: {
         position:      'absolute',
         top:           '50%',
-        marginTop:     -Math.round(LABEL_SIZE_REST / 2),  // = -8, unchanged
+        marginTop:     -Math.round(LABEL_SIZE_REST / 2),
         left:          0,
         flexDirection: 'row',
         alignItems:    'center',
@@ -696,8 +639,6 @@ const styles = StyleSheet.create({
         fontWeight:    '400',
         letterSpacing: 0.1,
     },
-
-    // ── TextInput ─────────────────────────────────────────────────────────────
     input: {
         flex:            1,
         fontSize:        15,
@@ -705,29 +646,19 @@ const styles = StyleSheet.create({
         paddingVertical: 0,
         paddingTop:      2,
     },
-
-    // ── Password side-by-side row ─────────────────────────────────────────────
     passwordRow: { flexDirection: 'row', gap: 10, marginBottom: 0 },
     passwordCol: { flex: 1 },
-
-    // ── Errors ────────────────────────────────────────────────────────────────
     errorAlert:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.errorBg, borderLeftWidth: 3, borderLeftColor: COLORS.error, borderRadius: 10, padding: 14, marginBottom: 16 },
     errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
     fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
-
-    // ── Consent notice ────────────────────────────────────────────────────────
     consentNotice:     { fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 20, marginBottom: 20, marginTop: 4, fontWeight: '300' },
     consentNoticeLink: { color: '#ffffff', fontWeight: '600' },
-
-    // ── Submit ────────────────────────────────────────────────────────────────
     btnCreate:     { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
     btnDisabled:   { opacity: 0.35 },
     btnCreateText: { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
     loginRow:      { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
     loginPrompt:   { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
     loginLink:     { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
-
-    // ── Password strength ─────────────────────────────────────────────────────
     reqContainer: { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 14, gap: 6 },
     reqRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
     reqDot:       { width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
