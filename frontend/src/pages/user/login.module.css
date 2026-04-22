@@ -18,9 +18,6 @@
   --error-bg: rgba(248, 113, 113, 0.08);
   --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
-
-  /* Reserved height for error text — keeps card height locked.
-     12px font × 1.4 line-height = ~17px. 18px gives 1px breathing room. */
   --error-reserved: 22px;
 }
 
@@ -39,8 +36,6 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DESKTOP WAVE BACKGROUND
-   Animated 1440×900 wave canvas. Visible on desktop only.
-   Hidden at ≤768px via media query below — replaced by bgCanvasMobile.
 ───────────────────────────────────────────────────────────────────────────── */
 .bgCanvas {
   position: fixed;
@@ -70,18 +65,12 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MOBILE WAVE BACKGROUND
-   Mirrors the React Native WaveBackground component exactly:
-   - Same 400×800 viewBox with preserveAspectRatio="xMidYMid slice"
-   - Same 3 wave families: pink (8 paths), cyan (8 paths), purple (5 paths)
-   - Same path geometry, same opacity formula, same strokeWidth values
-   - No animation — static render, zero GPU/battery cost on mobile
-   - Hidden on desktop (display: none), shown only at ≤768px
+   Default: hidden. Shown only inside @media (max-width: 768px).
+   On mobile it becomes position:absolute (not fixed) so it sits INSIDE
+   pageContainer — exactly mirroring RN's absoluteFill WaveBackground.
 ───────────────────────────────────────────────────────────────────────────── */
 .bgCanvasMobile {
   display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
   pointer-events: none;
   overflow: hidden;
 }
@@ -497,7 +486,7 @@
 }
 
 /* ─────────────────────────────────────────────────────
-   ERROR ALERT (inline — kept for future use)
+   ERROR ALERT (inline)
 ───────────────────────────────────────────────────────── */
 .errorAlert {
   background: var(--error-bg);
@@ -999,10 +988,8 @@
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
+   TABLET (≤900px)
 ═════════════════════════════════════════════════════════════════════════════ */
-
-/* ── Tablet (≤900px) ──────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .topBarNav { display: none; }
 
@@ -1026,74 +1013,66 @@
 /* ═════════════════════════════════════════════════════════════════════════════
    MOBILE (≤768px)
    ─────────────────────────────────────────────────────────────────────────────
-   Complete mobile overhaul — mirrors React Native LoginScreen exactly.
-
-   Changes in this revision:
-     M-LABEL-1   — Label resting vertical position: top:36px (was top:30px)
-                   RN shell: paddingTop:18, paddingBottom:6, height:60.
-                   Content zone midpoint = 18 + 18 = 36px. Fixed.
-     M-LABEL-2   — Floated translateY: calc(-50% - 36px) (was -30px).
-                   Recalculated against new top:36px baseline so label
-                   center lands exactly at 0px (shell top border line).
-     M-FONT-1    — cardSubtitle: font-family DM Sans, font-weight:300 explicit.
-     M-FONT-2    — inputField: font-family DM Sans !important enforced.
-     M-FONT-3    — label resting: font-family DM Sans added.
-     M-FONT-4    — submitButton: text-transform:none added to prevent
-                   any upstream cascade reinstating uppercase.
-     M-FONT-5    — registerLink: font-family Syne added (matches RN Syne_700Bold).
-     M-FORGOT    — Handled in JSX: "Forgot password?" → "Forgot your password?"
-
-   Previously implemented (preserved exactly):
-     WEB-M-1  — inputField browser outline/border fully suppressed
-     WEB-M-2  — Label resting position: top:50% + translateY(-50%)
-     WEB-M-3  — Label text-transform/size split: resting=none/15px, float=upper/11px
-     WEB-M-4  — loginCard border/shadow hidden — form floats on bg (matches RN)
-     WEB-M-5  — inputContainer padding-left verified: 44px (icon 14px + 18px + 12px gap)
-     WEB-M-6  — inputField padding fully reset inside shell (no desktop bleed)
-     WEB-M-7  — inputContainer align-items: flex-end (content bottom-anchored)
-     WEB-M-8  — Password :placeholder-shown confirmed working for type=password
-     WEB-M-9  — overflow:visible confirmed on inputContainer
-     WEB-M-10 — inputField align-self: flex-end + height: auto
-     CHANGE I    — .topBar hidden
-     CHANGE II   — card header → subtitle-only (cardTitle hidden)
-     CHANGE III  — .heroSection hidden
-     CHANGE IV   — .mainContent layout
-     CHANGE V    — label: single consolidated rule block
-     CHANGE VI   — placeholder hidden (idle + focus state)
-     CHANGE VII  — label left:44px
-     CHANGE 1    — Wave background swap
-     CHANGE 3    — Submit button: white bg
-     CHANGE 4    — Error alert: uniform border
-     CHANGE 5    — Forgot password: right-aligned, underlined
-     CHANGE 6    — Register footer: flex row
-     CHANGE 8    — Card glass/base
-     CHANGE A    — bgCanvasMobile overlay
-     CHANGE B    — Input shell model
-     CHANGE D    — inputContainer focus: cyan border
-     CHANGE E    — rememberLabel hidden
-     CHANGE F    — errorText padding-left: 4px
-     CHANGE G    — formGroup padding-bottom
+   Architecture mirrors React Native LoginScreen exactly:
+   
+   RN layer order (bottom → top):
+     1. SafeAreaView  bg: #07080f  (the dark canvas)
+     2. WaveBackground             (SVG absoluteFill, drawn ON TOP of bg)
+     3. overlay View               (absoluteFill, rgba(7,8,15,0.55))
+     4. KeyboardAvoidingView       (form content, above everything)
+   
+   Web equivalent:
+     1. pageContainer  bg: #07080f  (same dark canvas)
+     2. bgCanvasMobile              (position:ABSOLUTE — not fixed — so it
+                                     sits INSIDE pageContainer flow, above bg)
+     3. bgCanvasMobile::after       (rgba(7,8,15,0.55) overlay)
+     4. mainContent  z-index:1      (form content, above wave)
+   
+   THE ROOT CAUSE OF THE BLACK BACKGROUND BUG:
+   Previously bgCanvasMobile was position:fixed. A fixed element is removed
+   from the document flow and placed in the viewport stacking context. The
+   pageContainer's background-color (solid #07080f) then paints on top of it
+   in the normal document flow. Transparent children only revealed the
+   pageContainer background — not the wave behind/beneath it.
+   
+   THE FIX: position:absolute (not fixed) inside pageContainer.
+   pageContainer already has position:relative and overflow:hidden.
+   Now bgCanvasMobile is IN the same stacking context, painting above
+   the pageContainer background, below the form content. Exactly like RN.
 ═════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* ── CHANGE 1: Wave background swap ──────────────────────────────────────── */
-  .bgCanvas       { display: none; }
-  .bgCanvasMobile { display: block; }
-  .wavePath       { animation: none; display: none; }
+  /* Hide desktop animated wave */
+  .bgCanvas  { display: none; }
+  .wavePath  { animation: none; display: none; }
 
-  /*
-    CHANGE A — bgCanvasMobile overlay
-    What: ::after pseudo-element, rgba(7,8,15,0.55) over the wave SVG.
-    Why:  RN <View style={styles.overlay}/> (absoluteFillObject, rgba(7,8,15,0.55))
-          sits above WaveBackground. This layer was missing on web mobile,
-          making the wave too prominent and reducing card readability.
+  /* ───────────────────────────────────────────────────────────────────────────
+     CORE FIX — bgCanvasMobile: position:absolute (was fixed)
+     ───────────────────────────────────────────────────────────────────────────
+     What  : position changed from fixed → absolute.
+             All other values (inset:0, z-index:0, pointer-events:none) stay.
+     
+     Why   : position:fixed removes the element from normal document flow and
+             places it in the viewport layer. The pageContainer's background-
+             color (#07080f solid) then paints OVER the wave in the normal
+             stacking context. No amount of transparent children can reveal
+             a fixed element that is behind the page background.
+             
+             position:absolute places bgCanvasMobile INSIDE pageContainer's
+             stacking context — above the background color, below the content.
+             This exactly mirrors RN's absoluteFill WaveBackground which sits
+             above SafeAreaView's backgroundColor but below the form Views.
   */
   .bgCanvasMobile {
-    position: fixed;
+    display: block;
+    position: absolute;   /* ← THE FIX: was fixed, now absolute inside pageContainer */
     inset: 0;
     z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
   }
 
+  /* Overlay — mirrors RN <View style={styles.overlay}/> rgba(7,8,15,0.55) */
   .bgCanvasMobile::after {
     content: '';
     position: absolute;
@@ -1103,34 +1082,13 @@
     z-index: 1;
   }
 
-  .pageContainer {
-    background-color: var(--bg-deep);
-  }
+  /* ── Hide top bar (no top bar in RN) ───────────────────────────────────── */
+  .topBar { display: none; }
 
-  /*
-    CHANGE I — Hide top bar
-    What: .topBar { display: none }
-    Why:  RN LoginScreen has no top bar.
-  */
-  .topBar {
-    display: none;
-  }
+  /* ── Hide hero section (no hero in RN) ─────────────────────────────────── */
+  .heroSection { display: none; }
 
-  /*
-    CHANGE III — Hide hero section
-    What: .heroSection { display: none }
-    Why:  RN LoginScreen has no hero section.
-  */
-  .heroSection {
-    display: none;
-  }
-
-  /*
-    CHANGE IV — mainContent: single column, fills viewport
-    What: flex-direction:column, justify-content:center, align-items:stretch,
-          padding:28px 20px, min-height:100vh, max-width:100%, gap:0.
-    Why:  Matches RN scrollContent (paddingHorizontal:28, justifyContent:center).
-  */
+  /* ── mainContent: full-viewport column, above wave ──────────────────────── */
   .mainContent {
     flex-direction: column;
     justify-content: center;
@@ -1139,6 +1097,10 @@
     gap: 0;
     max-width: 100%;
     min-height: 100vh;
+    position: relative;
+    z-index: 2;
+    background: transparent !important;
+    background-color: transparent !important;
   }
 
   .cardWrapper {
@@ -1147,63 +1109,29 @@
     animation: none;
   }
 
-  /*
-    WEB-M-4 — loginCard: border and shadow removed
-    ─────────────────────────────────────────────────────────────────────────
-    What:
-      border-color: transparent
-      box-shadow: none
-      background: transparent (glass; keeps readability over waves)
-      backdrop-filter: blur(28px)
-      border-radius: 16px
-      padding: 28px 20px 24px
-
-    Why:
-      Screenshot 2 (web) shows the loginCard as a clearly delineated box with
-      a visible 1px border on all four sides. Screenshot 1 (RN) has no visible
-      card boundary — the form elements float directly on the dark wave background.
-      The card container must be invisible: transparent border, no shadow.
-  */
+  /* loginCard: fully transparent — wave shows through unobstructed.
+     backdrop-filter removed: it composites against #07080f producing
+     a frosted-black pane that blocks the wave. */
   .loginCard {
     padding: 28px 20px 24px;
     border-radius: 16px;
-    backdrop-filter: blur(28px);
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
   }
 
-  /*
-    CHANGE II — Show subtitle only; hide "Welcome back" title
-    What: cardHeader display:block, cardTitle display:none,
-          cardSubtitle → matches RN brandSub exactly.
-    Why:  RN has no "Welcome back" heading. Only brandSub is rendered.
-  */
+  /* ── Card header: subtitle only ─────────────────────────────────────────── */
   .cardHeader {
     display: block;
     margin-bottom: 20px;
   }
 
-  .cardHeaderRow {
-    display: block;
-  }
+  .cardHeaderRow { display: block; }
+  .cardTitle     { display: none; }
 
-  .cardTitle {
-    display: none;
-  }
-
-  /*
-    M-FONT-1 + FIX-A — cardSubtitle: DM Sans, weight 300, centered
-    ─────────────────────────────────────────────────────────────────────────
-    What:
-      font-family: var(--font-body) — DM Sans explicitly declared
-      font-weight: 300              — matches RN brandSub fontWeight:'300'
-      text-align: center            — matches RN brandSection alignItems:'center'
-    Why:
-      RN brandSub: fontSize:14, color:'rgba(255,255,255,0.45)', fontWeight:'300'.
-      Web inherited body font but explicit declaration prevents any cascade
-      override. FIX-A: was text-align:left, must be center to match RN.
-  */
   .cardSubtitle {
     font-family: var(--font-body);
     font-size: 14px;
@@ -1215,29 +1143,10 @@
     text-transform: none;
   }
 
-  /*
-    CHANGE G — formGroup spacing
-    What: padding-bottom:22px — anchors .errorText (position:absolute, bottom:1px).
-    Why:  Reserved space prevents error text from overlapping the next input.
-  */
-  .formGroup {
-    padding-bottom: 22px;
-  }
+  /* ── formGroup spacing ──────────────────────────────────────────────────── */
+  .formGroup { padding-bottom: 22px; }
 
-  /*
-    CHANGE B + WEB-M-5 + WEB-M-7 + WEB-M-9 — Input shell model
-    ─────────────────────────────────────────────────────────────────────────
-    What:
-      - border: 1px solid rgba(255,255,255,0.15)  → shell border
-      - border-radius: 12px
-      - height: 60px                               → matches RN inputWrap height
-      - padding-left: 44px                         → icon(14px) + icon-width(18px) + gap(12px)
-      - padding-right: 16px
-      - align-items: flex-end                      → WEB-M-7: anchors input text to bottom
-      - overflow: visible                          → WEB-M-9: lets floating label escape top edge
-      - position: relative
-      - display: flex
-  */
+  /* ── Input shell — mirrors RN inputWrap ─────────────────────────────────── */
   .inputContainer {
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 12px;
@@ -1246,60 +1155,33 @@
     padding-right: 16px;
     padding-top: 0;
     padding-bottom: 0;
-    /*
-      FIX-ALIGN-1 — align-items: flex-end → center
-      What: Changed from flex-end to center.
-      Why:  flex-end anchored the inputField to the bottom of the 60px shell.
-            The ::before icon uses top:50% = 30px (geometric center of shell).
-            The label at rest uses top:30px. With flex-end the input text cursor
-            sat near the bottom (~y:52px) while icon and label were at y:30px —
-            visibly misaligned in screenshots. center aligns all three at the
-            same vertical midpoint (30px), matching RN iconWrap which uses
-            alignSelf:'stretch', justifyContent:'center' (also centers at 30px).
-    */
     align-items: center;
-    background: rgba(255, 255, 255, 0.04);
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     overflow: visible;
     position: relative;
     display: flex;
   }
 
-  /* Suppress desktop bottom-underline sweep — shell carries the full border */
-  .inputContainer::after {
-    display: none;
-  }
+  /* Suppress desktop bottom-underline sweep */
+  .inputContainer::after { display: none; }
 
-  /* Error shell state — border only, no background fill */
+  /* Error shell state */
   .inputContainerError {
     border-color: rgba(248, 113, 113, 0.55) !important;
     background: rgba(248, 113, 113, 0.03) !important;
   }
+  .inputContainerError::after { display: none !important; }
 
-  .inputContainerError::after {
-    display: none !important;
+  /* Focus state — cyan border, RN inputWrapFocused */
+  .inputContainer:focus-within {
+    border-color: var(--accent-cyan) !important;
+    background: rgba(34, 211, 238, 0.04) !important;
   }
 
-  /*
-    WEB-M-1 + WEB-M-6 + WEB-M-10 + M-FONT-2 — inputField: transparent, borderless, DM Sans
-    ─────────────────────────────────────────────────────────────────────────────
-    What:
-      background: transparent        → shell provides the visual container
-      border: none                   → no inner border ring
-      border-radius: 0               → no inner rounded corners
-      outline: 0 !important          → kills browser-native focus ring
-      box-shadow: none !important    → kills any residual glow from desktop rules
-      padding: 0 0 8px 0             → bottom padding gives text breathing room
-      height: auto                   → don't stretch to fill shell height
-      align-self: flex-end           → text anchors to bottom of shell
-      font-family: var(--font-body)  → M-FONT-2: DM Sans locked in on mobile
-      font-size: 15px                → matches RN input fontSize:15
-      color: #ffffff
-
-    Why (WEB-M-1):
-      outline:0 (numeric zero) cannot be overridden by UA stylesheets.
-      Prevents Chromium/Brave on Android from rendering a blue rectangle
-      inside the email field shell.
-  */
+  /* ── inputField: transparent, borderless ───────────────────────────────── */
   .inputField {
     background: transparent !important;
     border: none !important;
@@ -1308,15 +1190,6 @@
     box-shadow: none !important;
     -webkit-appearance: none;
     appearance: none;
-    /*
-      FIX-ALIGN-2 — padding: 0 0 8px 0 → padding: 0 | align-self: flex-end removed
-      What: Removed bottom padding and align-self:flex-end override.
-      Why:  The 8px bottom padding was artificially shifting text downward,
-            misaligning it with the icon and resting label. With the container
-            now using align-items:center, align-self:flex-end would fight it.
-            Clean zero padding lets the browser center the input text naturally
-            within the shell, consistent with the icon at top:50% and label at top:30px.
-    */
     padding: 0 !important;
     margin: 0 !important;
     height: auto !important;
@@ -1327,15 +1200,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /*
-    CHANGE VI-FIX — Fully suppress placeholder on mobile (idle AND focused)
-    What:
-      .inputField::placeholder         { opacity: 0; transform: none; }
-      .inputField:focus::placeholder   { opacity: 0; transform: none; }
-    Why:
-      Desktop rule `.inputField:focus::placeholder` has higher specificity.
-      Explicitly overriding both variants prevents placeholder from appearing.
-  */
+  /* Suppress placeholder on mobile — floating label is used instead */
   .inputField::placeholder,
   .inputField:focus::placeholder {
     opacity: 0 !important;
@@ -1343,56 +1208,23 @@
     color: transparent !important;
   }
 
-  /* Suppress all inputField focus/hover visual states — shell handles these */
+  /* Suppress all inputField visual states — shell handles them */
   .inputField:focus,
-  .inputField:focus-visible {
+  .inputField:focus-visible,
+  .inputField:hover:not(:disabled):not(:focus),
+  .inputField.inputError,
+  .inputField.inputError:focus {
     border-color: transparent !important;
     background: transparent !important;
     box-shadow: none !important;
     outline: 0 !important;
   }
 
-  .inputField:hover:not(:disabled):not(:focus) {
-    border-color: transparent !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
+  .inputField:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  .inputField.inputError {
-    border-color: transparent !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
+  /* ── Hide PNG icons, inject SVG icons via ::before ─────────────────────── */
+  .inputIcon { display: none !important; }
 
-  .inputField.inputError:focus {
-    border-color: transparent !important;
-    box-shadow: none !important;
-    background: transparent !important;
-  }
-
-  .inputField:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  /*
-    CHANGE D — inputContainer focus state
-    What: :focus-within → border-color:var(--accent-cyan), rgba(34,211,238,0.04) bg.
-    Why:  RN inputWrapFocused: borderColor:COLORS.cyan, backgroundColor:rgba(34,211,238,0.04).
-  */
-  .inputContainer:focus-within {
-    border-color: var(--accent-cyan) !important;
-    background: rgba(34, 211, 238, 0.04) !important;
-  }
-
-  /*
-    FIX-B — Icon replacement: hide PNG asset, inject MaterialCommunityIcons SVG
-  */
-  .inputIcon {
-    display: none !important;
-  }
-
-  /* Shared base for both icon pseudo-elements */
   .inputContainer::before {
     content: '';
     position: absolute;
@@ -1408,32 +1240,29 @@
     transition: opacity 0.2s ease, filter 0.2s ease;
     z-index: 2;
     pointer-events: none;
-    flex-shrink: 0;
   }
 
-  /* Focused: icon turns cyan */
   .inputContainer:focus-within::before {
     opacity: 1;
     filter: invert(74%) sepia(85%) saturate(400%) hue-rotate(155deg) brightness(105%);
   }
 
-  /* Error state: icon turns red */
   .inputContainerError::before {
     filter: invert(65%) sepia(60%) saturate(600%) hue-rotate(310deg) brightness(110%);
     opacity: 0.85;
   }
 
-  /* Email icon: MaterialCommunityIcons "email-outline" */
+  /* Email icon */
   .formGroup:nth-of-type(1) .inputContainer::before {
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M22,6C22,4.89%2021.1,4%2020,4H4C2.89,4%202,4.89%202,6V18C2,19.1%202.89,20%204,20H20C21.1,20%2022,19.1%2022,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z'/%3E%3C/svg%3E");
   }
 
-  /* Lock icon: MaterialCommunityIcons "lock-outline" */
+  /* Lock icon */
   .formGroup:nth-of-type(2) .inputContainer::before {
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12,17C10.89,17%2010,16.1%2010,15C10,13.89%2010.89,13%2012,13C13.1,13%2014,13.89%2014,15C14,16.1%2013.1,17%2012,17M18,20V10H6V20H18M18,8C19.1,8%2020,8.89%2020,10V20C20,21.1%2019.1,22%2018,22H6C4.89,22%204,21.1%204,20V10C4,8.89%204.89,8%206,8H7V6A5,5%200%200,1%2012,1A5,5%200%200,1%2017,6V8H18M12,3A3,3%200%200,0%209,6V8H15V6A3,3%200%200,0%2012,3Z'/%3E%3C/svg%3E");
   }
 
-  /* Eye button: vertically centered in shell */
+  /* Eye button */
   .eyeButton {
     position: absolute;
     right: 10px;
@@ -1447,44 +1276,19 @@
     align-items: center;
   }
 
-  .eyeIcon {
-    width: 18px;
-    height: 18px;
-  }
+  .eyeIcon { width: 18px; height: 18px; }
 
-  /*
-    M-FONT-3 + M-LABEL-1 + CHANGE V + WEB-M-2 + WEB-M-3 — Floating label
-    ─────────────────────────────────────────────────────────────────────────
-    CHANGE M-LABEL-1 — top:36px
-      RN shell: paddingTop:18, paddingBottom:6, height:60.
-      Content zone = y:18→54 (36px). Midpoint = 18 + 18 = 36px.
-      top:30px was placing label at shell geometric center (wrong).
-      top:36px places label at the cursor's true vertical midpoint (correct).
-
-    M-FONT-3 — font-family: var(--font-body)
-      RN floatingLabel: fontWeight:'400', letterSpacing:0.1.
-      DM Sans is the web equivalent; explicit to prevent cascade override.
-  */
+  /* ── Floating label ─────────────────────────────────────────────────────── */
   .label {
     display: block;
     position: absolute;
-    /*
-      FIX-ALIGN-3 — top: 36px → top: 30px
-      What: Changed label resting top from 36px back to 30px.
-      Why:  Previous rationale for 36px was based on align-items:flex-end
-            (content zone midpoint = paddingTop:18 + 18 = 36px). Now that
-            align-items:center is used, the input text cursor sits at the
-            shell's geometric center = 60px / 2 = 30px. The resting label
-            must match the cursor position. Icon ::before is also at top:50%
-            = 30px. All three now share the same vertical axis.
-    */
-    top: 30px;
+    top: 22px;                    /* RN: top:'50%'(=30px) + marginTop:-8 = 22px */
     left: 44px;
     transform: translateY(-50%);
     font-family: var(--font-body);
     font-size: 15px;
     font-weight: 400;
-    letter-spacing: 0.1px;
+    letter-spacing: 0.1px;        /* RN: letterSpacing: 0.1 — NOT em-based */
     text-transform: none;
     color: rgba(255, 255, 255, 0.35);
     pointer-events: none;
@@ -1498,66 +1302,52 @@
       font-size 0.18s ease,
       color 0.18s ease,
       background 0.18s ease,
-      letter-spacing 0.18s ease,
-      text-transform 0s;
+      letter-spacing 0.18s ease;
   }
 
-  /*
-    FIX-ALIGN-4 — floated translateY: calc(-50% - 36px) → calc(-50% - 30px)
-    What: Recalculated against new top:30px baseline.
-    Why:  Label center starts at top:30px + translateY(-50%) = 30px.
-          To move center to 0px (shell top border): subtract 30px.
-          translateY(calc(-50% - 30px)) → label center lands at 0px ✓
-  */
+  /* Focused: label floats above border line — matches RN translateY:-28 from y:22 */
   .formGroup:focus-within .label {
-    transform: translateY(calc(-50% - 30px));
+    transform: translateY(calc(-50% - 22px));  /* lands at ~0px: right at/above border */
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 400;               /* RN floatingLabel: fontWeight:'400' */
     color: var(--accent-cyan);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1px;         /* RN: letterSpacing: 0.1 */
     text-transform: none;
     background: var(--bg-deep);
     padding: 0 4px;
   }
 
-  /*
-    Filled but unfocused: label stays on border line, dimmer color.
-    Matches RN: when value is set, floatAnim stays at 1 on blur.
-  */
+  /* Filled but unfocused: stays floated, dimmer */
   .formGroup:has(.inputField:not(:placeholder-shown)) .label {
-    transform: translateY(calc(-50% - 30px));
+    transform: translateY(calc(-50% - 22px));
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 400;
     color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1px;
     text-transform: none;
     background: var(--bg-deep);
     padding: 0 4px;
   }
 
-  /* Error state: label turns error color */
-  .formGroup:has(.inputError) .label {
-    color: var(--error);
-  }
+  /* Error: label turns error colour */
+  .formGroup:has(.inputError) .label { color: var(--error); }
 
-  /* ── CHANGE E: Hide rememberLabel ────────────────────────────────────────── */
-  .rememberLabel {
-    display: none;
-  }
+  /* ── Hide remember me checkbox ──────────────────────────────────────────── */
+  .rememberLabel { display: none; }
 
   .rememberRow {
     justify-content: flex-end;
     margin-bottom: 24px;
   }
 
-  /* ── CHANGE 5: Forgot password ───────────────────────────────────────────── */
+  /* ── Forgot password ────────────────────────────────────────────────────── */
   .forgotLink {
     color: rgba(255, 255, 255, 0.55);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
-  /* ── CHANGE 4: Error alert ───────────────────────────────────────────────── */
+  /* ── Error alert ────────────────────────────────────────────────────────── */
   .errorAlert {
     border: 1px solid rgba(248, 113, 113, 0.35);
     border-radius: 12px;
@@ -1566,33 +1356,12 @@
     padding: 14px;
     margin-bottom: 16px;
   }
+  .errorAlert::before { display: none; }
 
-  .errorAlert::before {
-    display: none;
-  }
+  /* ── Error text offset ──────────────────────────────────────────────────── */
+  .errorText { padding-left: 4px; }
 
-  /* ── CHANGE F: errorText left offset ─────────────────────────────────────── */
-  .errorText {
-    padding-left: 4px;
-  }
-
-  /*
-    CHANGE 3 + M-FONT-4 — Submit button: white background, Syne font, no-uppercase
-    ─────────────────────────────────────────────────────────────────────────
-    What:
-      background: #ffffff              → RN: backgroundColor: '#ffffff'
-      color: #07080f                   → RN: btnSignInText color: '#07080f'
-      border-radius: 12px              → RN: borderRadius: 12
-      height: 56px                     → RN: height: 56
-      font-family: var(--font-display) → RN: fontFamily: 'Syne_700Bold'
-      font-size: 15px                  → RN: fontSize: 15
-      font-weight: 700                 → RN: fontWeight: '700'
-      letter-spacing: 0.3px            → RN: letterSpacing: 0.3
-      text-transform: none             → M-FONT-4: prevent any upstream cascade
-                                         from reinstating uppercase on Syne
-
-    Why: The RN Sign In button is a solid white button with dark text in Syne Bold.
-  */
+  /* ── Submit button: white bg, Syne font — mirrors RN btnSignIn ──────────── */
   .submitButton {
     background: #ffffff !important;
     color: #07080f !important;
@@ -1608,41 +1377,19 @@
     margin-top: 0;
   }
 
-  .submitButton:hover:not(:disabled) {
-    transform: none;
-    box-shadow: none;
-    opacity: 0.88;
-  }
+  .submitButton:hover:not(:disabled) { transform: none; box-shadow: none; opacity: 0.88; }
+  .submitButton:disabled             { opacity: 0.6; }
 
-  .submitButton:disabled {
-    opacity: 0.6;
-  }
-
-  /* Spinner stays visible on white button background */
   .buttonSpinner {
     border-color: rgba(7, 8, 15, 0.25);
     border-top-color: #07080f;
   }
 
-  /*
-    CHANGE 6 + M-FONT-5 — Register footer: flex row, Syne on link
-    ─────────────────────────────────────────────────────────────────────────
-    What:
-      .linksSection → flex row, justify-content:center, no border-top.
-      .registerPrompt → fontSize:14, color:rgba(255,255,255,0.4), DM Sans
-      .registerLink   → fontSize:14, color:#ffffff, fontWeight:700, Syne (M-FONT-5)
-
-    Why:
-      RN registerRow is a flex row with registerPrompt + registerLink side by side.
-      RN registerLink: fontFamily:'Syne_700Bold', fontSize:14, fontWeight:'700'.
-      M-FONT-5: Syne must be explicitly set — web inherited var(--accent-cyan)
-      color but font-family was not declared, falling back to DM Sans on mobile.
-  */
+  /* ── Register footer: flex row, Syne on link ───────────────────────────── */
   .linksSection {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0;
     text-align: left;
     margin-top: 20px;
     padding-top: 0;
@@ -1656,17 +1403,14 @@
   }
 
   .registerLink {
-    font-family: var(--font-display) !important;  /* M-FONT-5: Syne = RN Syne_700Bold */
+    font-family: var(--font-display) !important;
     font-size: 14px;
     font-weight: 700;
     color: #ffffff;
     text-decoration: none;
   }
 
-  .registerLink:hover {
-    opacity: 1;
-    text-decoration: none;
-  }
+  .registerLink:hover { opacity: 1; text-decoration: none; }
 }
 
 /* ── Narrow mobile (≤480px) ───────────────────────────────────────────────── */
@@ -1683,33 +1427,20 @@
     border-radius: 14px;
   }
 
-  /*
-    16px minimum on mobile inputs prevents iOS auto-zoom on focus.
-    NOTE: This overrides the 15px set in the ≤768px block.
-    On very narrow viewports this is intentional — zoom prevention takes
-    priority over pixel-perfect RN parity.
-  */
+  /* 16px minimum prevents iOS auto-zoom on input focus */
   .inputField { font-size: 16px !important; }
 
   .heroTitle   { font-size: 24px; }
   .heroAccent  { font-size: 30px; }
   .heroSubtext { font-size: 13px; }
 
-  /* Collapse hero actions to a single column on very narrow viewports */
-  .heroActions {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .heroActions { flex-direction: column; align-items: stretch; }
 
   .heroBtnPrimary,
-  .heroBtnOutline {
-    text-align: center;
-    justify-content: center;
-  }
+  .heroBtnOutline { text-align: center; justify-content: center; }
 
-  /* Tighten toast padding on very narrow screens */
-  .toast { padding: 24px 20px 20px; border-radius: 14px; }
-  .toastTitle { font-size: 16px; }
+  .toast        { padding: 24px 20px 20px; border-radius: 14px; }
+  .toastTitle   { font-size: 16px; }
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────────── */
