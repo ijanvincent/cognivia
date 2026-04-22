@@ -1282,7 +1282,7 @@
   .label {
     display: block;
     position: absolute;
-    top: 22px;                    /* RN: top:'50%'(=30px) + marginTop:-8 = 22px */
+    top: 30px;                    /* FIX: was 22px — shell is 60px, icon sits at top:50%=30px, label now shares same midpoint */
     left: 44px;
     transform: translateY(-50%);
     font-family: var(--font-body);
@@ -1305,9 +1305,9 @@
       letter-spacing 0.18s ease;
   }
 
-  /* Focused: label floats above border line — matches RN translateY:-28 from y:22 */
+  /* Focused: label floats above border line */
   .formGroup:focus-within .label {
-    transform: translateY(calc(-50% - 22px));  /* lands at ~0px: right at/above border */
+    transform: translateY(calc(-50% - 30px));  /* 30px = half of 60px shell height, floats label above top border */
     font-size: 11px;
     font-weight: 400;               /* RN floatingLabel: fontWeight:'400' */
     color: var(--accent-cyan);
@@ -1319,7 +1319,7 @@
 
   /* Filled but unfocused: stays floated, dimmer */
   .formGroup:has(.inputField:not(:placeholder-shown)) .label {
-    transform: translateY(calc(-50% - 22px));
+    transform: translateY(calc(-50% - 30px));
     font-size: 11px;
     font-weight: 400;
     color: rgba(255, 255, 255, 0.55);
