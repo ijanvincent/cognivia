@@ -63,11 +63,11 @@ function UserRegister() {
     const newErrors = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = 'Profile name is required';
     } else if (formData.username.trim().length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      newErrors.username = 'Profile name must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_ ]+$/.test(formData.username.trim())) {
+      newErrors.username = 'Profile name can only contain letters, numbers, underscores, and spaces';
     }
 
     if (!formData.email.trim()) {
@@ -103,7 +103,6 @@ function UserRegister() {
     const hasFieldErrors = Object.keys(newErrors).length > 0;
     const hasConsentError = !consentChecked;
 
-    // Mark consent touched regardless
     setConsentTouched(true);
 
     if (hasFieldErrors || hasConsentError) {
@@ -257,7 +256,10 @@ function UserRegister() {
                 </div>
               )}
 
-              {/* USERNAME */}
+              {/* PROFILE NAME
+                  Internal field key = 'username' (DB column, API key — unchanged).
+                  Display label = 'Profile Name' (UX layer only).
+                  Spaces are now permitted: regex updated to /^[a-zA-Z0-9_ ]+$/ */}
               <div className={styles.formGroup}>
                 <label htmlFor="username" className={styles.label}>Profile Name</label>
                 <div className={`${styles.inputContainer} ${shakingFields.username ? styles.inputShake : ''}`}>
@@ -270,9 +272,9 @@ function UserRegister() {
                     onChange={handleChange}
                     onFocus={() => setShowStrengthMeter(false)}
                     className={`${styles.inputField} ${errors.username ? styles.inputError : ''}`}
-                    placeholder="Profile Name"
+                    placeholder="Profile Name (e.g. Jan)"
                     disabled={loading}
-                    autoComplete="username"
+                    autoComplete="name"
                     autoFocus
                     aria-invalid={!!errors.username}
                     aria-describedby={errors.username ? 'username-error' : undefined}
@@ -298,7 +300,7 @@ function UserRegister() {
                     onChange={handleChange}
                     onFocus={() => setShowStrengthMeter(false)}
                     className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
-                    placeholder="Email Address"
+                    placeholder="you@gmail.com"
                     disabled={loading}
                     autoComplete="email"
                     aria-invalid={!!errors.email}
