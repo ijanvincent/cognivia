@@ -174,7 +174,7 @@ function ResetPassword() {
                       ? 'Redirecting you to login...'
                       : !tokenValid
                       ? 'This reset link is invalid or missing'
-                      : 'Must be at least 8 characters with uppercase, lowercase & number'}
+                      : 'Reset CogniVia Password'}
                   </p>
                 </div>
               </div>
