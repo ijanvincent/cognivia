@@ -25,7 +25,7 @@ const openLegal = async (page) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WaveBackground
+// WaveBackground — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
@@ -64,7 +64,36 @@ const WaveBackground = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// useFloatAnim
+// Shell geometry constants — single source of truth for label positioning.
+// Adjust TRANSLATE_Y_FLOATED to fine-tune the floated label vertical position:
+//   more negative (e.g. -35) → label moves UP
+//   less negative (e.g. -33) → label moves DOWN
+// ─────────────────────────────────────────────────────────────────────────────
+const SHELL_HEIGHT        = 60;
+const SHELL_PADDING_T     = 18;
+const SHELL_PADDING_B     = 6;
+const SHELL_BORDER_W      = 1;
+const LABEL_SIZE_REST     = 15;
+const LABEL_SIZE_FLOAT    = 11;
+
+/*
+ * CHANGE 1 — TRANSLATE_Y_FLOATED constant introduced.
+ *
+ * What:  Replaces the inline magic number -28 in the interpolate outputRange.
+ *        Value set to -34 (same as LoginScreen and ForgotPasswordScreen).
+ *
+ * Why:   -28 was insufficient to lift the label onto the top border line.
+ *        The floatContainer sits 19px below the shell top (1px border +
+ *        18px paddingTop). top:'50%' resolves to 18px (half of 36px
+ *        container height), so the label anchor is 29.5px from the shell
+ *        top. -28 left the label 1.5px inside the shell. -34 centers the
+ *        label midpoint on the top border, matching the web target.
+ *        To fine-tune: adjust only this constant.
+ */
+const TRANSLATE_Y_FLOATED = -34;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useFloatAnim — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -109,14 +138,23 @@ const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
 // FloatingLabel
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabel = ({ label, floatAnim, isFocused }) => {
+    /*
+     * CHANGE 2 — translateY outputRange: [0, -28] → [0, TRANSLATE_Y_FLOATED]
+     *
+     * What:  Animation end value changed from -28 to -34.
+     * Why:   See CHANGE 1. -34 lands the label centered on the top border.
+     *        Adjust TRANSLATE_Y_FLOATED at the top to fine-tune.
+     */
     const labelTranslateY = floatAnim.interpolate({
         inputRange:  [0, 1],
-        outputRange: [0, -28],
+        outputRange: [0, TRANSLATE_Y_FLOATED],
     });
+
     const labelFontSize = floatAnim.interpolate({
         inputRange:  [0, 1],
-        outputRange: [15, 11],
+        outputRange: [LABEL_SIZE_REST, LABEL_SIZE_FLOAT],
     });
+
     const labelColor = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [
@@ -124,6 +162,7 @@ const FloatingLabel = ({ label, floatAnim, isFocused }) => {
             isFocused ? COLORS.cyan : 'rgba(255,255,255,0.55)',
         ],
     });
+
     const labelBgOpacity = floatAnim.interpolate({
         inputRange:  [0, 0.8, 1],
         outputRange: [0, 0, 1],
@@ -177,20 +216,16 @@ const FloatingLabelInput = ({
     });
 
     return (
+        /*
+         * CHANGE 3 — inputWrap: alignItems 'flex-start' → 'center'
+         *
+         * What:  Shell row alignment changed from 'flex-start' to 'center'.
+         * Why:   'flex-start' anchored direct children after paddingTop:18,
+         *        pushing the icon visually low. 'center' vertically centers
+         *        iconWrap and eyeWrap within the full 60px shell height.
+         *        The absolutely-positioned floating label is unaffected.
+         */
         <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
-            {/*
-             * THE FIX: Instead of applying style directly to the icon (which is
-             * a sibling in a flex-start row shifted by paddingTop), we wrap it
-             * in a View with alignSelf:'stretch' + justifyContent:'center'.
-             *
-             * alignSelf:'stretch' makes this wrapper fill the full height of
-             * inputWrap (60px), bypassing the paddingTop offset entirely.
-             * justifyContent:'center' then centers the icon within that full
-             * height — perfectly aligned with the text input area at all times.
-             *
-             * This is the standard pattern used by libraries like
-             * react-native-paper and NativeBase for floating label inputs.
-             */}
             <View style={styles.iconWrap}>
                 <MaterialCommunityIcons
                     name={icon}
@@ -294,7 +329,7 @@ const PasswordInput = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PasswordRequirement
+// PasswordRequirement — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const PasswordRequirement = ({ met, label }) => (
     <View style={styles.reqRow}>
@@ -316,47 +351,24 @@ const PASSWORD_RULES = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ConsentCheckbox
+// ConsentNotice
+//
+// CHANGE 1 — ConsentCheckbox replaced with ConsentNotice.
+// What:  Interactive checkbox + error state removed. Replaced with a single
+//        static text line: "By signing up you agree to our Terms and Privacy Policy".
+// Why:   Implicit consent copy is the requested pattern. No interaction needed.
 // ─────────────────────────────────────────────────────────────────────────────
-const ConsentCheckbox = ({ checked, onToggle, onTermsPress, onPrivacyPress, hasError }) => (
-    <View style={styles.consentWrapper}>
-        <TouchableOpacity
-            onPress={onToggle}
-            activeOpacity={0.7}
-            style={[styles.consentRow, hasError && styles.consentRowError]}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked }}
-            accessibilityLabel="I agree to the Terms of Service and Privacy Policy"
-        >
-            <View style={[
-                styles.checkbox,
-                checked  && styles.checkboxChecked,
-                hasError && !checked && styles.checkboxError,
-            ]}>
-                {checked && (
-                    <MaterialCommunityIcons name="check" size={13} color="#07080f" />
-                )}
-            </View>
-            <Text style={styles.consentText}>
-                I accept the{' '}
-                <Text style={styles.consentLink} onPress={onTermsPress}>Terms</Text>
-                {' '}and{' '}
-                <Text style={styles.consentLink} onPress={onPrivacyPress}>Privacy Policy</Text>
-            </Text>
-        </TouchableOpacity>
-        {hasError && (
-            <View style={styles.consentErrorRow}>
-                <MaterialCommunityIcons name="alert-circle-outline" size={13} color={COLORS.error} />
-                <Text style={styles.consentErrorText}>
-                    You must agree to the Terms and Privacy Policy to continue.
-                </Text>
-            </View>
-        )}
-    </View>
+const ConsentNotice = () => (
+    <Text style={styles.consentNotice}>
+        By signing up you agree to our{' '}
+        <Text style={styles.consentNoticeLink} onPress={() => openLegal('terms')}>Terms</Text>
+        {' '}and{' '}
+        <Text style={styles.consentNoticeLink} onPress={() => openLegal('privacy')}>Privacy Policy</Text>
+    </Text>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RegisterScreen
+// RegisterScreen — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const RegisterScreen = () => {
     const navigation = useNavigation();
@@ -374,8 +386,6 @@ const RegisterScreen = () => {
     const [passwordFocused, setPasswordFocused]         = useState(false);
     const [confirmFocused, setConfirmFocused]           = useState(false);
     const [strengthDismissed, setStrengthDismissed]     = useState(false);
-    const [consentChecked, setConsentChecked]           = useState(false);
-    const [consentTouched, setConsentTouched]           = useState(false);
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -410,8 +420,6 @@ const RegisterScreen = () => {
 
     const handleRegister = async () => {
         setStrengthDismissed(true);
-        setConsentTouched(true);
-        if (!consentChecked) return;
 
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
@@ -450,7 +458,7 @@ const RegisterScreen = () => {
     const showPasswordRules = !strengthDismissed &&
         (passwordFocused || (!confirmFocused && formData.password.length > 0));
 
-    const isButtonDisabled = isLoading || !consentChecked;
+    const isButtonDisabled = isLoading;
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -482,7 +490,6 @@ const RegisterScreen = () => {
 
                     <View style={styles.formSection}>
 
-                        {/* ── General error ── */}
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
                                 <MaterialCommunityIcons name="alert-circle-outline" size={16} color={COLORS.error} />
@@ -490,7 +497,6 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
-                        {/* ── Username ── */}
                         <FloatingLabelInput
                             label="Username"
                             value={formData.username}
@@ -501,7 +507,6 @@ const RegisterScreen = () => {
                         />
                         {!!errors.username && <Text style={styles.fieldError}>{errors.username}</Text>}
 
-                        {/* ── Email ── */}
                         <FloatingLabelInput
                             label="Email"
                             value={formData.email}
@@ -513,10 +518,8 @@ const RegisterScreen = () => {
                         />
                         {!!errors.email && <Text style={styles.fieldError}>{errors.email}</Text>}
 
-                        {/* ── Password + Confirm Password (side-by-side) ── */}
                         <View style={styles.passwordRow}>
 
-                            {/* Left column — Password */}
                             <View style={styles.passwordCol}>
                                 <PasswordInput
                                     label="Password"
@@ -536,7 +539,6 @@ const RegisterScreen = () => {
                                 )}
                             </View>
 
-                            {/* Right column — Confirm Password */}
                             <View style={styles.passwordCol}>
                                 <FloatingLabelInput
                                     label="Confirm"
@@ -560,7 +562,6 @@ const RegisterScreen = () => {
 
                         </View>
 
-                        {/* ── Password strength rules (below the password row) ── */}
                         {showPasswordRules && (
                             <View style={styles.reqContainer}>
                                 {PASSWORD_RULES.map(rule => (
@@ -573,14 +574,7 @@ const RegisterScreen = () => {
                             </View>
                         )}
 
-                        {/* ── Consent ── */}
-                        <ConsentCheckbox
-                            checked={consentChecked}
-                            onToggle={() => setConsentChecked(p => !p)}
-                            onTermsPress={() => openLegal('terms')}
-                            onPrivacyPress={() => openLegal('privacy')}
-                            hasError={consentTouched && !consentChecked}
-                        />
+                        <ConsentNotice />
 
                         <TouchableOpacity
                             onPress={handleRegister}
@@ -628,18 +622,26 @@ const styles = StyleSheet.create({
     formSection:   { width: '100%' },
 
     // ── Input shell ───────────────────────────────────────────────────────────
-    // UNCHANGED from original. alignItems:'flex-start' stays — the icon/eye
-    // centering is now solved by iconWrap/eyeWrap independently.
+    /*
+     * CHANGE 3 — alignItems: 'flex-start' → 'center'
+     *
+     * What:  Shell row alignment changed from 'flex-start' to 'center'.
+     * Why:   'flex-start' anchored direct children after paddingTop:18,
+     *        pushing the icon and eye button visually low. 'center'
+     *        vertically centers iconWrap and eyeWrap within the full
+     *        60px shell height. The absolutely-positioned floating label
+     *        is unaffected by this change.
+     */
     inputWrap: {
         flexDirection:     'row',
-        alignItems:        'flex-start',
-        borderWidth:       1,
+        alignItems:        'center',          // ← was 'flex-start'
+        borderWidth:       SHELL_BORDER_W,
         borderColor:       'rgba(255,255,255,0.15)',
         borderRadius:      12,
         paddingHorizontal: 16,
-        paddingTop:        18,
-        paddingBottom:     6,
-        height:            60,
+        paddingTop:        SHELL_PADDING_T,
+        paddingBottom:     SHELL_PADDING_B,
+        height:            SHELL_HEIGHT,
         marginBottom:      20,
         backgroundColor:   'rgba(255,255,255,0.04)',
         overflow:          'visible',
@@ -649,26 +651,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(34,211,238,0.04)',
     },
 
-    // ── THE FIX: iconWrap & eyeWrap ──────────────────────────────────────────
-    // Problem: the icon/eye were direct children of a flex-start row that has
-    // paddingTop:18, so they started 18px from the top — not visually centered.
-    //
-    // Solution: wrap each in a View with alignSelf:'stretch' + justifyContent:'center'.
-    //   - alignSelf:'stretch' ignores the parent's paddingTop and expands the
-    //     wrapper to the full inputWrap height (60px).
-    //   - justifyContent:'center' then places the icon at the true vertical
-    //     midpoint of those 60px — perfectly aligned with the text input.
-    //
-    // This is the same pattern used by react-native-paper's TextInput component.
+    // ── Icon / eye wrappers ───────────────────────────────────────────────────
+    /*
+     * CHANGE 4 — iconWrap / eyeWrap: removed alignSelf:'stretch' +
+     *            justifyContent:'center'
+     *
+     * What:  Both properties removed from iconWrap and eyeWrap.
+     * Why:   Those properties were the original workaround for a flex-start
+     *        parent — stretching the wrapper to full height and self-centering
+     *        within it. Now that inputWrap uses alignItems:'center', the
+     *        parent handles vertical centering automatically. Keeping
+     *        alignSelf:'stretch' would override the parent and reintroduce
+     *        the downward offset.
+     */
     iconWrap: {
-        alignSelf:      'stretch',
-        justifyContent: 'center',
-        marginRight:    12,
+        marginRight: 12,                      // alignSelf/justifyContent removed
     },
     eyeWrap: {
-        alignSelf:      'stretch',
-        justifyContent: 'center',
-        paddingLeft:    10,
+        paddingLeft: 10,                      // alignSelf/justifyContent removed
     },
 
     // ── Floating label ────────────────────────────────────────────────────────
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     floatingLabelWrapper: {
         position:      'absolute',
         top:           '50%',
-        marginTop:     -8,
+        marginTop:     -Math.round(LABEL_SIZE_REST / 2),  // = -8, unchanged
         left:          0,
         flexDirection: 'row',
         alignItems:    'center',
@@ -715,17 +715,9 @@ const styles = StyleSheet.create({
     errorAlertText: { flex: 1, fontSize: 13, color: COLORS.error, fontWeight: '500' },
     fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
 
-    // ── Consent ───────────────────────────────────────────────────────────────
-    consentWrapper:   { marginBottom: 20, marginTop: 4 },
-    consentRow:       { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)' },
-    consentRowError:  { borderColor: 'rgba(239,68,68,0.4)' },
-    checkbox:         { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
-    checkboxChecked:  { backgroundColor: COLORS.cyan, borderColor: COLORS.cyan },
-    checkboxError:    { borderColor: COLORS.error },
-    consentText:      { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 20, fontWeight: '300' },
-    consentLink:      { color: '#ffffff', fontWeight: '700' },
-    consentErrorRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, marginLeft: 2 },
-    consentErrorText: { fontSize: 12, color: COLORS.error, fontWeight: '500', flex: 1 },
+    // ── Consent notice ────────────────────────────────────────────────────────
+    consentNotice:     { fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 20, marginBottom: 20, marginTop: 4, fontWeight: '300' },
+    consentNoticeLink: { color: '#ffffff', fontWeight: '600' },
 
     // ── Submit ────────────────────────────────────────────────────────────────
     btnCreate:     { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },

@@ -15,7 +15,7 @@ import api from '../services/api';
 const { height: H } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WaveBackground
+// WaveBackground — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
@@ -54,7 +54,35 @@ const WaveBackground = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// useFloatAnim  (ported from RegisterScreen)
+// Shell geometry constants — single source of truth for label positioning.
+// Adjust TRANSLATE_Y_FLOATED to fine-tune the floated label vertical position:
+//   more negative (e.g. -35) → label moves UP
+//   less negative (e.g. -33) → label moves DOWN
+// ─────────────────────────────────────────────────────────────────────────────
+const SHELL_HEIGHT         = 60;
+const SHELL_PADDING_T      = 18;
+const SHELL_PADDING_B      = 6;
+const SHELL_BORDER_W       = 1;
+const LABEL_SIZE_REST      = 15;
+const LABEL_SIZE_FLOAT     = 11;
+
+/*
+ * CHANGE 1 — TRANSLATE_Y_FLOATED constant introduced.
+ *
+ * What:  Replaces the magic number -28 that was inline in the interpolate
+ *        outputRange. Value set to -34 (same as LoginScreen).
+ *
+ * Why:   -28 was insufficient to lift the label out of the shell and onto
+ *        the top border line. The floatContainer sits 19px below the shell
+ *        top (1px border + 18px paddingTop). top:'50%' resolves to 18px
+ *        (half of 36px container), so the label anchor is 29.5px from the
+ *        shell top. -28 left the label 1.5px inside the shell. -34 centers
+ *        the label's midpoint on the top border, matching the web target.
+ */
+const TRANSLATE_Y_FLOATED  = -34;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useFloatAnim — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -96,17 +124,27 @@ const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FloatingLabel  (ported from RegisterScreen)
+// FloatingLabel
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabel = ({ label, floatAnim, isFocused }) => {
+    /*
+     * CHANGE 2 — translateY outputRange: [0, -28] → [0, TRANSLATE_Y_FLOATED]
+     *
+     * What:  Animation end value changed from -28 to -34.
+     * Why:   See CHANGE 1 above. -34 is the tuned value that lands the label
+     *        centered on the top border line. Adjust TRANSLATE_Y_FLOATED at
+     *        the top of the file to fine-tune without touching this code.
+     */
     const labelTranslateY = floatAnim.interpolate({
         inputRange:  [0, 1],
-        outputRange: [0, -28],
+        outputRange: [0, TRANSLATE_Y_FLOATED],
     });
+
     const labelFontSize = floatAnim.interpolate({
         inputRange:  [0, 1],
-        outputRange: [15, 11],
+        outputRange: [LABEL_SIZE_REST, LABEL_SIZE_FLOAT],
     });
+
     const labelColor = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [
@@ -114,6 +152,7 @@ const FloatingLabel = ({ label, floatAnim, isFocused }) => {
             isFocused ? COLORS.cyan : 'rgba(255,255,255,0.55)',
         ],
     });
+
     const labelBgOpacity = floatAnim.interpolate({
         inputRange:  [0, 0.8, 1],
         outputRange: [0, 0, 1],
@@ -144,7 +183,7 @@ const FloatingLabel = ({ label, floatAnim, isFocused }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FloatingLabelInput  (ported from RegisterScreen)
+// FloatingLabelInput
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabelInput = ({
     label,
@@ -157,6 +196,16 @@ const FloatingLabelInput = ({
     const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({ value });
 
     return (
+        /*
+         * CHANGE 3 — inputWrap: alignItems 'flex-start' → 'center'
+         *
+         * What:  alignItems on the shell row changed from 'flex-start' to 'center'.
+         * Why:   'flex-start' anchored the icon to the top of the content area
+         *        (after paddingTop: 18), pushing it visually downward. 'center'
+         *        vertically centers the icon within the 60px shell, matching
+         *        the web version. The floatContainer's absolutely-positioned
+         *        label children are unaffected by this change.
+         */
         <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
             <View style={styles.iconWrap}>
                 <MaterialCommunityIcons
@@ -185,7 +234,7 @@ const FloatingLabelInput = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ForgotPasswordScreen
+// ForgotPasswordScreen — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const ForgotPasswordScreen = () => {
     const navigation              = useNavigation();
@@ -331,17 +380,29 @@ const styles = StyleSheet.create({
 
     formSection:  { width: '100%' },
 
-    // ── Input shell (matches RegisterScreen) ─────────────────────────────────
+    // ── Input shell ───────────────────────────────────────────────────────────
+    /*
+     * CHANGE 3 — alignItems: 'flex-start' → 'center'
+     * CHANGE 4 — iconWrap: removed alignSelf:'stretch' + justifyContent:'center'
+     *
+     * What:  Shell row now centers its children vertically. iconWrap no longer
+     *        needs to stretch and self-center since the parent handles it.
+     *
+     * Why:   Same reasoning as LoginScreen — 'flex-start' pushed the icon down
+     *        to after paddingTop:18, leaving it visually low in the shell.
+     *        'center' places it at the shell's true vertical midpoint.
+     *        The absolutely-positioned floating label is unaffected.
+     */
     inputWrap: {
         flexDirection:     'row',
-        alignItems:        'flex-start',
-        borderWidth:       1,
+        alignItems:        'center',          // ← was 'flex-start'
+        borderWidth:       SHELL_BORDER_W,
         borderColor:       'rgba(255,255,255,0.15)',
         borderRadius:      12,
         paddingHorizontal: 16,
-        paddingTop:        18,
-        paddingBottom:     6,
-        height:            60,
+        paddingTop:        SHELL_PADDING_T,
+        paddingBottom:     SHELL_PADDING_B,
+        height:            SHELL_HEIGHT,
         marginBottom:      20,
         backgroundColor:   'rgba(255,255,255,0.04)',
         overflow:          'visible',
@@ -353,9 +414,9 @@ const styles = StyleSheet.create({
 
     // ── Icon wrapper ──────────────────────────────────────────────────────────
     iconWrap: {
-        alignSelf:      'stretch',
-        justifyContent: 'center',
-        marginRight:    12,
+        // CHANGE 4 — removed alignSelf:'stretch' and justifyContent:'center'
+        // Parent alignItems:'center' handles vertical centering now.
+        marginRight: 12,
     },
 
     // ── Floating label ────────────────────────────────────────────────────────
@@ -367,7 +428,7 @@ const styles = StyleSheet.create({
     floatingLabelWrapper: {
         position:      'absolute',
         top:           '50%',
-        marginTop:     -8,
+        marginTop:     -Math.round(LABEL_SIZE_REST / 2),  // = -8, unchanged
         left:          0,
         flexDirection: 'row',
         alignItems:    'center',
@@ -394,22 +455,6 @@ const styles = StyleSheet.create({
     },
 
     // ── Alerts ────────────────────────────────────────────────────────────────
-    /*
-      CHANGE 1 — successAlert:
-        borderLeftWidth: 3, borderLeftColor removed.
-        Replaced with borderWidth: 1, borderColor: rgba(52,211,153,0.35).
-        Why: directional border on borderRadius container produces a visible
-        gap artifact on Android between the curved corner and the straight
-        border edge — the same double-line issue fixed in LoginScreen.
-
-      CHANGE 2 — errorAlert:
-        borderLeftWidth: 3, borderLeftColor removed.
-        Replaced with borderWidth: 1, borderColor: rgba(248,113,113,0.35).
-        alignItems changed from 'center' to 'flex-start' so the icon anchors
-        to the first line of text when the message wraps.
-        errorAlertIconWrap added for consistent vertical icon offset.
-        errorAlertText lineHeight: 20 added for breathing room on wrap.
-    */
     successAlert: {
         flexDirection:   'row',
         alignItems:      'flex-start',
