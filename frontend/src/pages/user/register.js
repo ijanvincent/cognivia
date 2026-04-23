@@ -2,12 +2,24 @@ import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import api from './../../services/api.js';
 import styles from './register.module.css';
-import emailIcon from './../../assets/email.png';
-import lockIcon from './../../assets/lock.png';
-import eyeIcon from './../../assets/eye.png';
-import hideIcon from './../../assets/hide.png';
-import userIcon from './../../assets/user.png';
-import confirmPassIcon from './../../assets/confirm-pass.png';
+/*
+ * CHANGE R-1 — Removed: import emailIcon from './../../assets/email.png'
+ * CHANGE R-2 — Removed: import lockIcon  from './../../assets/lock.png'
+ * CHANGE R-3 — Removed: import userIcon  from './../../assets/user.png'
+ * CHANGE R-4 — Removed: import confirmPassIcon from './../../assets/confirm-pass.png'
+ *
+ * What:  All four PNG asset imports for input field icons deleted.
+ * Why:   Mirrors the identical refactor already applied in login.jsx (CHANGE 1a/1b).
+ *        Inline SVG inherits `color: currentColor` from .inputIcon, enabling clean
+ *        focus (cyan) and error (red) colour transitions via CSS alone — no
+ *        filter: invert() / hue-rotate() approximations needed.
+ *        The PNG files themselves are untouched and remain on disk.
+ *
+ * Retained: eyeIcon and hideIcon imports — still used by password toggle <img> buttons,
+ *           exactly as login.jsx retains them.
+ */
+import eyeIcon   from './../../assets/eye.png';
+import hideIcon  from './../../assets/hide.png';
 
 
 const PASSWORD_RULES = [
@@ -256,14 +268,33 @@ function UserRegister() {
                 </div>
               )}
 
-              {/* PROFILE NAME
-                  Internal field key = 'username' (DB column, API key — unchanged).
-                  Display label = 'Profile Name' (UX layer only).
-                  Spaces are now permitted: regex updated to /^[a-zA-Z0-9_ ]+$/ */}
+              {/* PROFILE NAME */}
               <div className={styles.formGroup}>
                 <label htmlFor="username" className={styles.label}>Profile Name</label>
                 <div className={`${styles.inputContainer} ${shakingFields.username ? styles.inputShake : ''}`}>
-                  <img src={userIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
+                  {/*
+                   * CHANGE R-3 — User icon: <img src={userIcon}> → inline <svg>
+                   *
+                   * What:  PNG <img> replaced with an inline SVG using the
+                   *        MaterialCommunityIcons `account-outline` path.
+                   *
+                   * Why:   Matches the login.jsx icon refactor pattern exactly.
+                   *        SVG inherits `color: currentColor` from .inputIcon,
+                   *        so focus (cyan) and error (red) colour transitions work
+                   *        natively via CSS without filter hacks. Crisp at all DPR
+                   *        values, no extra network request.
+                   */}
+                  <svg
+                    className={styles.inputIcon}
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,6A2,2 0 0,0 10,8A2,2 0 0,0 12,10A2,2 0 0,0 14,8A2,2 0 0,0 12,6M12,13C14.67,13 20,14.33 20,17V20H4V17C4,14.33 9.33,13 12,13M12,14.9C9.03,14.9 5.9,16.36 5.9,17V18.1H18.1V17C18.1,16.36 14.97,14.9 12,14.9Z"
+                    />
+                  </svg>
                   <input
                     id="username"
                     type="text"
@@ -291,7 +322,27 @@ function UserRegister() {
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>Email address</label>
                 <div className={`${styles.inputContainer} ${shakingFields.email ? styles.inputShake : ''}`}>
-                  <img src={emailIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
+                  {/*
+                   * CHANGE R-1 — Email icon: <img src={emailIcon}> → inline <svg>
+                   *
+                   * What:  PNG <img> replaced with an inline SVG using the
+                   *        MaterialCommunityIcons `email-outline` path — the exact
+                   *        same path used in login.jsx (CHANGE 1a).
+                   *
+                   * Why:   Identical rationale to login.jsx CHANGE 1a.
+                   *        Ensures pixel-identical icon shapes across both pages.
+                   */}
+                  <svg
+                    className={styles.inputIcon}
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z"
+                    />
+                  </svg>
                   <input
                     id="email"
                     type="email"
@@ -321,7 +372,27 @@ function UserRegister() {
                   <div className={styles.formGroup}>
                     <label htmlFor="password" className={styles.label}>Password</label>
                     <div className={`${styles.inputContainer} ${shakingFields.password ? styles.inputShake : ''}`}>
-                      <img src={lockIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
+                      {/*
+                       * CHANGE R-2 — Lock icon: <img src={lockIcon}> → inline <svg>
+                       *
+                       * What:  PNG <img> replaced with an inline SVG using the
+                       *        MaterialCommunityIcons `lock-outline` path — the exact
+                       *        same path used in login.jsx (CHANGE 1b).
+                       *
+                       * Why:   Identical rationale to login.jsx CHANGE 1b.
+                       *        Ensures pixel-identical icon shapes across both pages.
+                       */}
+                      <svg
+                        className={styles.inputIcon}
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
+                        />
+                      </svg>
                       <input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
@@ -391,7 +462,30 @@ function UserRegister() {
                     Confirm password
                   </label>
                   <div className={`${styles.inputContainer} ${shakingFields.password_confirmation ? styles.inputShake : ''}`}>
-                    <img src={confirmPassIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
+                    {/*
+                     * CHANGE R-4 — Confirm-pass icon: <img src={confirmPassIcon}> → inline <svg>
+                     *
+                     * What:  PNG <img> replaced with an inline SVG using the
+                     *        MaterialCommunityIcons `lock-check-outline` path.
+                     *
+                     * Why:   `lock-check-outline` is the semantic match for "confirm password"
+                     *        — a lock with a checkmark communicates "verified / confirmed".
+                     *        Applies the same SVG currentColor pattern as all other icons.
+                     *        Visually distinct from the plain lock on the password field,
+                     *        preserving the original intent of using a different icon for
+                     *        the confirm field (confirmPassIcon vs lockIcon in the original).
+                     */}
+                    <svg
+                      className={styles.inputIcon}
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21M15.6,8.4L17,9.8L11,15.8L7.4,12.2L8.8,10.8L11,13L15.6,8.4Z"
+                      />
+                    </svg>
                     <input
                       id="password_confirmation"
                       type={showConfirmPassword ? 'text' : 'password'}

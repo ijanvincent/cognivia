@@ -3,8 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
 import styles from './login.module.css';
-import emailIcon from './../../assets/email.png';
-import lockIcon  from './../../assets/lock.png';
+
+/*
+ * CHANGE 1a — Removed: import emailIcon from './../../assets/email.png'
+ * CHANGE 1b — Removed: import lockIcon  from './../../assets/lock.png'
+ *
+ * What:  Both PNG asset imports deleted.
+ * Why:   Icons are now rendered as inline SVG elements using the same
+ *        MaterialCommunityIcons paths (email-outline, lock-outline) that
+ *        the mobile CSS already injects via ::before data URIs on ≤768px.
+ *        Inline SVG inherits `color: currentColor` — no filter hacks needed,
+ *        colour transitions are clean, and the shapes are pixel-identical to
+ *        the React Native icons. The PNG files themselves are untouched.
+ */
 import eyeIcon   from './../../assets/eye.png';
 import hideIcon  from './../../assets/hide.png';
 
@@ -396,7 +407,31 @@ function UserLogin() {
                 */}
                 <label className={styles.label} htmlFor="email">Email</label>
                 <div className={`${styles.inputContainer} ${errors.email ? styles.inputContainerError : ''}`}>
-                  <img src={emailIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
+                  {/*
+                   * CHANGE 1a — Email icon: <img src={emailIcon}> → inline <svg>
+                   *
+                   * What:  PNG <img> replaced with an inline SVG using the
+                   *        MaterialCommunityIcons `email-outline` path — the exact
+                   *        same shape already used in the mobile CSS ::before rule.
+                   *
+                   * Why:   SVG inherits `color: currentColor` from .inputIcon,
+                   *        so focus (cyan) and error (red) colour transitions work
+                   *        natively without filter: hue-rotate() hacks. The PNG
+                   *        required filter chains that were imprecise and different
+                   *        per state. Inline SVG is also crisp at all DPR values
+                   *        and avoids an extra network request.
+                   */}
+                  <svg
+                    className={styles.inputIcon}
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z"
+                    />
+                  </svg>
                   <input
                     id="email" type="email" name="email"
                     value={formData.email} onChange={handleChange}
@@ -421,7 +456,28 @@ function UserLogin() {
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="password">Password</label>
                 <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
-                  <img src={lockIcon} alt="" className={styles.inputIcon} aria-hidden="true" />
+                  {/*
+                   * CHANGE 1b — Lock icon: <img src={lockIcon}> → inline <svg>
+                   *
+                   * What:  PNG <img> replaced with an inline SVG using the
+                   *        MaterialCommunityIcons `lock-outline` path — the exact
+                   *        same shape already used in the mobile CSS ::before rule.
+                   *
+                   * Why:   Same rationale as email icon above. Additionally,
+                   *        lock-outline is the correct semantic match for the RN
+                   *        icon prop `icon="lock-outline"` passed to FloatingLabelInput.
+                   */}
+                  <svg
+                    className={styles.inputIcon}
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
+                    />
+                  </svg>
                   <input
                     id="password" type={showPassword ? 'text' : 'password'} name="password"
                     value={formData.password} onChange={handleChange}
