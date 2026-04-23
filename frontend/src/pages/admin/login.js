@@ -1,26 +1,15 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
-import api from './../../services/api.js';
-import styles from './login.module.css';
+import api, { STORAGE_KEYS } from './../../services/api.js';
+// CHANGE 1 — Modified import: api → { api, STORAGE_KEYS }
+// What:  Added named import STORAGE_KEYS to the existing api.js import.
+// Why:   Replaces magic strings 'token'/'user' that caused the namespace
+//        collision with the user session storage.
 
-/*
- * CHANGE AL-1 — Removed: import emailIcon from './../../assets/email.png'
- * CHANGE AL-2 — Removed: import lockIcon  from './../../assets/lock.png'
- * CHANGE AL-3 — Removed: import infoIcon  from './../../assets/info.png'
- *
- * What:  All three PNG asset imports deleted.
- * Why:   Icons are now rendered as inline SVG elements using the same
- *        MaterialCommunityIcons paths used across login.jsx, register.jsx,
- *        and ForgotPassword.jsx. SVG inherits `color: currentColor` from
- *        .inputIcon — no filter hacks needed, colour transitions are exact.
- *        The PNG files themselves are untouched.
- *
- * Retained: eyeIcon and hideIcon — still used by the password toggle button,
- *           identical to every other auth page in this codebase.
- */
 import eyeIcon  from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
+import styles from './login.module.css';
 
 function AdminLogin() {
   const context = useContext(AppSettings);
@@ -34,7 +23,7 @@ function AdminLogin() {
   const [locked, setLocked]               = useState(false);
   const [shakingFields, setShakingFields] = useState({});
 
-  const attemptsRef = useRef(0);
+  const attemptsRef  = useRef(0);
   const MAX_ATTEMPTS = 3;
 
   useEffect(() => {
@@ -81,8 +70,17 @@ function AdminLogin() {
 
     try {
       const response = await api.post('/admin/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+
+      // CHANGE 2 — Storage writes: 'token'/'user' → ADMIN_TOKEN / ADMIN_DATA.
+      // What:  localStorage.setItem('token', ...) → STORAGE_KEYS.ADMIN_TOKEN
+      //        localStorage.setItem('user',  ...) → STORAGE_KEYS.ADMIN_DATA
+      // Why:   Writing to the generic 'token' key was identical to what the
+      //        user login does. Whichever role logged in last won — the other's
+      //        session silently died. Admin always uses localStorage (no
+      //        rememberMe concept); namespacing removes the collision entirely.
+      localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, response.data.token);
+      localStorage.setItem(STORAGE_KEYS.ADMIN_DATA,  JSON.stringify(response.data.user));
+
       attemptsRef.current = 0;
       setAttempts(0);
       setRedirect(true);
@@ -179,28 +177,9 @@ function AdminLogin() {
             Your AI learning companion —<br />
             turning knowledge into a game.
           </p>
-          {/*
-           * CHANGE AL-3 — Info icon: <img src={infoIcon}> → inline <svg>
-           *
-           * What:  PNG <img> replaced with an inline SVG using the
-           *        MaterialCommunityIcons `information-outline` path.
-           *
-           * Why:   Removes the filter:invert()+hue-rotate() approximation.
-           *        SVG inherits `color: currentColor` from .noticeIcon,
-           *        which is set to the amber token in CSS — exact colour,
-           *        crisp at all DPR values, no network request.
-           */}
           <div className={styles.securityNotice}>
-            <svg
-              className={styles.noticeIcon}
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                fill="currentColor"
-                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-              />
+            <svg className={styles.noticeIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
             </svg>
             <span>Secure area. All activities are monitored and logged.</span>
           </div>
@@ -223,7 +202,6 @@ function AdminLogin() {
                 <span className={styles.securityDot}></span>
                 Authorized Access Only
               </div>
-
               <div className={styles.errorAlert} role="alert" aria-live="polite">
                 <svg className={styles.errorAlertIcon} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3A.75.75 0 018 4.5zm0 7a.875.875 0 110-1.75.875.875 0 010 1.75z"/>
@@ -234,30 +212,11 @@ function AdminLogin() {
 
             <form onSubmit={handleSubmit} className={styles.form}>
 
-              {/* EMAIL */}
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="admin-email">Admin Email</label>
                 <div className={`${styles.inputContainer} ${shakingFields.email ? styles.inputShake : ''}`}>
-                  {/*
-                   * CHANGE AL-1 — Email icon: <img src={emailIcon}> → inline <svg>
-                   *
-                   * What:  PNG <img> replaced with MaterialCommunityIcons `email-outline`
-                   *        path — identical to login.jsx, register.jsx, ForgotPassword.jsx.
-                   *
-                   * Why:   SVG inherits color: currentColor from .inputIcon.
-                   *        Focus (cyan) and error (red) transitions work via CSS alone.
-                   *        No filter chains. Crisp at all DPR values.
-                   */}
-                  <svg
-                    className={styles.inputIcon}
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z"
-                    />
+                  <svg className={styles.inputIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z"/>
                   </svg>
                   <input
                     id="admin-email"
@@ -280,28 +239,11 @@ function AdminLogin() {
                 )}
               </div>
 
-              {/* PASSWORD */}
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="admin-password">Admin Password</label>
                 <div className={`${styles.inputContainer} ${shakingFields.password ? styles.inputShake : ''}`}>
-                  {/*
-                   * CHANGE AL-2 — Lock icon: <img src={lockIcon}> → inline <svg>
-                   *
-                   * What:  PNG <img> replaced with MaterialCommunityIcons `lock-outline`
-                   *        path — identical to login.jsx and register.jsx.
-                   *
-                   * Why:   Same rationale as AL-1.
-                   */}
-                  <svg
-                    className={styles.inputIcon}
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
-                    />
+                  <svg className={styles.inputIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
                   </svg>
                   <input
                     id="admin-password"
@@ -323,12 +265,7 @@ function AdminLogin() {
                     disabled={loading || locked}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    <img
-                      src={showPassword ? hideIcon : eyeIcon}
-                      alt=""
-                      className={styles.eyeIcon}
-                      aria-hidden="true"
-                    />
+                    <img src={showPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
                   </button>
                 </div>
                 {errors.password && (

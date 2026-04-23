@@ -1,8 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api.js';
+import api, { STORAGE_KEYS } from '../../services/api.js';
 import styles from './editprofile.module.css';
 
+/*
+ * NAMESPACE FIX — Import STORAGE_KEYS constant.
+ *
+ * What:  Replaced `import STORAGE_KEYS from '../../config/storageKeys.js'`
+ *        with named import `{ STORAGE_KEYS }` from `../../services/api.js`.
+ *
+ * Why (1 — wrong source): storageKeys.js is superseded and deleted.
+ *        api.js is the single source of truth for STORAGE_KEYS (flat shape).
+ *
+ * Why (2 — nested vs flat): storageKeys.js used STORAGE_KEYS.USER.TOKEN.
+ *        api.js uses STORAGE_KEYS.USER_TOKEN. All accesses in getStoredUser()
+ *        and persistUser() have been updated to the flat shape. Nested access
+ *        resolves to `undefined` — getItem(undefined) always returns null,
+ *        so getStoredUser() always returned {} (empty form fields) and
+ *        persistUser() wrote to key "undefined" instead of 'user_data'.
+ */
 
 const IconUser = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -31,41 +47,64 @@ const IconCheck = () => (
   </svg>
 );
 
-
 function resolveAvatarUrl(avatar) {
   if (!avatar) return null;
-  if (avatar.startsWith('blob:')) return avatar;                         
-  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar; 
+  if (avatar.startsWith('blob:')) return avatar;
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
   const base = 'http://localhost:3000';
-  if (avatar.startsWith('/storage/')) return `${base}${avatar}`;      
-  if (avatar.startsWith('/'))        return `${base}${avatar}`;          
-  return `${base}/storage/${avatar}`;                                   
+  if (avatar.startsWith('/storage/')) return `${base}${avatar}`;
+  if (avatar.startsWith('/'))        return `${base}${avatar}`;
+  return `${base}/storage/${avatar}`;
 }
 
-
+/*
+ * NAMESPACE FIX — getStoredUser reads from namespaced user keys only.
+ *
+ * What:  All storage reads changed from nested to flat shape:
+ *          STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
+ *          STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
+ *
+ * Why:   STORAGE_KEYS has no .USER sub-key. Nested access resolved to
+ *        `undefined`, so getItem(undefined) always returned null — the
+ *        token-presence check always failed and the function returned {},
+ *        leaving username and avatar fields blank on every page load.
+ *        Flat keys correctly read 'user_token' / 'user_data'.
+ */
 function getStoredUser() {
   try {
-    
-    if (localStorage.getItem('token')) {
-      return JSON.parse(localStorage.getItem('user') || 'null') || {};
+    if (localStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.USER_DATA) || 'null') || {};
     }
-    if (sessionStorage.getItem('token')) {
-      return JSON.parse(sessionStorage.getItem('user') || 'null') || {};
+    if (sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+      return JSON.parse(sessionStorage.getItem(STORAGE_KEYS.USER_DATA) || 'null') || {};
     }
-   
-    const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return JSON.parse(raw || 'null') || {};
+    return {};
   } catch { return {}; }
 }
 
+/*
+ * NAMESPACE FIX — persistUser writes only to the storage that owns
+ *                 the active user token (targeted write).
+ *
+ * What:  All storage reads/writes changed from nested to flat shape:
+ *          STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
+ *          STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
+ *
+ * Why:   Same root cause as getStoredUser. Additionally, the token-presence
+ *        check using the nested key always returned null/false, so neither
+ *        branch was ever entered — profile saves were silently discarded
+ *        and the updated user object was never persisted to storage.
+ *        Flat keys ensure the write lands in the correct storage slot,
+ *        leaving admin keys ('admin_token' / 'admin_data') untouched.
+ */
 function persistUser(updatedUser) {
- 
   const serialized = JSON.stringify(updatedUser);
-  try { localStorage.setItem('user', serialized); } catch {}
-  try { sessionStorage.setItem('user', serialized); } catch {}
+  if (localStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    try { localStorage.setItem(STORAGE_KEYS.USER_DATA, serialized); } catch {}
+  } else if (sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    try { sessionStorage.setItem(STORAGE_KEYS.USER_DATA, serialized); } catch {}
+  }
 }
-
-
 
 function EditProfile() {
   const navigate     = useNavigate();
@@ -81,12 +120,10 @@ function EditProfile() {
   const [storedUser, setStoredUser]       = useState({});
   const [formData, setFormData]           = useState({ username: '' });
 
-  
   useEffect(() => {
     const user = getStoredUser();
     setStoredUser(user);
     setFormData({ username: user.username || '' });
-   
     if (user.avatar) {
       setAvatarPreview(resolveAvatarUrl(user.avatar));
     } else {
@@ -96,7 +133,6 @@ function EditProfile() {
     return () => clearTimeout(t);
   }, []);
 
- 
   useEffect(() => {
     return () => {
       if (objectUrlRef.current) {
@@ -135,7 +171,7 @@ function EditProfile() {
     setAvatarFile(file);
     setAvatarPreview(blobUrl);
     setErrors(prev => ({ ...prev, avatar: null }));
-    e.target.value = ''; 
+    e.target.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -165,20 +201,17 @@ function EditProfile() {
 
       const updatedUser = response.data.user;
 
-     
       if (updatedUser.avatar) {
         updatedUser.avatar = resolveAvatarUrl(updatedUser.avatar);
       }
 
-      
+      // Targeted write — only touches the storage slot that owns user_token.
       persistUser(updatedUser);
 
-     
+      // Notify other components (e.g. UserDashboard) of the update.
       window.dispatchEvent(new CustomEvent('cognivia:userUpdated', { detail: updatedUser }));
 
       setSuccess(true);
-
-      
       setTimeout(() => navigate('/dashboard'), 1800);
 
     } catch (error) {
@@ -226,7 +259,6 @@ function EditProfile() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
 
-      
           <div className={styles.avatarSection}>
             <div className={styles.avatarWrap} onClick={handleAvatarClick}>
               {avatarPreview ? (
@@ -255,7 +287,6 @@ function EditProfile() {
             {errors.avatar && <span className={styles.errorText}>{errors.avatar}</span>}
           </div>
 
-       
           <div className={styles.formGroup}>
             <label className={styles.label}>Username</label>
             <div className={styles.inputContainer}>
@@ -287,7 +318,6 @@ function EditProfile() {
             <span className={styles.readOnlyHint}>Email cannot be changed</span>
           </div>
 
-     
           <button
             type="submit"
             disabled={loading || success}
