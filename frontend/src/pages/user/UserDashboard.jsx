@@ -2,8 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
-import api from '../../services/api.js';
+import api, { STORAGE_KEYS } from '../../services/api.js';
 import { getEcho, disconnectEcho } from '../../services/echo.js';
+
+/*
+ * NAMESPACE FIX — Import STORAGE_KEYS constant.
+ *
+ * What:  Replaced `import STORAGE_KEYS from '../../config/storageKeys.js'`
+ *        with named import `{ STORAGE_KEYS }` from `../../services/api.js`.
+ *
+ * Why (1 — wrong source): storageKeys.js is superseded and deleted.
+ *        api.js is the single source of truth for STORAGE_KEYS (flat shape).
+ *
+ * Why (2 — nested vs flat): storageKeys.js used STORAGE_KEYS.USER.TOKEN.
+ *        api.js uses STORAGE_KEYS.USER_TOKEN. All accesses below have been
+ *        updated to the flat shape. Nested access resolves to `undefined`,
+ *        which causes getStoredUser() to always return {} and handleLogout()
+ *        to remove nothing — both silent failures with no runtime error.
+ */
 
 const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 
@@ -28,16 +44,28 @@ const IconChevron = () => (
   </svg>
 );
 
+/*
+ * NAMESPACE FIX — getStoredUser reads from namespaced user keys only.
+ *
+ * What:  All storage reads changed from nested to flat shape:
+ *          STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
+ *          STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
+ *
+ * Why:   STORAGE_KEYS has no .USER sub-key (flat object). The nested access
+ *        resolved to `undefined`, so getItem(undefined) always returned null,
+ *        making the token-presence check always false and returning {} on
+ *        every call — the dashboard always showed the fallback "Learner" name.
+ *        Flat keys correctly read 'user_token' / 'user_data' from storage.
+ */
 function getStoredUser() {
   try {
-    if (localStorage.getItem('token')) {
-      return JSON.parse(localStorage.getItem('user') || 'null') || {};
+    if (localStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.USER_DATA) || 'null') || {};
     }
-    if (sessionStorage.getItem('token')) {
-      return JSON.parse(sessionStorage.getItem('user') || 'null') || {};
+    if (sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+      return JSON.parse(sessionStorage.getItem(STORAGE_KEYS.USER_DATA) || 'null') || {};
     }
-    const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return JSON.parse(raw || 'null') || {};
+    return {};
   } catch { return {}; }
 }
 
@@ -50,20 +78,17 @@ function UserDashboard() {
   const userName    = user.name || user.username || 'Learner';
   const userInitial = userName.charAt(0).toUpperCase();
 
-
   useEffect(() => {
     setUser(getStoredUser());
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-
   useEffect(() => {
     const handleUserUpdated = (e) => setUser(e.detail || getStoredUser());
     window.addEventListener('cognivia:userUpdated', handleUserUpdated);
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
-
 
   useEffect(() => {
     const userId = user?.id;
@@ -84,12 +109,26 @@ function UserDashboard() {
     };
   }, [user?.id]);
 
+  /*
+   * NAMESPACE FIX — handleLogout removes namespaced user keys only.
+   *
+   * What:  All removeItem calls changed from nested to flat shape:
+   *          STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
+   *          STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
+   *
+   * Why:   Same root cause as getStoredUser — nested access resolved to
+   *        `undefined`, so removeItem(undefined) removed nothing and the
+   *        user session persisted in storage after logout. Flat keys
+   *        correctly target 'user_token' / 'user_data' for removal.
+   *        Admin keys ('admin_token' / 'admin_data') are never touched —
+   *        concurrent admin sessions are fully isolated.
+   */
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch {}
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
+    localStorage.removeItem(STORAGE_KEYS.USER_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+    sessionStorage.removeItem(STORAGE_KEYS.USER_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
     window.location.replace('/login');
   };
 
@@ -101,7 +140,6 @@ function UserDashboard() {
   return (
     <div className={`${styles.page} ${mounted ? styles.mounted : ''}`}>
 
-
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Dashboard</h1>
@@ -109,7 +147,6 @@ function UserDashboard() {
             Welcome back, <span className={styles.accentName}>{userName}</span>
           </p>
         </div>
-
 
         <div className={styles.avatarWrapper}>
           <button
@@ -166,7 +203,6 @@ function UserDashboard() {
           )}
         </div>
       </div>
-
 
       <div className={styles.qrWrapper}>
         <div className={styles.qrCard}>

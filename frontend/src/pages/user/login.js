@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../services/api.js';
+import api, { STORAGE_KEYS } from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
 import styles from './login.module.css';
 
@@ -20,6 +20,31 @@ import eyeIcon   from './../../assets/eye.png';
 import hideIcon  from './../../assets/hide.png';
 
 /*
+ * NAMESPACE FIX — Import STORAGE_KEYS constant.
+ *
+ * What:  Replaced `import STORAGE_KEYS from '../../config/storageKeys.js'`
+ *        with named import `{ STORAGE_KEYS }` from `../../services/api.js`.
+ *
+ * Why (1 — wrong source): storageKeys.js exported a NESTED shape
+ *        (STORAGE_KEYS.USER.TOKEN / STORAGE_KEYS.USER.DATA). api.js exports
+ *        a FLAT shape (STORAGE_KEYS.USER_TOKEN / STORAGE_KEYS.USER_DATA).
+ *        All other files in the system (private-route.jsx,
+ *        private-route-admin.jsx, admin/login.js) already consume the flat
+ *        shape from api.js. This file was the only remaining outlier.
+ *
+ * Why (2 — key collision): Both write sites below were calling
+ *        STORAGE_KEYS.USER.TOKEN which resolved to `undefined` because the
+ *        flat object has no .USER sub-key. storage.setItem('undefined', ...)
+ *        was being written to storage. private-route.jsx reads
+ *        STORAGE_KEYS.USER_TOKEN ('user_token') — finds nothing — and
+ *        redirects every user back to /login indefinitely.
+ *
+ * Why (3 — single source of truth): The standalone storageKeys.js file is
+ *        superseded and must not exist in the project. api.js is and remains
+ *        the sole authority for STORAGE_KEYS.
+ */
+
+/*
  * CHANGE 3 — Removed: const isMobile = window.innerWidth <= 768
  * Why: Module-level window.innerWidth is evaluated once at parse time.
  * It never reacts to resize, breaks in SSR/hydration environments, and
@@ -32,12 +57,12 @@ import hideIcon  from './../../assets/hide.png';
 function UserLogin() {
   const navigate = useNavigate();
 
-  const [formData, setFormData]                   = useState({ email: '', password: '', rememberMe: false });
-  const [errors, setErrors]                       = useState({});
-  const [loading, setLoading]                     = useState(false);
-  const [showPassword, setShowPassword]           = useState(false);
+  const [formData, setFormData]                     = useState({ email: '', password: '', rememberMe: false });
+  const [errors, setErrors]                         = useState({});
+  const [loading, setLoading]                       = useState(false);
+  const [showPassword, setShowPassword]             = useState(false);
   const [isWaitingForMobile, setIsWaitingForMobile] = useState(false);
-  const [waitingDots, setWaitingDots]             = useState('');
+  const [waitingDots, setWaitingDots]               = useState('');
 
   const echoInstanceRef = useRef(null);
   const dotsIntervalRef = useRef(null);
@@ -117,8 +142,20 @@ function UserLogin() {
             }${user.avatar}`;
           }
 
-          storage.setItem('token', response.data.token);
-          storage.setItem('user', JSON.stringify(user));
+          /*
+           * NAMESPACE FIX — Conflict auto-login retry write site.
+           *
+           * What:  STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
+           *        STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
+           *
+           * Why:   STORAGE_KEYS is a flat object from api.js. There is no
+           *        .USER sub-key. The nested access resolved to `undefined`,
+           *        writing the token to the key literal "undefined" in storage.
+           *        The flat keys write to 'user_token' / 'user_data' — the
+           *        exact keys private-route.jsx reads to authenticate.
+           */
+          storage.setItem(STORAGE_KEYS.USER_TOKEN, response.data.token);
+          storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));
 
           navigate('/dashboard', { replace: true });
 
@@ -143,9 +180,9 @@ function UserLogin() {
   const validateForm = () => {
     const newErrors  = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim())          newErrors.email    = 'Email address is required.';
-    else if (!emailRegex.test(formData.email)) newErrors.email = 'Please enter a valid email address.';
-    if (!formData.password)              newErrors.password = 'Password is required.';
+    if (!formData.email.trim())               newErrors.email    = 'Email address is required.';
+    else if (!emailRegex.test(formData.email)) newErrors.email   = 'Please enter a valid email address.';
+    if (!formData.password)                   newErrors.password = 'Password is required.';
     return newErrors;
   };
 
@@ -176,8 +213,21 @@ function UserLogin() {
         }${user.avatar}`;
       }
 
-      storage.setItem('token', response.data.token);
-      storage.setItem('user', JSON.stringify(user));
+      /*
+       * NAMESPACE FIX — Primary handleSubmit write site.
+       *
+       * What:  STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
+       *        STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
+       *
+       * Why:   Identical reasoning to the retry write site above.
+       *        This is the primary path — hit on every normal login.
+       *        Flat keys write to 'user_token' / 'user_data' so that:
+       *        1. api.js interceptor reads the correct token by role.
+       *        2. Admin sessions at 'admin_token' remain independent.
+       *        3. private-route.jsx finds the token and grants access.
+       */
+      storage.setItem(STORAGE_KEYS.USER_TOKEN, response.data.token);
+      storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));
       navigate('/dashboard', { replace: true });
 
     } catch (error) {
@@ -397,30 +447,8 @@ function UserLogin() {
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
 
               <div className={styles.formGroup}>
-                {/*
-                  FIX-1 — Label text: "Email address" → "Email"
-                  What: Changed label content from "Email address" to "Email".
-                  Why:  RN FloatingLabelInput receives label="Email" — single word.
-                        Web had "Email address" which did not match. The floating
-                        label must display identically to RN when on mobile screen sizes.
-                        Zero other changes in this file.
-                */}
                 <label className={styles.label} htmlFor="email">Email</label>
                 <div className={`${styles.inputContainer} ${errors.email ? styles.inputContainerError : ''}`}>
-                  {/*
-                   * CHANGE 1a — Email icon: <img src={emailIcon}> → inline <svg>
-                   *
-                   * What:  PNG <img> replaced with an inline SVG using the
-                   *        MaterialCommunityIcons `email-outline` path — the exact
-                   *        same shape already used in the mobile CSS ::before rule.
-                   *
-                   * Why:   SVG inherits `color: currentColor` from .inputIcon,
-                   *        so focus (cyan) and error (red) colour transitions work
-                   *        natively without filter: hue-rotate() hacks. The PNG
-                   *        required filter chains that were imprecise and different
-                   *        per state. Inline SVG is also crisp at all DPR values
-                   *        and avoids an extra network request.
-                   */}
                   <svg
                     className={styles.inputIcon}
                     viewBox="0 0 24 24"
@@ -456,17 +484,6 @@ function UserLogin() {
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="password">Password</label>
                 <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
-                  {/*
-                   * CHANGE 1b — Lock icon: <img src={lockIcon}> → inline <svg>
-                   *
-                   * What:  PNG <img> replaced with an inline SVG using the
-                   *        MaterialCommunityIcons `lock-outline` path — the exact
-                   *        same shape already used in the mobile CSS ::before rule.
-                   *
-                   * Why:   Same rationale as email icon above. Additionally,
-                   *        lock-outline is the correct semantic match for the RN
-                   *        icon prop `icon="lock-outline"` passed to FloatingLabelInput.
-                   */}
                   <svg
                     className={styles.inputIcon}
                     viewBox="0 0 24 24"
@@ -513,14 +530,6 @@ function UserLogin() {
                     className={styles.rememberCheckbox} />
                   Remember me
                 </label>
-                {/*
-                  CHANGE M-FORGOT — Forgot password link text
-                  What: "Forgot password?" → "Forgot your password?"
-                  Why:  RN LoginScreen renders: 'Forgot your password?'
-                        Web had "Forgot password?" — missing "your".
-                        Must match RN exactly on mobile view.
-                        No functional change — href/route unchanged.
-                */}
                 <Link to="/forgot-password" className={styles.forgotLink}>Forgot your password?</Link>
               </div>
 

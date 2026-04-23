@@ -1,48 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { STORAGE_KEYS } from '../services/api.js';
+// CHANGE 1 — Added: import STORAGE_KEYS from api.js
+// What:  Imports the centralised storage-key constants.
+// Why:   Token and user data are now stored under namespaced keys.
+//        Reading the old 'token'/'user' keys would always yield null
+//        after the fix, locking every user out of authenticated routes.
 
 function PrivateRoute({ children }) {
-    const [isChecking, setIsChecking]           = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isChecking, setIsChecking]           = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const user  = JSON.parse(
-            localStorage.getItem('user') || sessionStorage.getItem('user') || '{}'
-        );
-        setIsAuthenticated(!!token && user.role === 'user');
-        setIsChecking(false);
-    }, []);
+  useEffect(() => {
+    // CHANGE 2 — Token + user data reads: 'token'/'user' → namespaced keys.
+    // What:  localStorage.getItem('token') || sessionStorage.getItem('token')
+    //        → USER_TOKEN equivalents.
+    //        localStorage.getItem('user') || sessionStorage.getItem('user')
+    //        → USER_DATA equivalents.
+    // Why:   Old keys are no longer written by the fixed login flow.
+    //        Additionally, reading the old 'user' key could return the
+    //        admin's user object (role: 'admin') — causing user.role === 'user'
+    //        to be false and bouncing legitimate users back to /login.
+    const token = localStorage.getItem(STORAGE_KEYS.USER_TOKEN)
+      || sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN);
 
-    useEffect(() => {
-        if (!isAuthenticated || isChecking) return;
+    const user = JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.USER_DATA)
+      || sessionStorage.getItem(STORAGE_KEYS.USER_DATA)
+      || '{}',
+    );
 
-        // Push a duplicate history entry so back button stays on dashboard
-        window.history.pushState(null, '', window.location.href);
+    setIsAuthenticated(!!token && user.role === 'user');
+    setIsChecking(false);
+  }, []);
 
-        const handlePopState = () => {
-            // User pressed back — push forward again, trapping them on dashboard
-            window.history.pushState(null, '', window.location.href);
-        };
+  useEffect(() => {
+    if (!isAuthenticated || isChecking) return;
 
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, [isAuthenticated, isChecking]);
+    window.history.pushState(null, '', window.location.href);
 
-    if (isChecking) {
-        return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07080f' }}>
-                <div style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.2)', borderTop: '3px solid #22d3ee', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-        );
-    }
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
 
-    if (!isAuthenticated) {
-        return <Navigate to='/login' replace />;
-    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isAuthenticated, isChecking]);
 
-    return children;
+  if (isChecking) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07080f' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.2)', borderTop: '3px solid #22d3ee', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to='/login' replace />;
+  }
+
+  return children;
 }
 
 export default PrivateRoute;
