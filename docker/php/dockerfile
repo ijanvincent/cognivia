@@ -4,30 +4,52 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
+    libjpeg62-turbo-dev \
+    libwebp-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip
 
-RUN apt-get install -y libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd opcache zip
+# Configure GD with JPEG and WebP support BEFORE installing.
+# --with-jpeg and --with-webp require their respective dev libraries
+# to be present at configure time. Skipping this step compiles GD
+# PNG-only, leaving imagejpeg() / imagecreatefromjpeg() undefined.
+RUN docker-php-ext-configure gd \
+        --with-jpeg \
+        --with-webp
+
+RUN docker-php-ext-install \
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    opcache \
+    zip
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Opcache configuration
-RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.interned_strings_buffer=16" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.jit_buffer_size=100M" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.jit=tracing" >> /usr/local/etc/php/conf.d/opcache.ini
+# ---------------------------------------------------------------------------
+# Opcache — production-tuned settings
+# ---------------------------------------------------------------------------
+RUN echo "opcache.enable=1"                        >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.memory_consumption=256"       >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.interned_strings_buffer=16"   >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.max_accelerated_files=20000"  >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.revalidate_freq=0"            >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.validate_timestamps=0"        >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.jit_buffer_size=100M"         >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.jit=tracing"                  >> /usr/local/etc/php/conf.d/opcache.ini
 
-# PHP-FPM workers optimization
-RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.max_children = 20" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+# ---------------------------------------------------------------------------
+# PHP-FPM worker pool
+# ---------------------------------------------------------------------------
+RUN echo "pm = dynamic"                >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_children = 20"     >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 5"     >> /usr/local/etc/php-fpm.d/www.conf \
     && echo "pm.min_spare_servers = 3" >> /usr/local/etc/php-fpm.d/www.conf \
     && echo "pm.max_spare_servers = 10" >> /usr/local/etc/php-fpm.d/www.conf
 
