@@ -594,27 +594,61 @@
   left: 0% !important;
 }
 
+/*
+ * CHANGE 2 — .inputIcon: PNG <img> rules → inline SVG rules
+ *
+ * What:
+ *   Removed: object-fit, filter: invert(1)
+ *   Changed: width/height 15px → 20px (matches RN icon size={20} and mobile ::before)
+ *   Added:   color: rgba(255,255,255,0.3) (SVG uses currentColor via fill="currentColor")
+ *   Changed: transition — removed `filter`, added `color`
+ *
+ * Why:
+ *   The element is now an SVG not an <img>. SVG rendered with fill="currentColor"
+ *   inherits the CSS `color` property — no filter chains needed.
+ *   `object-fit` is an img-only property and has no effect on SVG.
+ *   `filter: invert(1)` was required to turn the white PNG visible on dark bg;
+ *   SVG inherits color directly so the invert is eliminated.
+ *   20px matches MaterialCommunityIcons size={20} used in RN FloatingLabelInput
+ *   and is consistent with the mobile ::before icon size already in this file.
+ */
 .inputIcon {
   position: absolute;
   left: 14px;
-  width: 15px;
-  height: 15px;
-  object-fit: contain;
+  width: 20px;
+  height: 20px;
   opacity: 0.3;
   z-index: 2;
-  filter: invert(1);
+  color: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
-  transition: opacity 0.25s ease, filter 0.25s ease;
+  transition: opacity 0.25s ease, color 0.25s ease;
 }
 
+/*
+ * CHANGE 2b — focus state: filter hue-rotate → color: var(--accent-cyan)
+ *
+ * What:  Removed filter chain. Set color to --accent-cyan, opacity to 1.
+ * Why:   SVG fill="currentColor" responds to CSS `color` directly.
+ *        The old filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg)
+ *        was an approximation that produced slightly off-hue cyan.
+ *        The new rule uses the exact design token, identical to the RN
+ *        focused icon colour: `isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'`.
+ */
 .inputContainer:focus-within .inputIcon {
-  opacity: 0.85;
-  filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg);
+  opacity: 1;
+  color: var(--accent-cyan);
 }
 
+/*
+ * CHANGE 2c — error state: filter chain → color: var(--error)
+ *
+ * What:  Removed filter chain. Set color to --error.
+ * Why:   Same rationale as focus state above. The old filter produced
+ *        an approximation of red; this uses the exact --error token.
+ */
 .inputContainerError .inputIcon {
-  filter: invert(1) sepia(1) saturate(5) hue-rotate(310deg);
-  opacity: 0.8;
+  color: var(--error);
+  opacity: 0.85;
 }
 
 .inputField {
@@ -1012,67 +1046,21 @@
 
 /* ═════════════════════════════════════════════════════════════════════════════
    MOBILE (≤768px)
-   ─────────────────────────────────────────────────────────────────────────────
-   Architecture mirrors React Native LoginScreen exactly:
-   
-   RN layer order (bottom → top):
-     1. SafeAreaView  bg: #07080f  (the dark canvas)
-     2. WaveBackground             (SVG absoluteFill, drawn ON TOP of bg)
-     3. overlay View               (absoluteFill, rgba(7,8,15,0.55))
-     4. KeyboardAvoidingView       (form content, above everything)
-   
-   Web equivalent:
-     1. pageContainer  bg: #07080f  (same dark canvas)
-     2. bgCanvasMobile              (position:ABSOLUTE — not fixed — so it
-                                     sits INSIDE pageContainer flow, above bg)
-     3. bgCanvasMobile::after       (rgba(7,8,15,0.55) overlay)
-     4. mainContent  z-index:1      (form content, above wave)
-   
-   THE ROOT CAUSE OF THE BLACK BACKGROUND BUG:
-   Previously bgCanvasMobile was position:fixed. A fixed element is removed
-   from the document flow and placed in the viewport stacking context. The
-   pageContainer's background-color (solid #07080f) then paints on top of it
-   in the normal document flow. Transparent children only revealed the
-   pageContainer background — not the wave behind/beneath it.
-   
-   THE FIX: position:absolute (not fixed) inside pageContainer.
-   pageContainer already has position:relative and overflow:hidden.
-   Now bgCanvasMobile is IN the same stacking context, painting above
-   the pageContainer background, below the form content. Exactly like RN.
 ═════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* Hide desktop animated wave */
   .bgCanvas  { display: none; }
   .wavePath  { animation: none; display: none; }
 
-  /* ───────────────────────────────────────────────────────────────────────────
-     CORE FIX — bgCanvasMobile: position:absolute (was fixed)
-     ───────────────────────────────────────────────────────────────────────────
-     What  : position changed from fixed → absolute.
-             All other values (inset:0, z-index:0, pointer-events:none) stay.
-     
-     Why   : position:fixed removes the element from normal document flow and
-             places it in the viewport layer. The pageContainer's background-
-             color (#07080f solid) then paints OVER the wave in the normal
-             stacking context. No amount of transparent children can reveal
-             a fixed element that is behind the page background.
-             
-             position:absolute places bgCanvasMobile INSIDE pageContainer's
-             stacking context — above the background color, below the content.
-             This exactly mirrors RN's absoluteFill WaveBackground which sits
-             above SafeAreaView's backgroundColor but below the form Views.
-  */
   .bgCanvasMobile {
     display: block;
-    position: absolute;   /* ← THE FIX: was fixed, now absolute inside pageContainer */
+    position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
   }
 
-  /* Overlay — mirrors RN <View style={styles.overlay}/> rgba(7,8,15,0.55) */
   .bgCanvasMobile::after {
     content: '';
     position: absolute;
@@ -1082,13 +1070,9 @@
     z-index: 1;
   }
 
-  /* ── Hide top bar (no top bar in RN) ───────────────────────────────────── */
   .topBar { display: none; }
-
-  /* ── Hide hero section (no hero in RN) ─────────────────────────────────── */
   .heroSection { display: none; }
 
-  /* ── mainContent: full-viewport column, above wave ──────────────────────── */
   .mainContent {
     flex-direction: column;
     justify-content: center;
@@ -1109,9 +1093,6 @@
     animation: none;
   }
 
-  /* loginCard: fully transparent — wave shows through unobstructed.
-     backdrop-filter removed: it composites against #07080f producing
-     a frosted-black pane that blocks the wave. */
   .loginCard {
     padding: 28px 20px 24px;
     border-radius: 16px;
@@ -1123,7 +1104,6 @@
     box-shadow: none !important;
   }
 
-  /* ── Card header: subtitle only ─────────────────────────────────────────── */
   .cardHeader {
     display: block;
     margin-bottom: 20px;
@@ -1143,10 +1123,8 @@
     text-transform: none;
   }
 
-  /* ── formGroup spacing ──────────────────────────────────────────────────── */
   .formGroup { padding-bottom: 22px; }
 
-  /* ── Input shell — mirrors RN inputWrap ─────────────────────────────────── */
   .inputContainer {
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 12px;
@@ -1165,23 +1143,19 @@
     display: flex;
   }
 
-  /* Suppress desktop bottom-underline sweep */
   .inputContainer::after { display: none; }
 
-  /* Error shell state */
   .inputContainerError {
     border-color: rgba(248, 113, 113, 0.55) !important;
     background: rgba(248, 113, 113, 0.03) !important;
   }
   .inputContainerError::after { display: none !important; }
 
-  /* Focus state — cyan border, RN inputWrapFocused */
   .inputContainer:focus-within {
     border-color: var(--accent-cyan) !important;
     background: rgba(34, 211, 238, 0.04) !important;
   }
 
-  /* ── inputField: transparent, borderless ───────────────────────────────── */
   .inputField {
     background: transparent !important;
     border: none !important;
@@ -1200,7 +1174,6 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Suppress placeholder on mobile — floating label is used instead */
   .inputField::placeholder,
   .inputField:focus::placeholder {
     opacity: 0 !important;
@@ -1208,7 +1181,6 @@
     color: transparent !important;
   }
 
-  /* Suppress all inputField visual states — shell handles them */
   .inputField:focus,
   .inputField:focus-visible,
   .inputField:hover:not(:disabled):not(:focus),
@@ -1222,7 +1194,7 @@
 
   .inputField:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  /* ── Hide PNG icons, inject SVG icons via ::before ─────────────────────── */
+  /* Hide inline SVG icons on mobile — ::before pseudo-element takes over */
   .inputIcon { display: none !important; }
 
   .inputContainer::before {
@@ -1252,17 +1224,14 @@
     opacity: 0.85;
   }
 
-  /* Email icon */
   .formGroup:nth-of-type(1) .inputContainer::before {
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M22,6C22,4.89%2021.1,4%2020,4H4C2.89,4%202,4.89%202,6V18C2,19.1%202.89,20%204,20H20C21.1,20%2022,19.1%2022,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z'/%3E%3C/svg%3E");
   }
 
-  /* Lock icon */
   .formGroup:nth-of-type(2) .inputContainer::before {
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12,17C10.89,17%2010,16.1%2010,15C10,13.89%2010.89,13%2012,13C13.1,13%2014,13.89%2014,15C14,16.1%2013.1,17%2012,17M18,20V10H6V20H18M18,8C19.1,8%2020,8.89%2020,10V20C20,21.1%2019.1,22%2018,22H6C4.89,22%204,21.1%204,20V10C4,8.89%204.89,8%206,8H7V6A5,5%200%200,1%2012,1A5,5%200%200,1%2017,6V8H18M12,3A3,3%200%200,0%209,6V8H15V6A3,3%200%200,0%2012,3Z'/%3E%3C/svg%3E");
   }
 
-  /* Eye button */
   .eyeButton {
     position: absolute;
     right: 10px;
@@ -1278,17 +1247,16 @@
 
   .eyeIcon { width: 18px; height: 18px; }
 
-  /* ── Floating label ─────────────────────────────────────────────────────── */
   .label {
     display: block;
     position: absolute;
-    top: 30px;                    /* FIX: was 22px — shell is 60px, icon sits at top:50%=30px, label now shares same midpoint */
+    top: 30px;
     left: 44px;
     transform: translateY(-50%);
     font-family: var(--font-body);
     font-size: 15px;
     font-weight: 400;
-    letter-spacing: 0.1px;        /* RN: letterSpacing: 0.1 — NOT em-based */
+    letter-spacing: 0.1px;
     text-transform: none;
     color: rgba(255, 255, 255, 0.35);
     pointer-events: none;
@@ -1305,19 +1273,17 @@
       letter-spacing 0.18s ease;
   }
 
-  /* Focused: label floats above border line */
   .formGroup:focus-within .label {
-    transform: translateY(calc(-50% - 30px));  /* 30px = half of 60px shell height, floats label above top border */
+    transform: translateY(calc(-50% - 30px));
     font-size: 11px;
-    font-weight: 400;               /* RN floatingLabel: fontWeight:'400' */
+    font-weight: 400;
     color: var(--accent-cyan);
-    letter-spacing: 0.1px;         /* RN: letterSpacing: 0.1 */
+    letter-spacing: 0.1px;
     text-transform: none;
     background: var(--bg-deep);
     padding: 0 4px;
   }
 
-  /* Filled but unfocused: stays floated, dimmer */
   .formGroup:has(.inputField:not(:placeholder-shown)) .label {
     transform: translateY(calc(-50% - 30px));
     font-size: 11px;
@@ -1329,10 +1295,8 @@
     padding: 0 4px;
   }
 
-  /* Error: label turns error colour */
   .formGroup:has(.inputError) .label { color: var(--error); }
 
-  /* ── Hide remember me checkbox ──────────────────────────────────────────── */
   .rememberLabel { display: none; }
 
   .rememberRow {
@@ -1340,14 +1304,12 @@
     margin-bottom: 24px;
   }
 
-  /* ── Forgot password ────────────────────────────────────────────────────── */
   .forgotLink {
     color: rgba(255, 255, 255, 0.55);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
-  /* ── Error alert ────────────────────────────────────────────────────────── */
   .errorAlert {
     border: 1px solid rgba(248, 113, 113, 0.35);
     border-radius: 12px;
@@ -1358,10 +1320,8 @@
   }
   .errorAlert::before { display: none; }
 
-  /* ── Error text offset ──────────────────────────────────────────────────── */
   .errorText { padding-left: 4px; }
 
-  /* ── Submit button: white bg, Syne font — mirrors RN btnSignIn ──────────── */
   .submitButton {
     background: #ffffff !important;
     color: #07080f !important;
@@ -1385,7 +1345,6 @@
     border-top-color: #07080f;
   }
 
-  /* ── Register footer: flex row, Syne on link ───────────────────────────── */
   .linksSection {
     display: flex;
     justify-content: center;
@@ -1427,7 +1386,6 @@
     border-radius: 14px;
   }
 
-  /* 16px minimum prevents iOS auto-zoom on input focus */
   .inputField { font-size: 16px !important; }
 
   .heroTitle   { font-size: 24px; }

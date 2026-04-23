@@ -2,7 +2,18 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api.js';
 import styles from './login.module.css';
-import emailIcon from './../../assets/email.png';
+
+/*
+ * CHANGE FP-1 — Removed: import emailIcon from './../../assets/email.png'
+ *
+ * What:  PNG asset import deleted.
+ * Why:   Icon is now rendered as an inline SVG element using the same
+ *        MaterialCommunityIcons `email-outline` path used in login.jsx (CHANGE 1a)
+ *        and register.jsx (CHANGE R-1). This component already imports
+ *        login.module.css, which has the updated .inputIcon rules (20px,
+ *        color: currentColor, no filter hacks) — so no CSS changes are needed.
+ *        The PNG file itself is untouched.
+ */
 
 function ForgotPassword() {
   const [email,     setEmail]     = useState('');
@@ -125,7 +136,6 @@ function ForgotPassword() {
               /* ── Success state ─────────────────────────────────────────── */
               <div className={styles.successState}>
 
-                {/* Checkmark badge */}
                 <div className={styles.successIconBadge}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                     stroke="#34d399" strokeWidth="2.2"
@@ -135,12 +145,10 @@ function ForgotPassword() {
                   </svg>
                 </div>
 
-                {/* Primary confirmation copy */}
                 <p className={styles.successMessage}>
                   Reset link sent — check your inbox.
                 </p>
 
-                {/* Email chip — lets user confirm the address at a glance */}
                 <div className={styles.successEmail}>
                   <svg width="13" height="13" viewBox="0 0 16 16"
                     fill="currentColor" aria-hidden="true">
@@ -149,7 +157,6 @@ function ForgotPassword() {
                   <span>{email}</span>
                 </div>
 
-                {/* Secondary hint + inline retry action */}
                 <p className={styles.successHint}>
                   Didn't receive it? Check your spam folder or{' '}
                   <button
@@ -184,11 +191,37 @@ function ForgotPassword() {
                   </div>
                 )}
 
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Email</label>
-                  <div className={styles.inputContainer}>
-                    <img src={emailIcon} alt="" className={styles.inputIcon} />
+                <div className={`${styles.formGroup} ${errors.email ? styles.formGroupError : ''}`}>
+                  <label className={styles.label} htmlFor="fp-email">Email</label>
+                  <div className={`${styles.inputContainer} ${errors.email ? styles.inputContainerError : ''}`}>
+                    {/*
+                     * CHANGE FP-1 — Email icon: <img src={emailIcon}> → inline <svg>
+                     *
+                     * What:  PNG <img> replaced with an inline SVG using the
+                     *        MaterialCommunityIcons `email-outline` path — the exact
+                     *        same path used in login.jsx (CHANGE 1a) and
+                     *        register.jsx (CHANGE R-1).
+                     *
+                     * Why:   This component uses login.module.css which already has
+                     *        the updated .inputIcon rules: 20px size, color-based
+                     *        transitions, focus (cyan) and error (red) states.
+                     *        The PNG <img> with filter:invert() was bypassing all of
+                     *        that. Inline SVG with fill="currentColor" inherits
+                     *        `color` from .inputIcon and its state rules directly.
+                     */}
+                    <svg
+                      className={styles.inputIcon}
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z"
+                      />
+                    </svg>
                     <input
+                      id="fp-email"
                       type="email"
                       name="email"
                       value={email}
@@ -198,9 +231,18 @@ function ForgotPassword() {
                       disabled={loading}
                       autoComplete="email"
                       autoFocus
+                      aria-invalid={!!errors.email}
+                      aria-describedby={errors.email ? 'fp-email-error' : undefined}
                     />
                   </div>
-                  {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+                  {errors.email && (
+                    <span id="fp-email-error" className={styles.errorText} role="alert">
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                      </svg>
+                      {errors.email}
+                    </span>
+                  )}
                 </div>
 
                 <button type="submit" disabled={loading} className={styles.submitButton}>

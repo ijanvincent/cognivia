@@ -349,16 +349,9 @@
   gap: 14px;
 }
 
-/*
-  KEY FIX: formGroup always reserves space for the error text via
-  padding-bottom. This means the card height is identical whether
-  errors are shown or not — zero layout shift on validation.
-  position: relative is required so the absolute errorText anchors here.
-*/
 .formGroup {
   position: relative;
   padding-bottom: 18px;
-  /* No margin-bottom — padding-bottom provides the spacing AND the error slot */
 }
 
 .formGroup:focus-within .label {
@@ -404,22 +397,61 @@
   left: 0%;
 }
 
+/*
+ * FIX — .inputIcon: aligned to login.module.css
+ *
+ * What:
+ *   Changed: width/height 15px → 20px  (was rendering icons at 15px; login uses 20px)
+ *   Removed: object-fit: contain        (img-only property, no effect on SVG)
+ *   Removed: filter: invert(1)          (PNG hack, no effect on SVG fill="currentColor")
+ *   Added:   color: rgba(255,255,255,0.3) (SVG currentColor source)
+ *   Changed: transition — removed `filter`, added `color`
+ *
+ * Why:
+ *   The JSX was updated last session: <img> → inline <svg fill="currentColor">.
+ *   The CSS was not updated, so icons still rendered at 15px and the old
+ *   filter/object-fit rules were being applied to SVG elements (where they
+ *   are inert). This is the exact same fix applied to login.module.css
+ *   as CHANGE 2. Now both files are identical in icon behaviour and size.
+ */
 .inputIcon {
   position: absolute;
   left: 14px;
-  width: 15px;
-  height: 15px;
-  object-fit: contain;
+  width: 20px;
+  height: 20px;
   opacity: 0.3;
   z-index: 2;
-  filter: invert(1);
+  color: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
-  transition: opacity 0.25s ease, filter 0.25s ease;
+  transition: opacity 0.25s ease, color 0.25s ease;
 }
 
+/*
+ * FIX — focus state: filter hue-rotate → color: var(--accent-cyan)
+ *
+ * What:  Replaced `filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg)`
+ *        with `color: var(--accent-cyan); opacity: 1`.
+ * Why:   SVG fill="currentColor" responds to CSS `color` directly.
+ *        The old filter was an approximation producing slightly off-hue cyan.
+ *        Now uses the exact design token, identical to login.module.css CHANGE 2b.
+ */
 .inputContainer:focus-within .inputIcon {
+  opacity: 1;
+  color: var(--accent-cyan);
+}
+
+/*
+ * FIX — error state: added missing rule (did not exist in register.module.css)
+ *
+ * What:  Added `.inputContainerError .inputIcon` rule — sets color to --error.
+ * Why:   login.module.css has CHANGE 2c for this state; register had no
+ *        equivalent, so icons stayed dim-white even when a field had an error.
+ *        This brings register in full parity with login for all three icon states:
+ *        default (dim white) → focus (cyan) → error (red).
+ */
+.inputContainerError .inputIcon {
+  color: var(--error);
   opacity: 0.85;
-  filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg);
 }
 
 .inputField {
@@ -505,12 +537,6 @@
 .eyeButton:hover .eyeIcon { opacity: 0.9; }
 
 /* ── Error text ─────────────────────────────────────────────────────────── */
-/*
-  KEY FIX: position:absolute removes errorText from document flow entirely.
-  It sits inside the padding-bottom slot reserved by .formGroup.
-  Siblings (confirm password, consent, submit) are NEVER pushed down.
-  fadeIn animation replaces abrupt pop-in.
-*/
 .errorText {
   position: absolute;
   bottom: 2px;
@@ -533,11 +559,6 @@
 }
 
 /* ── Shake animation ────────────────────────────────────────────────────── */
-/*
-  Industry-standard validation feedback (Stripe, Linear, Notion).
-  Applied to .inputContainer on failed submit — zero layout shift,
-  pure transform so it never affects surrounding elements.
-*/
 @keyframes shake {
   0%,  100% { transform: translateX(0); }
   15%       { transform: translateX(-6px); }
@@ -607,7 +628,6 @@
   transition: color 0.3s ease;
 }
 
-/* Flush continuous segmented bar */
 .strengthBars {
   display: flex;
   gap: 0;
