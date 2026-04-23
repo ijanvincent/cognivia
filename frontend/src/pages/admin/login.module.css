@@ -151,17 +151,6 @@
 
 
 /* ─── MAIN CONTENT ──────────────────────────────────── */
-/*
-  CHANGE 1:
-  - align-items: flex-start → align-items: center
-    Vertically centers both hero and card in the flex row,
-    matching the user login layout exactly.
-  - padding: 24px 48px 80px 80px → 40px 48px 40px 80px
-    Symmetric vertical padding removes the top-heavy offset.
-  - min-height: calc(100vh - 65px) REMOVED
-    This forced the container taller than the viewport, which
-    pushed the flex children toward the top instead of center.
-*/
 .mainContent {
   position: relative;
   z-index: 5;
@@ -178,13 +167,6 @@
 
 
 /* ─── HERO SECTION ──────────────────────────────────── */
-/*
-  CHANGE 2:
-  - align-self: center REMOVED
-    The parent now handles centering via align-items: center.
-    An explicit align-self here is redundant and can cause
-    independent drift when hero and card differ in height.
-*/
 .heroSection {
   flex: 1;
   animation: fadeLeft 0.7s ease-out 0.1s both;
@@ -272,29 +254,32 @@
   max-width: 360px;
 }
 
+/*
+ * CHANGE AL-CSS-2 — .noticeIcon: PNG <img> rules → inline SVG rules
+ *
+ * What:
+ *   Removed: object-fit: contain
+ *   Removed: filter: invert(1) sepia(1) saturate(3) hue-rotate(5deg)
+ *   Removed: opacity: 0.85  (now handled by parent .securityNotice color)
+ *   Changed: width/height 14px → 20px  (matches .inputIcon standard size)
+ *   Added:   color: inherit  (SVG uses currentColor; inherits amber from parent)
+ *   Added:   flex-shrink: 0
+ *
+ * Why:
+ *   Element is now an SVG with fill="currentColor", not an <img>.
+ *   It inherits the amber colour directly from .securityNotice's `color`
+ *   property via currentColor — no filter approximation needed.
+ *   object-fit has no effect on SVG. The filter chain is eliminated entirely.
+ */
 .noticeIcon {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
-  filter: invert(1) sepia(1) saturate(3) hue-rotate(5deg);
-  opacity: 0.85;
+  color: inherit;
 }
 
 
 /* ─── CARD WRAPPER ──────────────────────────────────── */
-/*
-  CHANGE 3:
-  - align-self: flex-start REMOVED
-    Was pinning the card to the top edge of the flex container
-    independent of align-items on the parent.
-  - position: sticky REMOVED
-  - top: 24px REMOVED
-    sticky + flex-start is the primary cause of the card
-    sitting at top-right while the hero drifted separately.
-    The admin form is short enough that sticky adds no value,
-    and it directly broke the vertical centering.
-*/
 .cardWrapper {
   flex-shrink: 0;
   width: 420px;
@@ -348,18 +333,13 @@
 }
 
 
-/* ─── STATUS SLOT ───────────────────────────────────────────────────────────
-   Fixed-height container. Badge and error alert swap inside it via CSS
-   opacity + translateY transitions. Card height NEVER changes.
-   Zero layout shift. Stripe / Linear / Vercel auth-form pattern.
-──────────────────────────────────────────────────────────────────────────── */
+/* ─── STATUS SLOT ───────────────────────────────────── */
 .statusSlot {
   position: relative;
   height: var(--status-slot-height);
   margin-bottom: 20px;
 }
 
-/* ── Security badge — visible by default ── */
 .securityBadge {
   position: absolute;
   inset: 0;
@@ -401,7 +381,6 @@
   50%       { opacity: 0.5; transform: scale(0.85); }
 }
 
-/* ── Error alert — hidden by default, fades in on error ── */
 .errorAlert {
   position: absolute;
   inset: 0;
@@ -504,21 +483,58 @@
 
 
 /* ─── INPUT ICON ────────────────────────────────────── */
+/*
+ * CHANGE AL-CSS-1 — .inputIcon: PNG <img> rules → inline SVG rules
+ *
+ * What:
+ *   Changed: width/height 15px → 20px  (matches login.module.css standard)
+ *   Removed: object-fit: contain        (img-only property, no effect on SVG)
+ *   Removed: filter: invert(1)          (PNG hack, no effect on SVG currentColor)
+ *   Added:   color: rgba(255,255,255,0.3) (SVG currentColor source)
+ *   Changed: transition — removed `filter`, added `color`
+ *
+ * Why:
+ *   AdminLogin.jsx now uses inline <svg fill="currentColor"> for email and
+ *   lock icons. The old 15px / filter rules were PNG-specific and are
+ *   inert on SVG. Bringing this to 20px + color-based transitions gives
+ *   pixel-identical behaviour to login.module.css CHANGE 2.
+ */
 .inputIcon {
   position: absolute;
   left: 14px;
-  width: 15px; height: 15px;
-  object-fit: contain;
+  width: 20px;
+  height: 20px;
   opacity: 0.3;
   z-index: 2;
-  filter: invert(1);
+  color: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
-  transition: opacity 0.25s ease, filter 0.25s ease;
+  transition: opacity 0.25s ease, color 0.25s ease;
 }
 
+/*
+ * CHANGE AL-CSS-1b — focus state: filter chain → color: var(--accent-cyan)
+ *
+ * What:  Replaced filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg)
+ *        with color: var(--accent-cyan); opacity: 1.
+ * Why:   SVG fill="currentColor" responds to CSS `color` directly.
+ *        Exact design token. Identical to login.module.css CHANGE 2b.
+ */
 .inputContainer:focus-within .inputIcon {
+  opacity: 1;
+  color: var(--accent-cyan);
+}
+
+/*
+ * CHANGE AL-CSS-1c — error state: new rule added
+ *
+ * What:  Added .inputContainerError .inputIcon with color: var(--error).
+ * Why:   Was absent in the original. Without it icons stay dim-white
+ *        even when a field has a validation error. Matches login.module.css
+ *        CHANGE 2c and the fix applied to register.module.css.
+ */
+.inputContainerError .inputIcon {
+  color: var(--error);
   opacity: 0.85;
-  filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg);
 }
 
 
@@ -585,7 +601,8 @@
 .eyeButton:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .eyeIcon {
-  width: 15px; height: 15px;
+  width: 15px;
+  height: 15px;
   object-fit: contain;
   opacity: 0.4;
   filter: invert(1);
@@ -655,7 +672,8 @@
 }
 
 .buttonSpinner {
-  width: 15px; height: 15px;
+  width: 15px;
+  height: 15px;
   border: 2px solid rgba(7, 8, 15, 0.3);
   border-top: 2px solid #07080f;
   border-radius: 50%;
@@ -693,16 +711,6 @@
 
 
 /* ─── RESPONSIVE ─────────────────────────────────────── */
-/*
-  CHANGE 4:
-  - .mainContent align-items: flex-start → align-items: center
-    Keeps the centered layout consistent at tablet widths.
-  - .heroSection align-self: auto REMOVED
-    No longer needed since align-self was removed from the
-    desktop rule above. Leaving it here would be a stale override.
-  - .cardWrapper position: static kept — correctly overrides
-    the (now-removed) sticky from the desktop rule. Safe to keep.
-*/
 @media (max-width: 900px) {
   .topBarNav { display: none; }
 
@@ -712,9 +720,7 @@
     align-items: center;
   }
 
-  .heroSection {
-    max-width: 100%;
-  }
+  .heroSection { max-width: 100%; }
 
   .cardWrapper {
     position: static;
@@ -725,7 +731,7 @@
 }
 
 @media (max-width: 540px) {
-  .topBar { padding: 16px 24px; }
+  .topBar    { padding: 16px 24px; }
   .loginCard { padding: 28px 22px; }
   .heroTitle { font-size: 32px; letter-spacing: -1px; }
   .inputField { font-size: 16px; }
