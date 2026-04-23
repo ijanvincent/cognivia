@@ -272,7 +272,7 @@ function UserRegister() {
                     onChange={handleChange}
                     onFocus={() => setShowStrengthMeter(false)}
                     className={`${styles.inputField} ${errors.username ? styles.inputError : ''}`}
-                    placeholder="Profile Name (e.g. Jan)"
+                    placeholder="Profile Name"
                     disabled={loading}
                     autoComplete="name"
                     autoFocus
