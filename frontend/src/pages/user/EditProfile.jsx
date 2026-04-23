@@ -177,13 +177,26 @@ function EditProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    /*
+     * LABEL & VALIDATION FIX
+     *
+     * What: Regex updated from ^[a-zA-Z0-9_]+$ to ^[a-zA-Z0-9_ ]+$ (spaces
+     *       now permitted). All three validation error messages updated from
+     *       "Username" to "Profile name".
+     *
+     * Why:  Registration uses ^[a-zA-Z0-9_ ]+$ and labels the field "Profile
+     *       Name". The old regex rejected any name containing a space,
+     *       causing a client-side validation error for values that were
+     *       accepted at registration. Messages must be consistent across
+     *       both flows.
+     */
     const newErrors = {};
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = 'Profile name is required';
     } else if (formData.username.trim().length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
-      newErrors.username = 'Only letters, numbers and underscores allowed';
+      newErrors.username = 'Profile name must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_ ]+$/.test(formData.username.trim())) {
+      newErrors.username = 'Only letters, numbers, underscores and spaces allowed';
     }
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
@@ -244,7 +257,12 @@ function EditProfile() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h1 className={styles.cardTitle}>Edit Profile</h1>
-          <p className={styles.cardSubtitle}>Update your username and profile picture</p>
+          {/*
+           * LABEL FIX
+           * What: Subtitle updated from "username" to "profile name".
+           * Why:  Copy must be consistent with the field label below.
+           */}
+          <p className={styles.cardSubtitle}>Update your profile name and profile picture</p>
         </div>
 
         {success && (
@@ -287,8 +305,16 @@ function EditProfile() {
             {errors.avatar && <span className={styles.errorText}>{errors.avatar}</span>}
           </div>
 
+          {/*
+           * LABEL & PLACEHOLDER FIX
+           * What: Label changed from "Username" to "Profile Name".
+           *       Placeholder changed from "Enter username" to
+           *       "Enter your profile name".
+           * Why:  Must match registration field label and terminology
+           *       consistently across the entire auth flow.
+           */}
           <div className={styles.formGroup}>
-            <label className={styles.label}>Username</label>
+            <label className={styles.label}>Profile Name</label>
             <div className={styles.inputContainer}>
               <span className={styles.inputIcon}><IconUser /></span>
               <input
@@ -297,7 +323,7 @@ function EditProfile() {
                 value={formData.username}
                 onChange={handleChange}
                 className={`${styles.inputField} ${errors.username ? styles.inputError : ''}`}
-                placeholder="Enter username"
+                placeholder="Enter your profile name"
                 disabled={loading || success}
                 autoComplete="username"
               />
