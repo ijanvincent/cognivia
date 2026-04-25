@@ -4,31 +4,78 @@ import api from '../../services/api.js';
 import styles from './login.module.css';
 /*
  * CHANGE B — Removed: import lockIcon from './../../assets/lock.png'
- *
- * What:  PNG asset import deleted.
- * Why:   The lock icon is now rendered as an inline SVG element using the
- *        same MaterialCommunityIcons path (lock-outline) that login.js uses.
- *        Inline SVG inherits `color: currentColor` — no filter hacks needed,
- *        colour transitions are clean on both desktop and mobile, and the
- *        shape is pixel-identical to the React Native icon. The ::before
- *        pseudo-element in login.module.css handles icon rendering on mobile
- *        (display: none !important on .inputIcon), so the SVG is desktop-only
- *        and the CSS mobile layer takes over below 768px — consistent with
- *        how login.js handles this.
+ * (carried forward from previous session — rationale unchanged)
  */
 import eyeIcon  from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CHANGE RP-2 — Password strength system
+//
+// What:  Replaced getPasswordStrength() (single-bar, 3-level) with the
+//        PASSWORD_RULES + STRENGTH_LEVELS system from register.js.
+//
+// Why:   register.js is the design standard for password strength in this
+//        codebase. Using the same rules and levels across register and reset
+//        gives users a consistent, familiar experience. The checklist (rules)
+//        view is more instructional than a plain bar — it tells the user
+//        exactly what to fix, which is especially important on a reset screen
+//        where they are creating a replacement credential.
+//
+//        PASSWORD_RULES: 5 rules — lowercase, uppercase, number, special,
+//        length ≥ 8. Matches RegisterScreen.js (mobile) and register.js (web).
+//        STRENGTH_LEVELS: maps score 0–5 → label + colour + bar count.
+//        getStrength(): pure function, no side effects.
+// ─────────────────────────────────────────────────────────────────────────────
+const PASSWORD_RULES = [
+  { key: 'lowercase', label: 'At least one lowercase letter',   test: (p) => /[a-z]/.test(p) },
+  { key: 'uppercase', label: 'At least one uppercase letter',   test: (p) => /[A-Z]/.test(p) },
+  { key: 'number',    label: 'At least one number',             test: (p) => /[0-9]/.test(p) },
+  { key: 'special',   label: 'At least one special character',  test: (p) => /[^a-zA-Z0-9]/.test(p) },
+  { key: 'length',    label: 'Minimum 8 characters',            test: (p) => p.length >= 8 },
+];
+
+const STRENGTH_LEVELS = [
+  null,
+  { label: 'Too Weak',    color: '#ef4444', bars: 1 },
+  { label: 'Weak',        color: '#f97316', bars: 2 },
+  { label: 'Fair',        color: '#eab308', bars: 3 },
+  { label: 'Strong',      color: '#22c55e', bars: 3 },
+  { label: 'Very Strong', color: '#10b981', bars: 4 },
+];
+
+const getStrength = (password) => {
+  if (!password) return { score: 0, label: '', color: '', bars: 0 };
+  const score = PASSWORD_RULES.filter((r) => r.test(password)).length;
+  return { score, ...(STRENGTH_LEVELS[score] ?? STRENGTH_LEVELS[1]) };
+};
+
 function ResetPassword() {
-  const [searchParams]                        = useSearchParams();
-  const navigate                              = useNavigate();
-  const [formData, setFormData]               = useState({ password: '', password_confirmation: '' });
-  const [errors,   setErrors]                 = useState({});
-  const [loading,  setLoading]                = useState(false);
-  const [success,  setSuccess]                = useState(false);
+  const [searchParams]          = useSearchParams();
+  const navigate                = useNavigate();
+  const [formData, setFormData] = useState({ password: '', password_confirmation: '' });
+  const [errors,   setErrors]   = useState({});
+  const [loading,  setLoading]  = useState(false);
+  const [success,  setSuccess]  = useState(false);
   const [showPassword,        setShowPassword]        = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [tokenValid, setTokenValid]           = useState(true);
+  const [tokenValid,    setTokenValid]    = useState(true);
+
+  /*
+   * CHANGE RP-2 (state) — showPasswordMeter + passwordFocused
+   *
+   * What:  Two new boolean state variables.
+   *        showPasswordMeter: true while password field is focused AND
+   *        password.length > 0. Controls meter visibility on mobile.
+   *        passwordFocused: tracks focus to suppress meter on confirm-field focus
+   *        (mirrors register.js showStrengthMeter + confirmFocused logic).
+   *
+   * Why:   The meter must appear as the user types — not permanently —
+   *        so it doesn't clutter the screen before interaction begins.
+   *        Hiding on confirm-field focus prevents the meter from showing
+   *        beneath a field the user is no longer editing.
+   */
+  const [showPasswordMeter, setShowPasswordMeter] = useState(false);
 
   const token = searchParams.get('token');
   const email = searchParams.get('email');
@@ -62,6 +109,7 @@ function ResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setShowPasswordMeter(false);
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setLoading(true);
@@ -88,19 +136,8 @@ function ResetPassword() {
     }
   };
 
-  const getPasswordStrength = (password) => {
-    if (!password) return null;
-    const hasLower   = /[a-z]/.test(password);
-    const hasUpper   = /[A-Z]/.test(password);
-    const hasNumber  = /\d/.test(password);
-    const hasSpecial = /[^a-zA-Z0-9]/.test(password);
-    const score = [hasLower, hasUpper, hasNumber, hasSpecial, password.length >= 12].filter(Boolean).length;
-    if (score <= 2) return { label: 'Weak',   color: '#f87171', width: '33%'  };
-    if (score <= 3) return { label: 'Fair',   color: '#fbbf24', width: '66%'  };
-    return           { label: 'Strong', color: '#34d399', width: '100%' };
-  };
-
-  const strength = getPasswordStrength(formData.password);
+  const strength             = getStrength(formData.password);
+  const meterVisible         = showPasswordMeter && formData.password.length > 0;
 
   return (
     <div className={styles.pageContainer}>
@@ -110,10 +147,7 @@ function ResetPassword() {
         </div>
       )}
 
-      {/* ── Desktop wave background ────────────────────────────────────────────
-          Unchanged from original. CSS hides this at ≤768px via:
-          .bgCanvas { display: none } inside @media (max-width: 768px).
-      ─────────────────────────────────────────────────────────────────────── */}
+      {/* ── Desktop wave background — hidden at ≤768px via CSS ──────────── */}
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -140,17 +174,7 @@ function ResetPassword() {
         </svg>
       </div>
 
-      {/* ── CHANGE A — Mobile wave background ─────────────────────────────────
-          What:  Added bgCanvasMobile div with its SVG wave paths.
-          Why:   ResetPassword.jsx had no mobile wave background. login.js has
-                 this exact block, and login.module.css already defines all the
-                 styles for .bgCanvasMobile (hidden by default, shown via CSS
-                 at ≤768px as position:absolute, inset:0). Since both files
-                 share login.module.css, no CSS changes are needed — only this
-                 DOM node was missing. The wave parameters (viewBox, path
-                 shapes, colour values, stroke widths) are identical to
-                 login.js to guarantee visual consistency across auth screens.
-      ─────────────────────────────────────────────────────────────────────── */}
+      {/* ── Mobile wave background — shown only at ≤768px via CSS ────────── */}
       <div className={styles.bgCanvasMobile} aria-hidden="true">
         <svg
           style={{ width: '100%', height: '100%' }}
@@ -159,30 +183,21 @@ function ResetPassword() {
           xmlns="http://www.w3.org/2000/svg"
         >
           {[...Array(8)].map((_, i) => (
-            <path
-              key={`m-pink-${i}`}
+            <path key={`m-pink-${i}`}
               d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
-              fill="none"
-              stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
-              strokeWidth="1.2"
+              fill="none" stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`} strokeWidth="1.2"
             />
           ))}
           {[...Array(8)].map((_, i) => (
-            <path
-              key={`m-cyan-${i}`}
+            <path key={`m-cyan-${i}`}
               d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
-              fill="none"
-              stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
-              strokeWidth="1.2"
+              fill="none" stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`} strokeWidth="1.2"
             />
           ))}
           {[...Array(5)].map((_, i) => (
-            <path
-              key={`m-purple-${i}`}
+            <path key={`m-purple-${i}`}
               d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
-              fill="none"
-              stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
-              strokeWidth="1"
+              fill="none" stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`} strokeWidth="1"
             />
           ))}
         </svg>
@@ -230,12 +245,35 @@ function ResetPassword() {
                   <h2 className={styles.cardTitle}>
                     {success ? 'Password reset!' : !tokenValid ? 'Invalid link' : 'Set new password'}
                   </h2>
+
+                  {/*
+                   * CHANGE RP-1 — cardSubtitle copy, all three states.
+                   *
+                   * What:
+                   *   Form state:    '' (empty string)
+                   *              →   'Choose a strong password to secure your account'
+                   *   Success state: 'Redirecting you to login...'
+                   *              →   'Your account is secured — redirecting you to sign in'
+                   *   Invalid state: unchanged — already descriptive enough.
+                   *
+                   * Why:
+                   *   On mobile (≤768px), .cardTitle is hidden (display: none in
+                   *   login.module.css). .cardSubtitle is the sole contextual
+                   *   anchor visible to the user. An empty string for the form
+                   *   state left mobile users with no instruction at all.
+                   *   The new copies are self-contained and action-oriented —
+                   *   the user knows what screen they are on and what is expected
+                   *   of them without needing to read the title above.
+                   *   Register uses: "Fill in your details to get started"
+                   *   Login uses:    "Sign in to your account to continue"
+                   *   Same register: instructional, present-tense, professional.
+                   */}
                   <p className={styles.cardSubtitle}>
                     {success
-                      ? 'Redirecting you to login...'
+                      ? 'Your account is secured — redirecting you to sign in'
                       : !tokenValid
                       ? 'This reset link is invalid or missing'
-                      : ''}
+                      : 'Choose a strong password to secure your account'}
                   </p>
                 </div>
               </div>
@@ -244,7 +282,7 @@ function ResetPassword() {
             {/* ── Invalid token state ─────────────────────────────────────── */}
             {!tokenValid && (
               <div>
-                <div className={styles.errorAlert}>
+                <div className={styles.errorAlert} role="alert">
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
                   </svg>
@@ -294,49 +332,37 @@ function ResetPassword() {
                 <div className={styles.formGroup}>
                   <label className={styles.label} htmlFor="password">New Password</label>
                   <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
-
-                    {/*
-                     * CHANGE B — inputIcon: <img src={lockIcon}> → inline SVG
-                     *
-                     * What:  Replaced <img src={lockIcon} alt="" className={styles.inputIcon} />
-                     *        with the identical inline <svg> lock path used in login.js.
-                     *
-                     * Why:   On desktop, .inputIcon renders the icon with
-                     *        color: currentColor — zero filter chains. On mobile
-                     *        (≤768px), login.module.css applies
-                     *        `.inputIcon { display: none !important }` and the
-                     *        ::before pseudo-element on .inputContainer renders
-                     *        the icon via a data URI instead, at exactly the
-                     *        same position and size. This matches the exact
-                     *        behaviour already established in login.js.
-                     *        The <img> approach required filter: invert(1)
-                     *        and object-fit — neither applies to SVG.
-                     */}
-                    <svg
-                      className={styles.inputIcon}
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
-                      />
+                    <svg className={styles.inputIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path fill="currentColor" d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
                     </svg>
-
                     <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
+                      /*
+                       * CHANGE RP-2 (focus/blur) — onFocus/onBlur on password input.
+                       *
+                       * What:  onFocus → setShowPasswordMeter(true)
+                       *        onBlur  → setShowPasswordMeter(false)
+                       *
+                       * Why:   The mobile strength meter is shown while the user
+                       *        is actively typing in the password field. Hiding on
+                       *        blur prevents the meter from persisting after the
+                       *        user moves to the confirm field or taps elsewhere.
+                       *        This is the same pattern used in register.js
+                       *        (onFocus: setShowStrengthMeter(true), onBlur: false).
+                       */
+                      onFocus={() => setShowPasswordMeter(true)}
+                      onBlur={() => setShowPasswordMeter(false)}
                       className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
                       placeholder="Enter new password"
                       disabled={loading}
                       autoComplete="new-password"
                       autoFocus
                       aria-invalid={!!errors.password}
-                      aria-describedby={errors.password ? 'password-error' : undefined}
+                      aria-describedby="rp-password-strength"
                     />
                     <button
                       type="button"
@@ -350,12 +376,28 @@ function ResetPassword() {
                     </button>
                   </div>
 
-                  {formData.password && strength && (
+                  {/*
+                   * CHANGE RP-2 — Desktop strength bar (kept, desktop-only).
+                   *
+                   * What:  Retained the existing strengthWrapper bar but now uses
+                   *        STRENGTH_LEVELS colour + label from the new system.
+                   *        strength.score === 0 means no password yet — bar hidden.
+                   *
+                   * Why:   The desktop layout has space for the compact bar.
+                   *        login.module.css already has .strengthWrapper /
+                   *        .strengthBar / .strengthFill / .strengthLabel rules.
+                   *        These are hidden on mobile via the new CSS (see
+                   *        login.module.css CHANGE RP-3).
+                   */}
+                  {formData.password && strength.score > 0 && (
                     <div className={styles.strengthWrapper}>
                       <div className={styles.strengthBar}>
                         <div
                           className={styles.strengthFill}
-                          style={{ width: strength.width, background: strength.color }}
+                          style={{
+                            width:      `${(strength.bars / 4) * 100}%`,
+                            background: strength.color,
+                          }}
                         />
                       </div>
                       <span className={styles.strengthLabel} style={{ color: strength.color }}>
@@ -364,15 +406,6 @@ function ResetPassword() {
                     </div>
                   )}
 
-                  {/*
-                   * CHANGE C — aria-describedby wired to errorText span id.
-                   * What:  Added id="password-error" to the error span and
-                   *        aria-describedby on the input (see above).
-                   * Why:   Screen readers must announce field-level errors.
-                   *        login.js uses this pattern on all inputs.
-                   *        The strength bar does not interfere — aria-describedby
-                   *        points to the error span only when errors exist.
-                   */}
                   {errors.password && (
                     <span id="password-error" className={styles.errorText} role="alert">
                       <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
@@ -383,36 +416,98 @@ function ResetPassword() {
                   )}
                 </div>
 
+                {/*
+                 * CHANGE RP-2 — Mobile strength meter block.
+                 *
+                 * What:  New DOM block placed between password formGroup and
+                 *        confirm password formGroup. Always rendered — CSS
+                 *        controls visibility:
+                 *          default (desktop): display: none  (.mobileStrengthMeter)
+                 *          ≤768px active:     display: block (.mobileStrengthMeterVisible)
+                 *
+                 * Why:   Placed outside formGroup so it does not conflict with
+                 *        the formGroup's padding-bottom: 22px (error-reserved
+                 *        space). The meter has its own vertical spacing via
+                 *        margin in the CSS. The block contains:
+                 *          1. Strength header (label + colour-coded level name)
+                 *          2. 4-segment bar (same as register.js strengthBars)
+                 *          3. Rules checklist (5 rules — met = green check,
+                 *             unmet = dim dot, identical to RegisterScreen.js)
+                 *
+                 * Accessibility: aria-live="polite" announces strength changes.
+                 *        aria-label provides a text summary. id="rp-password-strength"
+                 *        is referenced by aria-describedby on the password input.
+                 */}
+                <div
+                  id="rp-password-strength"
+                  className={`${styles.mobileStrengthMeter} ${meterVisible ? styles.mobileStrengthMeterVisible : ''}`}
+                  aria-live="polite"
+                  aria-label={`Password strength: ${strength.label || 'none'}`}
+                >
+                  {/* Header row — "Strength" label + level name */}
+                  <div className={styles.mobileStrengthHeader}>
+                    <span className={styles.mobileStrengthTitle}>Strength</span>
+                    {strength.score > 0 && (
+                      <span className={styles.mobileStrengthLabel} style={{ color: strength.color }}>
+                        {strength.label}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 4-segment bar */}
+                  <div className={styles.mobileStrengthBars}>
+                    {[0, 1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className={styles.mobileStrengthBar}
+                        style={i < strength.bars ? { background: strength.color } : undefined}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Rules checklist — mirrors RegisterScreen.js PASSWORD_RULES */}
+                  <div className={styles.mobileReqContainer}>
+                    {PASSWORD_RULES.map((rule) => {
+                      const met = rule.test(formData.password);
+                      return (
+                        <div key={rule.key} className={styles.mobileReqRow}>
+                          {met ? (
+                            /* Check circle — same colour as RN RegisterScreen (#22c55e) */
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="#22c55e" aria-hidden="true">
+                              <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clipRule="evenodd"/>
+                            </svg>
+                          ) : (
+                            <div className={styles.mobileReqDot} aria-hidden="true" />
+                          )}
+                          <span className={`${styles.mobileReqText} ${met ? styles.mobileReqTextMet : ''}`}>
+                            {rule.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* ── Confirm password field ───────────────────────────────── */}
                 <div className={styles.formGroup}>
                   <label className={styles.label} htmlFor="password_confirmation">Confirm Password</label>
                   <div className={`${styles.inputContainer} ${errors.password_confirmation ? styles.inputContainerError : ''}`}>
-
-                    {/*
-                     * CHANGE B (second instance) — same rationale as above.
-                     * Both password fields share the lock icon path. On mobile,
-                     * formGroup:nth-of-type(2) ::before targets this field with
-                     * the lock data URI already defined in login.module.css.
-                     */}
-                    <svg
-                      className={styles.inputIcon}
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
-                      />
+                    <svg className={styles.inputIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path fill="currentColor" d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
                     </svg>
-
                     <input
                       id="password_confirmation"
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="password_confirmation"
                       value={formData.password_confirmation}
                       onChange={handleChange}
-                      className={`${styles.inputField} ${errors.password_confirmation ? styles.inputContainerError : ''}`}
+                      /*
+                       * CHANGE RP-2 — onFocus hides the meter when confirm field
+                       * is focused. Mirrors register.js behaviour where confirming
+                       * password dismisses the strength guide.
+                       */
+                      onFocus={() => setShowPasswordMeter(false)}
+                      className={`${styles.inputField} ${errors.password_confirmation ? styles.inputError : ''}`}
                       placeholder="Confirm new password"
                       disabled={loading}
                       autoComplete="new-password"
@@ -431,9 +526,6 @@ function ResetPassword() {
                     </button>
                   </div>
 
-                  {/*
-                   * CHANGE C (second instance) — aria-describedby on confirm field.
-                   */}
                   {errors.password_confirmation && (
                     <span id="password-confirm-error" className={styles.errorText} role="alert">
                       <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
