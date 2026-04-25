@@ -65,9 +65,6 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MOBILE WAVE BACKGROUND
-   Default: hidden. Shown only inside @media (max-width: 768px).
-   On mobile it becomes position:absolute (not fixed) so it sits INSIDE
-   pageContainer — exactly mirroring RN's absoluteFill WaveBackground.
 ───────────────────────────────────────────────────────────────────────────── */
 .bgCanvasMobile {
   display: none;
@@ -595,22 +592,33 @@
 }
 
 /*
- * CHANGE 2 — .inputIcon: PNG <img> rules → inline SVG rules
+ * FIX RP-ICON5 — .inputIcon baseline color
  *
- * What:
- *   Removed: object-fit, filter: invert(1)
- *   Changed: width/height 15px → 20px (matches RN icon size={20} and mobile ::before)
- *   Added:   color: rgba(255,255,255,0.3) (SVG uses currentColor via fill="currentColor")
- *   Changed: transition — removed `filter`, added `color`
+ * WHAT changed: Added `color: rgba(255, 255, 255, 0.9)` to the baseline rule.
  *
- * Why:
- *   The element is now an SVG not an <img>. SVG rendered with fill="currentColor"
- *   inherits the CSS `color` property — no filter chains needed.
- *   `object-fit` is an img-only property and has no effect on SVG.
- *   `filter: invert(1)` was required to turn the white PNG visible on dark bg;
- *   SVG inherits color directly so the invert is eliminated.
- *   20px matches MaterialCommunityIcons size={20} used in RN FloatingLabelInput
- *   and is consistent with the mobile ::before icon size already in this file.
+ * WHY this fixes the disappearing icon:
+ *   SVG uses fill="currentColor" — the rendered fill colour is whatever the
+ *   CSS `color` property resolves to on this element. The original rule had
+ *   NO `color` declaration, so `color` was inherited from ancestor elements.
+ *   The ancestor chain resolves to --text-primary (#f1f5f9) on .pageContainer,
+ *   which should have worked — but in practice two things broke it:
+ *
+ *   1. The previously appended patch block at the bottom of this file declared
+ *      a second `.inputIcon` rule. Because CSS Modules hashes class names at
+ *      build time, any `.inputIcon` rule written in a SEPARATE file (the patch
+ *      file) gets a DIFFERENT hash and never matches the JSX's styles.inputIcon.
+ *      That patch was therefore completely dead and never applied.
+ *
+ *   2. The opacity:0.3 on the unfocused icon, combined with a parent element
+ *      that may have had color forced to something dark in certain render
+ *      paths (particularly on mobile where background is transparent), caused
+ *      the icon to render as invisible even though opacity alone should have
+ *      shown a faint white shape.
+ *
+ *   The correct fix is one line in THIS file: explicit `color` on .inputIcon.
+ *   opacity:0.3 continues to provide the dim appearance. On focus,
+ *   .inputContainer:focus-within .inputIcon overrides both to full cyan.
+ *   No !important required — specificity is handled by selector weight.
  */
 .inputIcon {
   position: absolute;
@@ -619,33 +627,18 @@
   height: 20px;
   opacity: 0.3;
   z-index: 2;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9); /* ← THE FIX: explicit white baseline */
   flex-shrink: 0;
   transition: opacity 0.25s ease, color 0.25s ease;
 }
 
-/*
- * CHANGE 2b — focus state: filter hue-rotate → color: var(--accent-cyan)
- *
- * What:  Removed filter chain. Set color to --accent-cyan, opacity to 1.
- * Why:   SVG fill="currentColor" responds to CSS `color` directly.
- *        The old filter: invert(1) sepia(1) saturate(3) hue-rotate(160deg)
- *        was an approximation that produced slightly off-hue cyan.
- *        The new rule uses the exact design token, identical to the RN
- *        focused icon colour: `isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'`.
- */
+/* Cyan + full opacity on focus — container scopes this to only the active field */
 .inputContainer:focus-within .inputIcon {
   opacity: 1;
   color: var(--accent-cyan);
 }
 
-/*
- * CHANGE 2c — error state: filter chain → color: var(--error)
- *
- * What:  Removed filter chain. Set color to --error.
- * Why:   Same rationale as focus state above. The old filter produced
- *        an approximation of red; this uses the exact --error token.
- */
+/* Error state icon */
 .inputContainerError .inputIcon {
   color: var(--error);
   opacity: 0.85;
@@ -1019,6 +1012,51 @@
   text-transform: uppercase;
   transition: color 0.3s ease;
   min-width: 44px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PASSWORD STRENGTH CHECKLIST
+   Used by ResetPassword.jsx and any future password-setting form.
+   Values translated 1:1 from RegisterScreen.js RN StyleSheet.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* Wrapper — RN: paddingVertical:10, paddingHorizontal:4, marginBottom:14, gap:6 */
+.reqContainer {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+  padding:        10px 4px;
+  margin-bottom:  14px;
+}
+
+/* Row — RN: flexDirection:'row', alignItems:'center', gap:8 */
+.reqRow {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+/* Unmet dot — RN: width:16, height:16, borderRadius:8, bg:rgba(255,255,255,0.25) */
+.reqDot {
+  width:            16px;
+  height:           16px;
+  border-radius:    50%;
+  background-color: rgba(255, 255, 255, 0.25);
+  flex-shrink:      0;
+}
+
+/* Label unmet — RN: fontSize:13, color:rgba(255,255,255,0.45), fontWeight:400 */
+.reqText {
+  font-size:   13px;
+  color:       rgba(255, 255, 255, 0.45);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Label met — RN: color:'#22c55e', fontWeight:'500' */
+.reqTextMet {
+  color:       #22c55e;
+  font-weight: 500;
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
