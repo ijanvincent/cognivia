@@ -57,6 +57,10 @@ function ForgotPassword() {
         </div>
       )}
 
+      {/* ── Desktop wave background ────────────────────────────────────────────
+          CSS hides this at ≤768px via .bgCanvas { display: none } inside
+          @media (max-width: 768px) in login.module.css. Unchanged from original.
+      ─────────────────────────────────────────────────────────────────────── */}
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -83,6 +87,58 @@ function ForgotPassword() {
         </svg>
       </div>
 
+      {/* ── CHANGE A — Mobile wave background ─────────────────────────────────
+          What:  Added bgCanvasMobile div with its three wave sets
+                 (pink × 8, cyan × 8, purple × 5).
+          Why:   ForgotPassword.jsx had the desktop bgCanvas but no mobile
+                 counterpart — identical to the gap that existed in
+                 ResetPassword.jsx (already corrected). login.module.css is
+                 already imported, so all .bgCanvasMobile styles are present:
+                 hidden by default, revealed as position:absolute; inset:0 at
+                 ≤768px with a ::after scrim overlay. Zero CSS changes required.
+                 Wave parameters (viewBox, path shapes, colour values, stroke
+                 widths) are byte-identical to login.js and the corrected
+                 ResetPassword.jsx — guaranteeing visual consistency across
+                 all three auth screens on mobile.
+      ─────────────────────────────────────────────────────────────────────── */}
+      <div className={styles.bgCanvasMobile} aria-hidden="true">
+        <svg
+          style={{ width: '100%', height: '100%' }}
+          viewBox="0 0 400 800"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {[...Array(8)].map((_, i) => (
+            <path
+              key={`m-pink-${i}`}
+              d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
+              fill="none"
+              stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
+              strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(8)].map((_, i) => (
+            <path
+              key={`m-cyan-${i}`}
+              d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
+              fill="none"
+              stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
+              strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(5)].map((_, i) => (
+            <path
+              key={`m-purple-${i}`}
+              d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
+              fill="none"
+              stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
+              strokeWidth="1"
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -95,8 +151,10 @@ function ForgotPassword() {
         </nav>
       </div>
 
+      {/* ── Main content ──────────────────────────────────────────────────── */}
       <div className={styles.mainContent}>
 
+        {/* ── Hero section ────────────────────────────────────────────────── */}
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -114,6 +172,7 @@ function ForgotPassword() {
           </div>
         </div>
 
+        {/* ── Card ────────────────────────────────────────────────────────── */}
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -125,7 +184,7 @@ function ForgotPassword() {
                   <p className={styles.cardSubtitle}>
                     {submitted
                       ? 'A reset link has been sent if that email is registered'
-                      : 'Provide your email and we\'ll send a reset link'}
+                      : "Provide your email and we'll send a reset link"}
                   </p>
                 </div>
               </div>
@@ -181,10 +240,10 @@ function ForgotPassword() {
             ) : (
 
               /* ── Request form ───────────────────────────────────────────── */
-              <form onSubmit={handleSubmit} className={styles.form}>
+              <form onSubmit={handleSubmit} className={styles.form} noValidate>
                 {errors.general && (
-                  <div className={styles.errorAlert}>
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                  <div className={styles.errorAlert} role="alert">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
                     </svg>
                     <span>{errors.general}</span>
@@ -247,7 +306,7 @@ function ForgotPassword() {
 
                 <button type="submit" disabled={loading} className={styles.submitButton}>
                   {loading ? (
-                    <><div className={styles.buttonSpinner}></div>Sending Link...</>
+                    <><div className={styles.buttonSpinner} aria-hidden="true"></div>Sending Link...</>
                   ) : (
                     'Send Reset Link'
                   )}

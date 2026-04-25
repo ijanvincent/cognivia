@@ -235,7 +235,7 @@ function ResetPassword() {
                       ? 'Redirecting you to login...'
                       : !tokenValid
                       ? 'This reset link is invalid or missing'
-                      : 'Reset Password'}
+                      : ''}
                   </p>
                 </div>
               </div>
