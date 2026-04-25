@@ -2,8 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 import styles from './login.module.css';
-import lockIcon from './../../assets/lock.png';
-import eyeIcon from './../../assets/eye.png';
+/*
+ * CHANGE B — Removed: import lockIcon from './../../assets/lock.png'
+ *
+ * What:  PNG asset import deleted.
+ * Why:   The lock icon is now rendered as an inline SVG element using the
+ *        same MaterialCommunityIcons path (lock-outline) that login.js uses.
+ *        Inline SVG inherits `color: currentColor` — no filter hacks needed,
+ *        colour transitions are clean on both desktop and mobile, and the
+ *        shape is pixel-identical to the React Native icon. The ::before
+ *        pseudo-element in login.module.css handles icon rendering on mobile
+ *        (display: none !important on .inputIcon), so the SVG is desktop-only
+ *        and the CSS mobile layer takes over below 768px — consistent with
+ *        how login.js handles this.
+ */
+import eyeIcon  from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
 
 function ResetPassword() {
@@ -21,7 +34,6 @@ function ResetPassword() {
   const email = searchParams.get('email');
 
   useEffect(() => {
-
     if (!token || !email) setTokenValid(false);
   }, [token, email]);
 
@@ -62,7 +74,6 @@ function ResetPassword() {
         password_confirmation: formData.password_confirmation,
       });
       setSuccess(true);
-
       setTimeout(() => navigate('/login'), 3000);
     } catch (error) {
       if (error.response?.data?.errors?.token) {
@@ -76,7 +87,6 @@ function ResetPassword() {
       setLoading(false);
     }
   };
-
 
   const getPasswordStrength = (password) => {
     if (!password) return null;
@@ -100,7 +110,10 @@ function ResetPassword() {
         </div>
       )}
 
-
+      {/* ── Desktop wave background ────────────────────────────────────────────
+          Unchanged from original. CSS hides this at ≤768px via:
+          .bgCanvas { display: none } inside @media (max-width: 768px).
+      ─────────────────────────────────────────────────────────────────────── */}
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -127,7 +140,55 @@ function ResetPassword() {
         </svg>
       </div>
 
+      {/* ── CHANGE A — Mobile wave background ─────────────────────────────────
+          What:  Added bgCanvasMobile div with its SVG wave paths.
+          Why:   ResetPassword.jsx had no mobile wave background. login.js has
+                 this exact block, and login.module.css already defines all the
+                 styles for .bgCanvasMobile (hidden by default, shown via CSS
+                 at ≤768px as position:absolute, inset:0). Since both files
+                 share login.module.css, no CSS changes are needed — only this
+                 DOM node was missing. The wave parameters (viewBox, path
+                 shapes, colour values, stroke widths) are identical to
+                 login.js to guarantee visual consistency across auth screens.
+      ─────────────────────────────────────────────────────────────────────── */}
+      <div className={styles.bgCanvasMobile} aria-hidden="true">
+        <svg
+          style={{ width: '100%', height: '100%' }}
+          viewBox="0 0 400 800"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {[...Array(8)].map((_, i) => (
+            <path
+              key={`m-pink-${i}`}
+              d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
+              fill="none"
+              stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
+              strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(8)].map((_, i) => (
+            <path
+              key={`m-cyan-${i}`}
+              d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
+              fill="none"
+              stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
+              strokeWidth="1.2"
+            />
+          ))}
+          {[...Array(5)].map((_, i) => (
+            <path
+              key={`m-purple-${i}`}
+              d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
+              fill="none"
+              stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
+              strokeWidth="1"
+            />
+          ))}
+        </svg>
+      </div>
 
+      {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -140,10 +201,10 @@ function ResetPassword() {
         </nav>
       </div>
 
-   
+      {/* ── Main content ──────────────────────────────────────────────────── */}
       <div className={styles.mainContent}>
 
-     
+        {/* ── Hero section ────────────────────────────────────────────────── */}
         <div className={styles.heroSection}>
           <div className={styles.heroDivider}></div>
           <h1 className={styles.heroTitle}>
@@ -160,7 +221,7 @@ function ResetPassword() {
           </div>
         </div>
 
-     
+        {/* ── Card ────────────────────────────────────────────────────────── */}
         <div className={styles.cardWrapper}>
           <div className={styles.loginCard}>
             <div className={styles.cardHeader}>
@@ -174,17 +235,17 @@ function ResetPassword() {
                       ? 'Redirecting you to login...'
                       : !tokenValid
                       ? 'This reset link is invalid or missing'
-                      : 'Reset CogniVia Password'}
+                      : 'Reset Password'}
                   </p>
                 </div>
               </div>
             </div>
 
-      
+            {/* ── Invalid token state ─────────────────────────────────────── */}
             {!tokenValid && (
               <div>
                 <div className={styles.errorAlert}>
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
                   </svg>
                   <span>This reset link is invalid or has expired. Please request a new one.</span>
@@ -197,11 +258,11 @@ function ResetPassword() {
               </div>
             )}
 
-         
+            {/* ── Success state ───────────────────────────────────────────── */}
             {success && (
               <div>
                 <div className={styles.successAlert}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clipRule="evenodd"/>
                   </svg>
                   <span>
@@ -217,24 +278,54 @@ function ResetPassword() {
               </div>
             )}
 
-  
+            {/* ── Reset form ──────────────────────────────────────────────── */}
             {tokenValid && !success && (
-              <form onSubmit={handleSubmit} className={styles.form}>
+              <form onSubmit={handleSubmit} className={styles.form} noValidate>
                 {errors.general && (
-                  <div className={styles.errorAlert}>
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                  <div className={styles.errorAlert} role="alert">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
                     </svg>
                     <span>{errors.general}</span>
                   </div>
                 )}
 
-            
+                {/* ── New password field ───────────────────────────────────── */}
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>New Password</label>
-                  <div className={styles.inputContainer}>
-                    <img src={lockIcon} alt="" className={styles.inputIcon} />
+                  <label className={styles.label} htmlFor="password">New Password</label>
+                  <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
+
+                    {/*
+                     * CHANGE B — inputIcon: <img src={lockIcon}> → inline SVG
+                     *
+                     * What:  Replaced <img src={lockIcon} alt="" className={styles.inputIcon} />
+                     *        with the identical inline <svg> lock path used in login.js.
+                     *
+                     * Why:   On desktop, .inputIcon renders the icon with
+                     *        color: currentColor — zero filter chains. On mobile
+                     *        (≤768px), login.module.css applies
+                     *        `.inputIcon { display: none !important }` and the
+                     *        ::before pseudo-element on .inputContainer renders
+                     *        the icon via a data URI instead, at exactly the
+                     *        same position and size. This matches the exact
+                     *        behaviour already established in login.js.
+                     *        The <img> approach required filter: invert(1)
+                     *        and object-fit — neither applies to SVG.
+                     */}
+                    <svg
+                      className={styles.inputIcon}
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
+                      />
+                    </svg>
+
                     <input
+                      id="password"
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={formData.password}
@@ -244,6 +335,8 @@ function ResetPassword() {
                       disabled={loading}
                       autoComplete="new-password"
                       autoFocus
+                      aria-invalid={!!errors.password}
+                      aria-describedby={errors.password ? 'password-error' : undefined}
                     />
                     <button
                       type="button"
@@ -251,38 +344,80 @@ function ResetPassword() {
                       className={styles.eyeButton}
                       tabIndex={-1}
                       disabled={loading}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      <img src={showPassword ? hideIcon : eyeIcon} alt={showPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
+                      <img src={showPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
                     </button>
                   </div>
-       
+
                   {formData.password && strength && (
                     <div className={styles.strengthWrapper}>
                       <div className={styles.strengthBar}>
-                        <div className={styles.strengthFill} style={{ width: strength.width, background: strength.color }} />
+                        <div
+                          className={styles.strengthFill}
+                          style={{ width: strength.width, background: strength.color }}
+                        />
                       </div>
                       <span className={styles.strengthLabel} style={{ color: strength.color }}>
                         {strength.label}
                       </span>
                     </div>
                   )}
-                  {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+
+                  {/*
+                   * CHANGE C — aria-describedby wired to errorText span id.
+                   * What:  Added id="password-error" to the error span and
+                   *        aria-describedby on the input (see above).
+                   * Why:   Screen readers must announce field-level errors.
+                   *        login.js uses this pattern on all inputs.
+                   *        The strength bar does not interfere — aria-describedby
+                   *        points to the error span only when errors exist.
+                   */}
+                  {errors.password && (
+                    <span id="password-error" className={styles.errorText} role="alert">
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                      </svg>
+                      {errors.password}
+                    </span>
+                  )}
                 </div>
 
-             
+                {/* ── Confirm password field ───────────────────────────────── */}
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>Confirm Password</label>
-                  <div className={styles.inputContainer}>
-                    <img src={lockIcon} alt="" className={styles.inputIcon} />
+                  <label className={styles.label} htmlFor="password_confirmation">Confirm Password</label>
+                  <div className={`${styles.inputContainer} ${errors.password_confirmation ? styles.inputContainerError : ''}`}>
+
+                    {/*
+                     * CHANGE B (second instance) — same rationale as above.
+                     * Both password fields share the lock icon path. On mobile,
+                     * formGroup:nth-of-type(2) ::before targets this field with
+                     * the lock data URI already defined in login.module.css.
+                     */}
+                    <svg
+                      className={styles.inputIcon}
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
+                      />
+                    </svg>
+
                     <input
+                      id="password_confirmation"
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="password_confirmation"
                       value={formData.password_confirmation}
                       onChange={handleChange}
-                      className={`${styles.inputField} ${errors.password_confirmation ? styles.inputError : ''}`}
+                      className={`${styles.inputField} ${errors.password_confirmation ? styles.inputContainerError : ''}`}
                       placeholder="Confirm new password"
                       disabled={loading}
                       autoComplete="new-password"
+                      aria-invalid={!!errors.password_confirmation}
+                      aria-describedby={errors.password_confirmation ? 'password-confirm-error' : undefined}
                     />
                     <button
                       type="button"
@@ -290,17 +425,29 @@ function ResetPassword() {
                       className={styles.eyeButton}
                       tabIndex={-1}
                       disabled={loading}
+                      aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                     >
-                      <img src={showConfirmPassword ? hideIcon : eyeIcon} alt={showConfirmPassword ? 'hide' : 'show'} className={styles.eyeIcon} />
+                      <img src={showConfirmPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
                     </button>
                   </div>
-                  {errors.password_confirmation && <span className={styles.errorText}>{errors.password_confirmation}</span>}
+
+                  {/*
+                   * CHANGE C (second instance) — aria-describedby on confirm field.
+                   */}
+                  {errors.password_confirmation && (
+                    <span id="password-confirm-error" className={styles.errorText} role="alert">
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                      </svg>
+                      {errors.password_confirmation}
+                    </span>
+                  )}
                 </div>
 
-       
+                {/* ── Submit ──────────────────────────────────────────────── */}
                 <button type="submit" disabled={loading} className={styles.submitButton}>
                   {loading ? (
-                    <><div className={styles.buttonSpinner}></div>Resetting...</>
+                    <><div className={styles.buttonSpinner} aria-hidden="true"></div>Resetting...</>
                   ) : (
                     'Reset Password'
                   )}
