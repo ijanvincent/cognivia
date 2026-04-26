@@ -1448,21 +1448,31 @@
   .toastScrim { animation: none !important; }
   .toast      { animation: none !important; }
 }
+
 /* ═════════════════════════════════════════════════════════════════════════════
    RESET PASSWORD — Mobile icon overrides
-   Replaces the nth-of-type(1) envelope SVG with the correct lock variants.
-   Targets the stable modifier classes applied in ResetPassword.jsx CHANGE 2.
-   Specificity: 0,2,0 — same as nth-of-type rules; wins by source order.
+   CHANGE CSS-ICON-ADD-1
+   WHAT: Added this entire block. Two rules targeting the stable modifier
+         classes (.formGroupPassword, .formGroupConfirmPassword) applied in
+         ResetPassword.jsx (CHANGE 2). These override the base nth-of-type
+         rules which are correct for Login but wrong for ResetPassword (which
+         has no email field — nth-of-type(1) would render an envelope icon).
+   WHY:  Modifier-class selectors are DOM-position-immune. nth-of-type breaks
+         whenever sibling elements (e.g. reqContainer, error spans) shift
+         field positions. Using explicit classes is the correct pattern.
+         Specificity 0,2,0 — same as nth-of-type rules; wins by source order
+         since this block is appended after them. !important added to
+         background-image to guarantee cascade victory unconditionally.
 ═════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* New Password field — lock-outline (matches desktop inline SVG exactly) */
+  /* New Password — lock-outline (matches desktop inline SVG path exactly) */
   .formGroupPassword .inputContainer::before {
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%2C17C10.89%2C17%2010%2C16.1%2010%2C15C10%2C13.89%2010.89%2C13%2012%2C13C13.1%2C13%2014%2C13.89%2014%2C15C14%2C16.1%2013.1%2C17%2012%2C17M18%2C20V10H6V20H18M18%2C8C19.1%2C8%2020%2C8.89%2020%2C10V20C20%2C21.1%2019.1%2C22%2018%2C22H6C4.89%2C22%204%2C21.1%204%2C20V10C4%2C8.89%204.89%2C8%206%2C8H7V6A5%2C5%200%200%2C1%2012%2C1A5%2C5%200%200%2C1%2017%2C6V8H18M12%2C3A3%2C3%200%200%2C0%209%2C6V8H15V6A3%2C3%200%200%2C0%2012%2C3Z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%2C17C10.89%2C17%2010%2C16.1%2010%2C15C10%2C13.89%2010.89%2C13%2012%2C13C13.1%2C13%2014%2C13.89%2014%2C15C14%2C16.1%2013.1%2C17%2012%2C17M18%2C20V10H6V20H18M18%2C8C19.1%2C8%2020%2C8.89%2020%2C10V20C20%2C21.1%2019.1%2C22%2018%2C22H6C4.89%2C22%204%2C21.1%204%2C20V10C4%2C8.89%204.89%2C8%206%2C8H7V6A5%2C5%200%200%2C1%2012%2C1A5%2C5%200%200%2C1%2017%2C6V8H18M12%2C3A3%2C3%200%200%2C0%209%2C6V8H15V6A3%2C3%200%200%2C0%2012%2C3Z'/%3E%3C/svg%3E") !important;
   }
 
-  /* Confirm Password field — lock-check-outline (matches desktop inline SVG exactly) */
+  /* Confirm Password — lock-check-outline (icon shown in screenshot for confirm field) */
   .formGroupConfirmPassword .inputContainer::before {
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%2C17C10.89%2C17%2010%2C16.1%2010%2C15C10%2C13.89%2010.89%2C13%2012%2C13C13.1%2C13%2014%2C13.89%2014%2C15C14%2C16.1%2013.1%2C17%2012%2C17M21.2%2C10.2L19.8%2C8.8L14%2C14.6L11.5%2C12.1L10.1%2C13.5L14%2C17.4L21.2%2C10.2M18%2C8C19.1%2C8%2020%2C8.89%2020%2C10L19.9%2C10.5C19.94%2C10.5%2019.97%2C10.5%2020%2C10.5V20C20%2C21.1%2019.1%2C22%2018%2C22H6C4.89%2C22%204%2C21.1%204%2C20V10C4%2C8.89%204.89%2C8%206%2C8H7V6A5%2C5%200%200%2C1%2012%2C1A5%2C5%200%200%2C1%2017%2C6V8H18M12%2C3A3%2C3%200%200%2C0%209%2C6V8H15V6A3%2C3%200%200%2C0%2012%2C3Z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%2C17C10.89%2C17%2010%2C16.1%2010%2C15C10%2C13.89%2010.89%2C13%2012%2C13C13.1%2C13%2014%2C13.89%2014%2C15C14%2C16.1%2013.1%2C17%2012%2C17M21.2%2C10.2L19.8%2C8.8L14%2C14.6L11.5%2C12.1L10.1%2C13.5L14%2C17.4L21.2%2C10.2M18%2C8C19.1%2C8%2020%2C8.89%2020%2C10L19.9%2C10.5C19.94%2C10.5%2019.97%2C10.5%2020%2C10.5V20C20%2C21.1%2019.1%2C22%2018%2C22H6C4.89%2C22%204%2C21.1%204%2C20V10C4%2C8.89%204.89%2C8%206%2C8H7V6A5%2C5%200%200%2C1%2012%2C1A5%2C5%200%200%2C1%2017%2C6V8H18M12%2C3A3%2C3%200%200%2C0%209%2C6V8H15V6A3%2C3%200%200%2C0%2012%2C3Z'/%3E%3C/svg%3E") !important;
   }
 }
