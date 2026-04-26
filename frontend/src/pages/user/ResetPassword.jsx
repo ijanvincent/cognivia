@@ -32,18 +32,7 @@ function ResetPassword() {
   const [tokenValid,          setTokenValid]          = useState(true);
 
   /*
-   * CHANGE RP-X1 (state) — Replaced showPasswordMeter (floating popup bool)
-   * with passwordFocused + confirmFocused + strengthDismissed.
-   *
-   * What:  Three booleans matching RegisterScreen.js state exactly:
-   *   passwordFocused:    true while New Password input has focus.
-   *   confirmFocused:     true while Confirm Password input has focus.
-   *   strengthDismissed:  true after submit or after confirm field is focused —
-   *                       collapses the checklist so it doesn't persist.
-   *
-   * Why:   RegisterScreen.js controls checklist visibility with:
-   *        `!strengthDismissed && (passwordFocused || (!confirmFocused && password.length > 0))`
-   *        This replicates that logic exactly on web.
+   * CHANGE RP-X1 (state) — Three booleans matching RegisterScreen.js state exactly.
    */
   const [passwordFocused,   setPasswordFocused]   = useState(false);
   const [confirmFocused,    setConfirmFocused]     = useState(false);
@@ -109,12 +98,7 @@ function ResetPassword() {
   };
 
   /*
-   * CHANGE RP-X1 (visibility) — showPasswordRules logic from RegisterScreen.js.
-   *
-   * What:  `showPasswordRules` replaces `meterVisible`.
-   *        Formula: !strengthDismissed && (passwordFocused || (!confirmFocused && password.length > 0))
-   *
-   * Why:   Mirrors RegisterScreen.js line-for-line.
+   * CHANGE RP-X1 (visibility) — showPasswordRules mirrors RegisterScreen.js exactly.
    */
   const showPasswordRules = !strengthDismissed &&
     (passwordFocused || (!confirmFocused && formData.password.length > 0));
@@ -225,7 +209,7 @@ function ResetPassword() {
                       ? 'Your account is secured — redirecting you to sign in'
                       : !tokenValid
                       ? 'This reset link is invalid or missing'
-                      : 'Set password to secure your account'}
+                      : 'Secure your account with a new password'}
                   </p>
                 </div>
               </div>
@@ -280,29 +264,13 @@ function ResetPassword() {
                   </div>
                 )}
 
-                {/* ── New password field ───────────────────────────────────── */}
+                {/* ── New Password field ───────────────────────────────────── */}
                 {/*
-                 * CHANGE RP-ICON1 — Replaced envelope SVG path with lock SVG path.
-                 *
-                 * What:  The inputIcon SVG previously rendered an email/envelope shape
-                 *        (M 12,17... lock body path was correct but the OUTER path was
-                 *        a copy-paste of the email icon path from another field).
-                 *        Replaced with the correct lock SVG matching the mobile
-                 *        `lock-outline` MaterialCommunityIcon from RegisterScreen.js.
-                 *
-                 * Why:   Image 2 shows an envelope icon on the password field — a
-                 *        clear regression. The mobile reference (Image 1) shows a
-                 *        lock icon. Both password fields (New + Confirm) must use
-                 *        the lock SVG to match the mobile design standard.
-                 *
-                 * CHANGE RP-ICON2 — Added data-focused attribute + CSS focus-within
-                 *        to drive cyan icon color on focus, matching mobile behavior:
-                 *        `isFocused ? COLORS.cyan : 'rgba(255,255,255,0.3)'`
-                 *        The inputContainer already receives :focus-within styles for
-                 *        the border. The inputIcon color is now also driven by it.
+                 * CHANGE 2 — Added styles.formGroupPassword to className.
+                 * This is the CSS hook for the lock ::before icon on mobile.
+                 * Replaces the previous nth-of-type(1) selector which was
+                 * fragile when sibling elements were inserted between fields.
                  */}
-                {/* RP-MOBILE-ICON1/2: formGroupPassword targets ::before lock icon on mobile,
-                    bypassing nth-of-type which is fragile when reqContainer sits between fields */}
                 <div className={`${styles.formGroup} ${styles.formGroupPassword}`}>
                   <label className={styles.label} htmlFor="password">New Password</label>
                   <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
@@ -358,29 +326,7 @@ function ResetPassword() {
                   )}
                 </div>
 
-                {/*
-                 * CHANGE RP-X1 — Replaced floating popup meter with inline
-                 *                requirement checklist from RegisterScreen.js.
-                 *
-                 * What:  New <div id="rp-password-rules"> block rendered inline
-                 *        between the password and confirm fields. Contains 5 rule
-                 *        rows — each with a green check-circle SVG (met) or a grey
-                 *        dot (unmet), matching RegisterScreen.js PasswordRequirement.
-                 *        Visibility controlled by showPasswordRules boolean.
-                 *
-                 * Why:   RegisterScreen.js (mobile) is the design standard for
-                 *        password strength UX in this codebase. The inline checklist
-                 *        pushes content down intentionally, giving the user a clear
-                 *        instructional block while typing.
-                 *
-                 * CHANGE RP-CSS1 — reqContainer / reqRow / reqDot / reqText /
-                 *        reqTextMet CSS classes must exist in login.module.css.
-                 *        See login.module.css.patch for the additions required.
-                 *
-                 * Visibility logic (mirrors RegisterScreen.js exactly):
-                 *   showPasswordRules = !strengthDismissed &&
-                 *     (passwordFocused || (!confirmFocused && password.length > 0))
-                 */}
+                {/* ── Password strength checklist ──────────────────────────── */}
                 {showPasswordRules && (
                   <div
                     id="rp-password-rules"
@@ -393,12 +339,10 @@ function ResetPassword() {
                       return (
                         <div key={rule.key} className={styles.reqRow}>
                           {met ? (
-                            /* Green check-circle — #22c55e matches RegisterScreen.js exactly */
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="#22c55e" aria-hidden="true" focusable="false">
                               <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clipRule="evenodd"/>
                             </svg>
                           ) : (
-                            /* Grey dot — matches RegisterScreen.js reqDot style */
                             <div className={styles.reqDot} aria-hidden="true" />
                           )}
                           <span className={`${styles.reqText} ${met ? styles.reqTextMet : ''}`}>
@@ -410,19 +354,24 @@ function ResetPassword() {
                   </div>
                 )}
 
-                {/* ── Confirm password ────────────────────────────────────── */}
+                {/* ── Confirm Password field ───────────────────────────────── */}
                 {/*
-                 * CHANGE RP-ICON3 — Replaced envelope SVG path with lock-check SVG
-                 *        on the Confirm Password field.
+                 * CHANGE 2 — Added styles.formGroupConfirmPassword to className.
                  *
-                 * What:  Same envelope icon regression as the New Password field.
-                 *        Confirm field uses a lock-check SVG to differentiate it
-                 *        subtly from the primary lock, matching mobile's
-                 *        `lock-check-outline` icon on the confirm input.
+                 * WHAT: New modifier class applied alongside styles.formGroup on
+                 *       the Confirm Password field's wrapper div.
                  *
-                 * Why:   Visual consistency with mobile reference (Image 1).
+                 * WHY: The previous mobile icon system used nth-of-type(2) to
+                 *      target this field's ::before pseudo-element. The reqContainer
+                 *      div sits between the two formGroup divs in the DOM whenever
+                 *      the password checklist is visible, shifting this element to
+                 *      nth-of-type(3) — breaking the selector. The lock-check SVG
+                 *      background-image was therefore never applied, causing the icon
+                 *      to be invisible at all times (not just unfocused).
+                 *      The explicit .formGroupConfirmPassword class is immune to any
+                 *      DOM siblings inserted between the two fields.
                  */}
-                <div className={styles.formGroup}>
+                <div className={`${styles.formGroup} ${styles.formGroupConfirmPassword}`}>
                   <label className={styles.label} htmlFor="password_confirmation">Confirm Password</label>
                   <div className={`${styles.inputContainer} ${errors.password_confirmation ? styles.inputContainerError : ''}`}>
 
