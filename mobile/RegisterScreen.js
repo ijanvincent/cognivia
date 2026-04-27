@@ -406,7 +406,7 @@ const RegisterScreen = () => {
                 password:              formData.password,
                 password_confirmation: formData.password_confirmation,
             });
-            navigation.replace('Login');
+            navigation.replace('RegisterSuccess');
         } catch (error) {
             if (error.response?.data?.errors) {
                 const firstKey   = Object.keys(error.response.data.errors)[0];
