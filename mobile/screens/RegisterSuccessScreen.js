@@ -3,6 +3,7 @@ import {
     View,
     Text,
     TouchableOpacity,
+    ScrollView,
     StyleSheet,
     Animated,
     Dimensions,
@@ -11,13 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '../components/AuthInput';
 
-const { height: H, width: W } = Dimensions.get('window');
+const { height: H } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WaveBackground — same wave system used in LoginScreen / RegisterScreen
+// WaveBackground — identical to LoginScreen / RegisterScreen
 // ─────────────────────────────────────────────────────────────────────────────
 const WaveBackground = () => (
     <Svg
@@ -56,78 +57,69 @@ const WaveBackground = () => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SuccessIcon — animated checkmark ring using Cognivia's cyan accent
-// ─────────────────────────────────────────────────────────────────────────────
-const SuccessIcon = ({ scaleAnim, opacityAnim }) => (
-    <Animated.View
-        style={[
-            styles.iconContainer,
-            {
-                transform: [{ scale: scaleAnim }],
-                opacity:   opacityAnim,
-            },
-        ]}
-    >
-        {/* Outer glow ring */}
-        <Svg width={120} height={120} style={StyleSheet.absoluteFill}>
-            <Defs>
-                <RadialGradient id="glow" cx="50%" cy="50%" r="50%">
-                    <Stop offset="0%"   stopColor={COLORS.cyan} stopOpacity="0.25" />
-                    <Stop offset="100%" stopColor={COLORS.cyan} stopOpacity="0"    />
-                </RadialGradient>
-            </Defs>
-            <Circle cx={60} cy={60} r={58} fill="url(#glow)" />
-        </Svg>
-
-        {/* Icon shell — mirrors the dark aesthetic of the app */}
-        <View style={styles.iconShell}>
-            <MaterialCommunityIcons
-                name="check-circle-outline"
-                size={52}
-                color={COLORS.cyan}
-            />
-        </View>
-    </Animated.View>
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
 // RegisterSuccessScreen
+//
+// Visual layout:
+//
+//   ┌────────────────────────────────────────────────┐
+//   │         [icon badge — green check]             │
+//   │   "Account ready — start learning now."        │
+//   │         [account pill]                         │
+//   │         [hint text]                            │
+//   │  ─────────────── divider ───────────────────── │
+//   │     Already have an account?  [Sign in]        │
+//   └────────────────────────────────────────────────┘
+//   [      Continue to Sign In button      ]
+//
 // ─────────────────────────────────────────────────────────────────────────────
 const RegisterSuccessScreen = () => {
     const navigation = useNavigation();
 
-    // Animation refs — scale + fade in on mount
-    const scaleAnim   = useRef(new Animated.Value(0.6)).current;
-    const opacityAnim = useRef(new Animated.Value(0)).current;
+    /*
+     * Animation architecture:
+     *   - cardAnim  : drives the entrance wrapper (opacity + translateX).
+     *                 Applied to an Animated.View that wraps scroll content,
+     *                 NOT the ScrollView itself — avoids Android transform
+     *                 jank when useNativeDriver is true on a scroll container.
+     *   - iconAnim  : spring scale for the badge — delayed 160ms so the
+     *                 card settles before the icon pops in.
+     *   - contentAnim: staggered fade + translateY for body copy and button.
+     */
+    const cardAnim    = useRef(new Animated.Value(0)).current;
+    const iconAnim    = useRef(new Animated.Value(0.5)).current;
     const contentAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        // Icon entrance
-        Animated.spring(scaleAnim, {
+        Animated.timing(cardAnim, {
             toValue:         1,
-            tension:         60,
-            friction:        7,
+            duration:        380,
             useNativeDriver: true,
         }).start();
 
-        Animated.timing(opacityAnim, {
+        Animated.spring(iconAnim, {
             toValue:         1,
-            duration:        400,
+            tension:         65,
+            friction:        8,
+            delay:           160,
             useNativeDriver: true,
         }).start();
 
-        // Content stagger — slightly delayed so icon lands first
         Animated.timing(contentAnim, {
             toValue:         1,
-            duration:        420,
-            delay:           180,
+            duration:        340,
+            delay:           220,
             useNativeDriver: true,
         }).start();
     }, []);
 
+    const cardTranslateX = cardAnim.interpolate({
+        inputRange:  [0, 1],
+        outputRange: [24, 0],       // mirrors web @keyframes fadeRight
+    });
+
     const contentTranslateY = contentAnim.interpolate({
         inputRange:  [0, 1],
-        outputRange: [18, 0],
+        outputRange: [10, 0],
     });
 
     return (
@@ -137,75 +129,140 @@ const RegisterSuccessScreen = () => {
             <WaveBackground />
             <View style={styles.overlay} />
 
-            <View style={styles.container}>
-
-                {/* ── Success icon ────────────────────────────────────────── */}
-                <SuccessIcon scaleAnim={scaleAnim} opacityAnim={opacityAnim} />
-
-                {/* ── Copy ────────────────────────────────────────────────── */}
+            {/*
+             * ScrollView is plain — no animation props on it.
+             * The Animated.View inside carries the entrance transform so
+             * useNativeDriver never touches the scroll container.
+             */}
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
                 <Animated.View
                     style={[
-                        styles.copyBlock,
+                        styles.entranceWrapper,
                         {
-                            opacity:   contentAnim,
-                            transform: [{ translateY: contentTranslateY }],
+                            opacity:   cardAnim,
+                            transform: [{ translateX: cardTranslateX }],
                         },
                     ]}
                 >
-                    <Text style={styles.heading}>Account Created!</Text>
-                    <Text style={styles.subheading}>
-                        Welcome to Cognivia. You're all set{'\n'}to start learning smarter.
-                    </Text>
-                </Animated.View>
-
-                {/* ── Divider detail ──────────────────────────────────────── */}
-                <Animated.View
-                    style={[styles.divider, { opacity: contentAnim }]}
-                >
-                    <View style={styles.dividerLine} />
-                    <MaterialCommunityIcons
-                        name="star-four-points-outline"
-                        size={14}
-                        color="rgba(255,255,255,0.2)"
-                        style={styles.dividerIcon}
-                    />
-                    <View style={styles.dividerLine} />
-                </Animated.View>
-
-                {/* ── CTA button ──────────────────────────────────────────── */}
-                <Animated.View
-                    style={[
-                        styles.btnWrapper,
-                        {
-                            opacity:   contentAnim,
-                            transform: [{ translateY: contentTranslateY }],
-                        },
-                    ]}
-                >
-                    <TouchableOpacity
-                        onPress={() => navigation.replace('Login')}
-                        activeOpacity={0.88}
-                        style={styles.btnSignIn}
+                    {/* ════════════════════════════════════════════════════
+                        SUCCESS BODY
+                    ════════════════════════════════════════════════════ */}
+                    <Animated.View
+                        style={[
+                            styles.successBody,
+                            {
+                                opacity:   contentAnim,
+                                transform: [{ translateY: contentTranslateY }],
+                            },
+                        ]}
                     >
-                        <Text style={styles.btnSignInText}>Continue to Sign In</Text>
-                        <MaterialCommunityIcons
-                            name="arrow-right"
-                            size={18}
-                            color="#07080f"
-                            style={styles.btnArrow}
-                        />
-                    </TouchableOpacity>
-                </Animated.View>
+                        {/* ── Icon badge ─────────────────────────────── */}
+                        <Animated.View
+                            style={[
+                                styles.iconBadge,
+                                { transform: [{ scale: iconAnim }] },
+                            ]}
+                            accessible
+                            accessibilityRole="image"
+                            accessibilityLabel="Success checkmark"
+                        >
+                            <MaterialCommunityIcons
+                                name="check"
+                                size={26}
+                                color="#34d399"
+                            />
+                        </Animated.View>
 
-            </View>
+                        {/* ── Bold confirmation ──────────────────────── */}
+                        <Text style={styles.successMessage}>
+                            Account ready — start learning now.
+                        </Text>
+
+                        {/* ── Account pill ───────────────────────────── */}
+                        <View style={styles.accountPill}>
+                            <MaterialCommunityIcons
+                                name="account-check-outline"
+                                size={13}
+                                color="rgba(255,255,255,0.45)"
+                                style={styles.pillIcon}
+                            />
+                            <Text style={styles.accountPillText} numberOfLines={1}>
+                                Your account has been created
+                            </Text>
+                        </View>
+
+                        {/* ── Hint ───────────────────────────────────── */}
+                        <Text style={styles.hintText}>
+                            You can now sign in with your email and password to
+                            access your dashboard and start studying.
+                        </Text>
+
+                        {/* ── Divider ────────────────────────────────── */}
+                        <View style={styles.divider} />
+
+                        {/* ── Inline sign-in row ─────────────────────── */}
+                        <View style={styles.signInRow}>
+                            <Text style={styles.signInPrompt}>
+                                Already have an account?{' '}
+                            </Text>
+                            <TouchableOpacity
+                                onPress={() => navigation.replace('Login')}
+                                activeOpacity={0.75}
+                                accessible
+                                accessibilityRole="link"
+                                accessibilityLabel="Sign in to your existing account"
+                            >
+                                <Text style={styles.signInLink}>Sign in</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                    </Animated.View>
+
+                    {/* ════════════════════════════════════════════════════
+                        CTA BUTTON
+                        Mirrors the white .submitButton used across all
+                        mobile auth screens (Login, Register, ResetPassword)
+                    ════════════════════════════════════════════════════ */}
+                    <Animated.View
+                        style={[
+                            styles.btnWrapper,
+                            {
+                                opacity:   contentAnim,
+                                transform: [{ translateY: contentTranslateY }],
+                            },
+                        ]}
+                    >
+                        <TouchableOpacity
+                            onPress={() => navigation.replace('Login')}
+                            activeOpacity={0.88}
+                            style={styles.btnSignIn}
+                            accessible
+                            accessibilityRole="button"
+                            accessibilityLabel="Continue to sign in"
+                        >
+                            <Text style={styles.btnSignInText}>Continue to Sign In</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+
+                </Animated.View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Styles
+// Values translated 1:1 from login.module.css and its ≤768px mobile overrides.
+// Dead rules (cardHeader, cardTitle, cardSubtitle, ctaRow, ctaPrompt, ctaLink)
+// removed — no corresponding JSX elements exist.
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
+
+    // ── Shell ─────────────────────────────────────────────────────────────────
     safeArea: {
         flex:            1,
         backgroundColor: COLORS.bg,
@@ -214,71 +271,121 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(7,8,15,0.55)',
     },
-    container: {
-        flex:            1,
-        alignItems:      'center',
-        justifyContent:  'center',
-        paddingHorizontal: 36,
+    scrollContent: {
+        flexGrow:          1,
+        paddingHorizontal: 28,
+        paddingTop:        16,
+        paddingBottom:     40,
+        minHeight:         H,
+        justifyContent:    'center',
     },
 
-    // ── Icon ─────────────────────────────────────────────────────────────────
-    iconContainer: {
-        width:           120,
-        height:          120,
-        alignItems:      'center',
-        justifyContent:  'center',
-        marginBottom:    32,
+    // ── Entrance wrapper ──────────────────────────────────────────────────────
+    // Isolates the entrance animation from the ScrollView container.
+    // Prevents useNativeDriver transform conflicts on Android.
+    entranceWrapper: {
+        width: '100%',
     },
-    iconShell: {
-        width:           88,
-        height:          88,
-        borderRadius:    44,
-        backgroundColor: 'rgba(34,211,238,0.08)',
+
+    // ── Success body ──────────────────────────────────────────────────────────
+    successBody: {
+        alignItems:    'center',
+        paddingTop:    4,
+        paddingBottom: 4,
+        marginBottom:  24,
+    },
+
+    // ── Icon badge ────────────────────────────────────────────────────────────
+    // Source: .successIconBadge — 72px, green-tinted circle
+    iconBadge: {
+        width:           72,
+        height:          72,
+        borderRadius:    36,
+        backgroundColor: 'rgba(52,211,153,0.08)',
         borderWidth:     1,
-        borderColor:     'rgba(34,211,238,0.25)',
+        borderColor:     'rgba(52,211,153,0.22)',
         alignItems:      'center',
         justifyContent:  'center',
+        marginBottom:    24,
     },
 
-    // ── Copy ─────────────────────────────────────────────────────────────────
-    copyBlock: {
-        alignItems:   'center',
-        marginBottom: 28,
-    },
-    heading: {
+    // ── Bold confirmation ─────────────────────────────────────────────────────
+    // Source: .successMessage — Syne 600, 15px, #f1f5f9
+    successMessage: {
         fontFamily:    'Syne_700Bold',
-        fontSize:      28,
-        fontWeight:    '700',
-        color:         '#ffffff',
-        letterSpacing: 0.2,
-        marginBottom:  12,
+        fontSize:      15,
+        fontWeight:    '600',
+        color:         '#f1f5f9',
+        letterSpacing: -0.2,
         textAlign:     'center',
-    },
-    subheading: {
-        fontSize:   15,
-        color:      'rgba(255,255,255,0.45)',
-        fontWeight: '300',
-        textAlign:  'center',
-        lineHeight: 22,
+        marginBottom:  14,
     },
 
-    // ── Divider ──────────────────────────────────────────────────────────────
+    // ── Account pill ──────────────────────────────────────────────────────────
+    // Source: .successEmail — pill container
+    accountPill: {
+        flexDirection:     'row',
+        alignItems:        'center',
+        backgroundColor:   'rgba(255,255,255,0.04)',
+        borderWidth:       1,
+        borderColor:       'rgba(255,255,255,0.09)',
+        borderRadius:      100,
+        paddingVertical:   6,
+        paddingHorizontal: 16,
+        marginBottom:      20,
+        maxWidth:          '100%',
+    },
+    // gap: 7 replaced with marginRight on icon — safe for RN < 0.71
+    pillIcon: {
+        marginRight: 7,
+    },
+    accountPillText: {
+        fontSize:  13,
+        color:     'rgba(241,245,249,0.55)',
+        flexShrink: 1,
+    },
+
+    // ── Hint text ─────────────────────────────────────────────────────────────
+    // Source: .successHint — 13px, muted, centered
+    hintText: {
+        fontSize:   13,
+        color:      'rgba(241,245,249,0.35)',
+        lineHeight: 21,
+        textAlign:  'center',
+        maxWidth:   280,
+    },
+
+    // ── Divider ───────────────────────────────────────────────────────────────
+    // Source: .linksSection border-top
     divider: {
+        width:           '100%',
+        height:          1,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        marginTop:       22,
+        marginBottom:    20,
+    },
+
+    // ── Inline sign-in row ────────────────────────────────────────────────────
+    // Source: .registerPrompt + mobile .registerLink
+    signInRow: {
         flexDirection:  'row',
         alignItems:     'center',
-        width:          '70%',
-        marginBottom:   32,
+        justifyContent: 'center',
     },
-    dividerLine: {
-        flex:            1,
-        height:          1,
-        backgroundColor: 'rgba(255,255,255,0.08)',
+    signInPrompt: {
+        fontSize:   13,
+        color:      'rgba(241,245,249,0.35)',
+        fontWeight: '400',
     },
-    dividerIcon: {
-        marginHorizontal: 10,
+    signInLink: {
+        fontFamily:  'Syne_700Bold',
+        fontSize:    13,
+        fontWeight:  '700',
+        color:       COLORS.cyan,
     },
 
-    // ── Button ───────────────────────────────────────────────────────────────
+    // ── CTA button ────────────────────────────────────────────────────────────
+    // Source: mobile .submitButton — white, 56px, Syne 700
     btnWrapper: {
         width: '100%',
     },
@@ -286,7 +393,6 @@ const styles = StyleSheet.create({
         height:          56,
         backgroundColor: '#ffffff',
         borderRadius:    12,
-        flexDirection:   'row',
         alignItems:      'center',
         justifyContent:  'center',
     },
@@ -296,9 +402,6 @@ const styles = StyleSheet.create({
         fontWeight:    '700',
         color:         '#07080f',
         letterSpacing: 0.3,
-    },
-    btnArrow: {
-        marginLeft: 8,
     },
 });
 
