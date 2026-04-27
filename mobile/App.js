@@ -16,6 +16,7 @@ import FlashcardStudyScreen from './screens/FlashcardStudyScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import { DeckProvider } from './DeckContext';
 import { ThemeProvider } from './ThemeContext';
+import RegisterSuccessScreen from './screens/RegisterSuccessScreen';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -66,6 +67,7 @@ function App() {
                     <Stack.Screen name="Onboarding"     component={OnboardingScreen} />
                     <Stack.Screen name="Login"          component={LoginScreen} />
                     <Stack.Screen name="Register"       component={RegisterScreen} />
+                    <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
                     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
                     <Stack.Screen name="ResetPassword"  component={ResetPasswordScreen} />
                     <Stack.Screen name="Profile"        component={ProfileScreen} />
