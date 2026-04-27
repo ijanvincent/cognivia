@@ -264,166 +264,168 @@ function ResetPassword() {
                   </div>
                 )}
 
-                {/* ── New Password field ───────────────────────────────────── */}
                 {/*
-                 * CHANGE 2 — Added styles.formGroupPassword to className.
-                 * This is the CSS hook for the lock ::before icon on mobile.
-                 * Replaces the previous nth-of-type(1) selector which was
-                 * fragile when sibling elements were inserted between fields.
+                 * CHANGE RP-LAYOUT-1b
+                 * WHAT: Wrapped New Password and Confirm Password fields in
+                 *       passwordRow / passwordCol divs so they sit side by side.
+                 * WHY:  Matches mobile RegisterScreen layout exactly —
+                 *       passwordRow: flexDirection:'row', gap:10
+                 *       passwordCol: flex:1
+                 *       The strength checklist stays inside the left column so
+                 *       it expands beneath New Password only, not across both.
                  */}
-                <div className={`${styles.formGroup} ${styles.formGroupPassword}`}>
-                  <label className={styles.label} htmlFor="password">New Password</label>
-                  <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
+                <div className={styles.passwordRow}>
 
-                    {/* Lock icon — matches mobile lock-outline */}
-                    <svg
-                      className={styles.inputIcon}
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path fill="currentColor" d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
-                    </svg>
+                  {/* ── Left column: New Password + strength checklist ──── */}
+                  <div className={styles.passwordCol}>
 
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      onFocus={() => {
-                        setPasswordFocused(true);
-                        setStrengthDismissed(false);
-                      }}
-                      onBlur={() => setPasswordFocused(false)}
-                      className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
-                      placeholder="Enter new password"
-                      disabled={loading}
-                      autoComplete="new-password"
-                      autoFocus
-                      aria-invalid={!!errors.password}
-                      aria-describedby="rp-password-rules"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={styles.eyeButton}
-                      tabIndex={-1}
-                      disabled={loading}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      <img src={showPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
-                    </button>
-                  </div>
+                    {/* ── New Password field ─────────────────────────────── */}
+                    <div className={`${styles.formGroup} ${styles.formGroupPassword}`}>
+                      <label className={styles.label} htmlFor="password">New Password</label>
+                      <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
 
-                  {errors.password && (
-                    <span id="password-error" className={styles.errorText} role="alert">
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
-                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-                      </svg>
-                      {errors.password}
-                    </span>
-                  )}
-                </div>
+                        {/* Lock icon — matches mobile lock-outline */}
+                        <svg
+                          className={styles.inputIcon}
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path fill="currentColor" d="M12 17a2 2 0 0 1-2-2c0-1.11.89-2 2-2a2 2 0 0 1 2 2 2 2 0 0 1-2 2m6 3V10H6v10zm0-12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10c0-1.11.89-2 2-2h1V6a5 5 0 0 1 5-5 5 5 0 0 1 5 5v2zm-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3"/>
+                        </svg>
 
-                {/* ── Password strength checklist ──────────────────────────── */}
-                {showPasswordRules && (
-                  <div
-                    id="rp-password-rules"
-                    className={styles.reqContainer}
-                    aria-live="polite"
-                    aria-label="Password requirements"
-                  >
-                    {PASSWORD_RULES.map((rule) => {
-                      const met = rule.test(formData.password);
-                      return (
-                        <div key={rule.key} className={styles.reqRow}>
-                          {met ? (
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="#22c55e" aria-hidden="true" focusable="false">
-                              <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clipRule="evenodd"/>
-                            </svg>
-                          ) : (
-                            <div className={styles.reqDot} aria-hidden="true" />
-                          )}
-                          <span className={`${styles.reqText} ${met ? styles.reqTextMet : ''}`}>
-                            {rule.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                        <input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          onFocus={() => {
+                            setPasswordFocused(true);
+                            setStrengthDismissed(false);
+                          }}
+                          onBlur={() => setPasswordFocused(false)}
+                          className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
+                          placeholder="Enter new password"
+                          disabled={loading}
+                          autoComplete="new-password"
+                          autoFocus
+                          aria-invalid={!!errors.password}
+                          aria-describedby="rp-password-rules"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className={styles.eyeButton}
+                          tabIndex={-1}
+                          disabled={loading}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          <img src={showPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
+                        </button>
+                      </div>
 
-                {/* ── Confirm Password field ───────────────────────────────── */}
-                {/*
-                 * CHANGE 2 — Added styles.formGroupConfirmPassword to className.
-                 *
-                 * WHAT: New modifier class applied alongside styles.formGroup on
-                 *       the Confirm Password field's wrapper div.
-                 *
-                 * WHY: The previous mobile icon system used nth-of-type(2) to
-                 *      target this field's ::before pseudo-element. The reqContainer
-                 *      div sits between the two formGroup divs in the DOM whenever
-                 *      the password checklist is visible, shifting this element to
-                 *      nth-of-type(3) — breaking the selector. The lock-check SVG
-                 *      background-image was therefore never applied, causing the icon
-                 *      to be invisible at all times (not just unfocused).
-                 *      The explicit .formGroupConfirmPassword class is immune to any
-                 *      DOM siblings inserted between the two fields.
-                 */}
-                <div className={`${styles.formGroup} ${styles.formGroupConfirmPassword}`}>
-                  <label className={styles.label} htmlFor="password_confirmation">Confirm Password</label>
-                  <div className={`${styles.inputContainer} ${errors.password_confirmation ? styles.inputContainerError : ''}`}>
+                      {errors.password && (
+                        <span id="password-error" className={styles.errorText} role="alert">
+                          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                            <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                          </svg>
+                          {errors.password}
+                        </span>
+                      )}
+                    </div>
 
-                    {/* Lock-check icon — matches mobile lock-check-outline */}
-                    <svg
-                      className={styles.inputIcon}
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path fill="currentColor" d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M21.2,10.2L19.8,8.8L14,14.6L11.5,12.1L10.1,13.5L14,17.4L21.2,10.2M18,8C19.1,8 20,8.89 20,10L19.9,10.5C19.94,10.5 19.97,10.5 20,10.5V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
-                    </svg>
+                    {/* ── Password strength checklist ────────────────────── */}
+                    {showPasswordRules && (
+                      <div
+                        id="rp-password-rules"
+                        className={styles.reqContainer}
+                        aria-live="polite"
+                        aria-label="Password requirements"
+                      >
+                        {PASSWORD_RULES.map((rule) => {
+                          const met = rule.test(formData.password);
+                          return (
+                            <div key={rule.key} className={styles.reqRow}>
+                              {met ? (
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="#22c55e" aria-hidden="true" focusable="false">
+                                  <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4.5-4.5z" clipRule="evenodd"/>
+                                </svg>
+                              ) : (
+                                <div className={styles.reqDot} aria-hidden="true" />
+                              )}
+                              <span className={`${styles.reqText} ${met ? styles.reqTextMet : ''}`}>
+                                {rule.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
-                    <input
-                      id="password_confirmation"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      name="password_confirmation"
-                      value={formData.password_confirmation}
-                      onChange={handleChange}
-                      onFocus={() => {
-                        setConfirmFocused(true);
-                        setStrengthDismissed(true);
-                      }}
-                      onBlur={() => setConfirmFocused(false)}
-                      className={`${styles.inputField} ${errors.password_confirmation ? styles.inputError : ''}`}
-                      placeholder="Confirm new password"
-                      disabled={loading}
-                      autoComplete="new-password"
-                      aria-invalid={!!errors.password_confirmation}
-                      aria-describedby={errors.password_confirmation ? 'password-confirm-error' : undefined}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className={styles.eyeButton}
-                      tabIndex={-1}
-                      disabled={loading}
-                      aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
-                    >
-                      <img src={showConfirmPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
-                    </button>
-                  </div>
+                  </div>{/* end left passwordCol */}
 
-                  {errors.password_confirmation && (
-                    <span id="password-confirm-error" className={styles.errorText} role="alert">
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
-                        <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-                      </svg>
-                      {errors.password_confirmation}
-                    </span>
-                  )}
-                </div>
+                  {/* ── Right column: Confirm Password ──────────────────── */}
+                  <div className={styles.passwordCol}>
+
+                    {/* ── Confirm Password field ─────────────────────────── */}
+                    <div className={`${styles.formGroup} ${styles.formGroupConfirmPassword}`}>
+                      <label className={styles.label} htmlFor="password_confirmation">Confirm Password</label>
+                      <div className={`${styles.inputContainer} ${errors.password_confirmation ? styles.inputContainerError : ''}`}>
+
+                        {/* Lock-check icon — matches mobile lock-check-outline */}
+                        <svg
+                          className={styles.inputIcon}
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path fill="currentColor" d="M14 15c0 1.11-.89 2-2 2a2 2 0 0 1-2-2c0-1.11.89-2 2-2a2 2 0 0 1 2 2m-.91 5c.12.72.37 1.39.72 2H6a2 2 0 0 1-2-2V10c0-1.11.89-2 2-2h1V6c0-2.76 2.24-5 5-5s5 2.24 5 5v2h1a2 2 0 0 1 2 2v3.09c-.33-.05-.66-.09-1-.09s-.67.04-1 .09V10H6v10zM9 8h6V6c0-1.66-1.34-3-3-3S9 4.34 9 6zm12.34 7.84-3.59 3.59-1.59-1.59L15 19l2.75 3 4.75-4.75z"/>
+                        </svg>
+
+                        <input
+                          id="password_confirmation"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          name="password_confirmation"
+                          value={formData.password_confirmation}
+                          onChange={handleChange}
+                          onFocus={() => {
+                            setConfirmFocused(true);
+                            setStrengthDismissed(true);
+                          }}
+                          onBlur={() => setConfirmFocused(false)}
+                          className={`${styles.inputField} ${errors.password_confirmation ? styles.inputError : ''}`}
+                          placeholder="Confirm new password"
+                          disabled={loading}
+                          autoComplete="new-password"
+                          aria-invalid={!!errors.password_confirmation}
+                          aria-describedby={errors.password_confirmation ? 'password-confirm-error' : undefined}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className={styles.eyeButton}
+                          tabIndex={-1}
+                          disabled={loading}
+                          aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                        >
+                          <img src={showConfirmPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
+                        </button>
+                      </div>
+
+                      {errors.password_confirmation && (
+                        <span id="password-confirm-error" className={styles.errorText} role="alert">
+                          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }} aria-hidden="true">
+                            <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                          </svg>
+                          {errors.password_confirmation}
+                        </span>
+                      )}
+                    </div>
+
+                  </div>{/* end right passwordCol */}
+
+                </div>{/* end passwordRow */}
 
                 {/* ── Submit ──────────────────────────────────────────────── */}
                 <button type="submit" disabled={loading} className={styles.submitButton}>
