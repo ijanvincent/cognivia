@@ -62,11 +62,6 @@ class AuthService
             ->exists();
 
         if ($hasOtherSession) {
-            // CHANGED — what: issue a short-lived conflict_token on PLATFORM_CONFLICT.
-            // why: web needs to subscribe to private Echo channel user.{id} to detect
-            // when mobile logs out. User has no session token yet so we issue a
-            // dedicated 5-minute token with restricted ability so it cannot call
-            // any real API route — only authenticates the broadcast channel.
             $conflictToken = $user->createToken(
                 'conflict_token',
                 ['broadcast.conflict.only'],
@@ -100,11 +95,6 @@ class AuthService
         ];
     }
 
-    // CHANGED — what: fires ForceLogout broadcast BEFORE deleting the token.
-    // why: the token must still exist when broadcastOn() authenticates the
-    // private channel. Deleting first breaks channel auth and web never
-    // receives the event. Platform is read from the token itself so the
-    // event payload tells web exactly which platform just logged out.
     public function logout(User $user): void
     {
         $currentToken = $user->currentAccessToken();
