@@ -15,12 +15,6 @@ class ForceLogout implements ShouldBroadcastNow
     public string $platform;
     public int    $userId;
 
-    /**
-     * CHANGED — what: accepts $userId explicitly as a parameter.
-     * why: by the time broadcastOn() is called by the framework, the token
-     * may already be deleted in some edge cases. Passing userId in the
-     * constructor makes the channel binding reliable regardless of token state.
-     */
     public function __construct(string $platform, int $userId)
     {
         $this->platform = $platform;
