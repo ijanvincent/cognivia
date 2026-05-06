@@ -51,8 +51,6 @@ class FlashcardService
             'question'     => $card['question'],
             'answer'       => $card['answer'],
 
-            // options and explanation are only populated for multiple_choice cards.
-            // json_encode because insert() bypasses Eloquent model casts.
             'options'      => isset($card['options'])
                                 ? json_encode($card['options'])
                                 : null,
