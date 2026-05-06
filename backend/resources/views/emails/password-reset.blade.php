@@ -25,17 +25,14 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
 
-    /* ── Cross-client reset ── */
     * { box-sizing: border-box; }
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
 
-    /* ── Apple data-detector suppression ── */
     a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
     u + #body a { color: inherit; text-decoration: none; text-decoration-color: inherit; font-size: inherit; font-family: inherit; font-weight: inherit; line-height: inherit; }
 
-    /* ── Hover state — progressive enhancement, non-breaking on unsupported clients ── */
     .btn-reset:hover { background-color: #1a3d00 !important; }
   </style>
 </head>
