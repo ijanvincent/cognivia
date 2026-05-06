@@ -23,12 +23,6 @@ Route::prefix('admin')->group(function () {
          ->middleware('throttle:3,5');
 });
 
-// ADDED — what: explicit broadcasting auth route outside platform.match.
-// why: the conflict_token has platform='conflict' so EnsurePlatformMatch
-// would reject it with 400 before the channel auth could complete.
-// Placing it here with only auth:sanctum means Sanctum validates the token
-// exists and is not expired, then channels.php enforces that the user can
-// only subscribe to their own private channel. Security is preserved.
 Route::post('/broadcasting/auth',
     function (\Illuminate\Http\Request $request) {
         return Broadcast::auth($request);
