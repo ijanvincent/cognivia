@@ -380,22 +380,9 @@ const styles = StyleSheet.create({
 
     formSection:  { width: '100%' },
 
-    // ── Input shell ───────────────────────────────────────────────────────────
-    /*
-     * CHANGE 3 — alignItems: 'flex-start' → 'center'
-     * CHANGE 4 — iconWrap: removed alignSelf:'stretch' + justifyContent:'center'
-     *
-     * What:  Shell row now centers its children vertically. iconWrap no longer
-     *        needs to stretch and self-center since the parent handles it.
-     *
-     * Why:   Same reasoning as LoginScreen — 'flex-start' pushed the icon down
-     *        to after paddingTop:18, leaving it visually low in the shell.
-     *        'center' places it at the shell's true vertical midpoint.
-     *        The absolutely-positioned floating label is unaffected.
-     */
     inputWrap: {
         flexDirection:     'row',
-        alignItems:        'center',          // ← was 'flex-start'
+        alignItems:        'center',          
         borderWidth:       SHELL_BORDER_W,
         borderColor:       'rgba(255,255,255,0.15)',
         borderRadius:      12,
