@@ -20,7 +20,7 @@ class Flashcard extends Model
 
     protected $casts = [
         'mastered'  => 'boolean',
-        'options'   => 'array',     // JSON column auto-cast to/from PHP array
+        'options'   => 'array',     
     ];
 
     public function deck(): \Illuminate\Database\Eloquent\Relations\BelongsTo
