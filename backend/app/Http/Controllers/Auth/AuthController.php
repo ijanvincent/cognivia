@@ -59,11 +59,6 @@ class AuthController extends Controller
         } catch (\App\Exceptions\Auth\EmailNotFoundException $e) {
             RateLimiter::hit($throttleKey, 60);
 
-            // CHANGED — what: replaced hardcoded string with $e->getMessage().
-            // why: controller was ignoring the exception message entirely,
-            // making changes to EmailNotFoundException have zero effect.
-            // The exception class is now the single source of truth for
-            // this message — no other file needs to be touched to update it.
             return response()->json([
                 'message'    => $e->getMessage(),
                 'error_code' => 'EMAIL_NOT_FOUND',
@@ -72,9 +67,6 @@ class AuthController extends Controller
         } catch (\App\Exceptions\Auth\WrongPasswordException $e) {
             RateLimiter::hit($throttleKey, 60);
 
-            // CHANGED — what: replaced hardcoded string with $e->getMessage().
-            // why: same reason as above. WrongPasswordException is now the
-            // single source of truth for the wrong-password message.
             return response()->json([
                 'message'    => $e->getMessage(),
                 'error_code' => 'WRONG_PASSWORD',
