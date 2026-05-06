@@ -53,12 +53,6 @@ const WaveBackground = () => (
     </Svg>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Shell geometry constants — single source of truth for label positioning.
-// Adjust TRANSLATE_Y_FLOATED to fine-tune the floated label vertical position:
-//   more negative (e.g. -35) → label moves UP
-//   less negative (e.g. -33) → label moves DOWN
-// ─────────────────────────────────────────────────────────────────────────────
 const SHELL_HEIGHT         = 60;
 const SHELL_PADDING_T      = 18;
 const SHELL_PADDING_B      = 6;
@@ -66,19 +60,6 @@ const SHELL_BORDER_W       = 1;
 const LABEL_SIZE_REST      = 15;
 const LABEL_SIZE_FLOAT     = 11;
 
-/*
- * CHANGE 1 — TRANSLATE_Y_FLOATED constant introduced.
- *
- * What:  Replaces the magic number -28 that was inline in the interpolate
- *        outputRange. Value set to -34 (same as LoginScreen).
- *
- * Why:   -28 was insufficient to lift the label out of the shell and onto
- *        the top border line. The floatContainer sits 19px below the shell
- *        top (1px border + 18px paddingTop). top:'50%' resolves to 18px
- *        (half of 36px container), so the label anchor is 29.5px from the
- *        shell top. -28 left the label 1.5px inside the shell. -34 centers
- *        the label's midpoint on the top border, matching the web target.
- */
 const TRANSLATE_Y_FLOATED  = -34;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,14 +108,7 @@ const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
 // FloatingLabel
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabel = ({ label, floatAnim, isFocused }) => {
-    /*
-     * CHANGE 2 — translateY outputRange: [0, -28] → [0, TRANSLATE_Y_FLOATED]
-     *
-     * What:  Animation end value changed from -28 to -34.
-     * Why:   See CHANGE 1 above. -34 is the tuned value that lands the label
-     *        centered on the top border line. Adjust TRANSLATE_Y_FLOATED at
-     *        the top of the file to fine-tune without touching this code.
-     */
+    
     const labelTranslateY = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [0, TRANSLATE_Y_FLOATED],
@@ -196,16 +170,7 @@ const FloatingLabelInput = ({
     const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({ value });
 
     return (
-        /*
-         * CHANGE 3 — inputWrap: alignItems 'flex-start' → 'center'
-         *
-         * What:  alignItems on the shell row changed from 'flex-start' to 'center'.
-         * Why:   'flex-start' anchored the icon to the top of the content area
-         *        (after paddingTop: 18), pushing it visually downward. 'center'
-         *        vertically centers the icon within the 60px shell, matching
-         *        the web version. The floatContainer's absolutely-positioned
-         *        label children are unaffected by this change.
-         */
+        
         <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
             <View style={styles.iconWrap}>
                 <MaterialCommunityIcons
@@ -401,8 +366,6 @@ const styles = StyleSheet.create({
 
     // ── Icon wrapper ──────────────────────────────────────────────────────────
     iconWrap: {
-        // CHANGE 4 — removed alignSelf:'stretch' and justifyContent:'center'
-        // Parent alignItems:'center' handles vertical centering now.
         marginRight: 12,
     },
 
