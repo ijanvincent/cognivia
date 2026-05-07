@@ -89,20 +89,16 @@ const GenerateScreen = () => {
 
     const handleTypeToggle = (type) => {
         setSelectedTypes((prev) => {
-            // If tapping an already-selected type and it's the only one, do nothing
             if (prev.includes(type) && prev.length === 1) return prev;
 
-            // If MIXED is selected and user picks something else, clear MIXED
             if (type !== CARD_TYPES.MIXED && prev.includes(CARD_TYPES.MIXED)) {
                 return [type];
             }
 
-            // If user picks MIXED, clear everything else
             if (type === CARD_TYPES.MIXED) {
                 return [CARD_TYPES.MIXED];
             }
 
-            // Toggle normally
             return prev.includes(type)
                 ? prev.filter((t) => t !== type)
                 : [...prev, type];
@@ -171,7 +167,19 @@ const GenerateScreen = () => {
                 'The file appears to have very little text. Continue anyway?',
                 [
                     { text: 'Cancel', style: 'cancel' },
-                    { text: 'Continue', onPress: proceedWithGeneration },
+                    // CHANGE — Bug 4 fix:
+                    // What: Wrapped proceedWithGeneration in an async arrow
+                    //       function instead of passing the reference directly.
+                    // Why:  React Native's Alert.alert calls onPress handlers
+                    //       synchronously and does not await their return value.
+                    //       Passing `proceedWithGeneration` directly meant any
+                    //       rejection it threw became an unhandled promise
+                    //       rejection — silently swallowed, no error shown to
+                    //       the user, no loading spinner dismissed. The async
+                    //       wrapper ensures the promise is properly awaited
+                    //       within its own async context and errors surface
+                    //       through the try/catch inside proceedWithGeneration.
+                    { text: 'Continue', onPress: () => { proceedWithGeneration(); } },
                 ]
             );
             return;
@@ -189,7 +197,7 @@ const GenerateScreen = () => {
             const flashcards = await generateFlashcardsWithGemini(
                 fileContent,
                 numberOfCards,
-                selectedTypes,          // pass the array of selected types
+                selectedTypes,
             );
 
             if (!flashcards || flashcards.length === 0) {
