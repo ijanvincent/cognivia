@@ -167,18 +167,6 @@ const GenerateScreen = () => {
                 'The file appears to have very little text. Continue anyway?',
                 [
                     { text: 'Cancel', style: 'cancel' },
-                    // CHANGE — Bug 4 fix:
-                    // What: Wrapped proceedWithGeneration in an async arrow
-                    //       function instead of passing the reference directly.
-                    // Why:  React Native's Alert.alert calls onPress handlers
-                    //       synchronously and does not await their return value.
-                    //       Passing `proceedWithGeneration` directly meant any
-                    //       rejection it threw became an unhandled promise
-                    //       rejection — silently swallowed, no error shown to
-                    //       the user, no loading spinner dismissed. The async
-                    //       wrapper ensures the promise is properly awaited
-                    //       within its own async context and errors surface
-                    //       through the try/catch inside proceedWithGeneration.
                     { text: 'Continue', onPress: () => { proceedWithGeneration(); } },
                 ]
             );
@@ -233,7 +221,11 @@ const GenerateScreen = () => {
             Alert.alert(
                 'Success!',
                 `Generated ${flashcards.length} flashcards for "${deckName.trim()}".`,
-                [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+                // FIX: was 'Home' which does not exist in the navigator.
+                // The correct screen name is 'HomeTabs' (see App.js).
+                // The old value caused a RouteNotFoundException that was
+                // caught by the catch block and shown as "Generation Failed".
+                [{ text: 'OK', onPress: () => navigation.navigate('HomeTabs') }]
             );
 
             resetFileState();
