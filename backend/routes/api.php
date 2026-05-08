@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\DeckController;
 use App\Http\Controllers\User\FlashcardController;
+use App\Http\Controllers\User\FlashcardGenerationController;
+use App\Http\Controllers\User\CheckAnswerController;
 use App\Http\Controllers\User\DocumentParserController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +49,11 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
 
     // Document Parser
     Route::post('/document/parse', [DocumentParserController::class, 'parse']);
+
+    // AI Flashcard Generation — proxied server-side via OpenRouter
+    // Key never reaches the mobile bundle
+    Route::post('/flashcards/generate',     [FlashcardGenerationController::class, 'generate']);
+    Route::post('/flashcards/check-answer', [CheckAnswerController::class,          'check']);
 });
 
 // Authenticated Admin Routes
