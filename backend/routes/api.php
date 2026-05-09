@@ -40,7 +40,7 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
     // Decks
     Route::get('/decks',             [DeckController::class, 'index']);
     Route::post('/decks',            [DeckController::class, 'store']);
-    Route::post('/decks/import',     [DeckController::class, 'import']);  // ← new
+    Route::post('/decks/import',     [DeckController::class, 'import']);
     Route::put('/decks/{id}',        [DeckController::class, 'update']);
     Route::delete('/decks/{id}',     [DeckController::class, 'destroy']);
 
@@ -58,11 +58,14 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
 
 // Authenticated Admin Routes
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    Route::post('/logout',       [AdminAuthController::class, 'logout']);
-    Route::get('/me',            [AdminAuthController::class, 'me']);
+    Route::post('/logout', [AdminAuthController::class, 'logout']);
+    Route::get('/me',      [AdminAuthController::class, 'me']);
 
-    // User management
-    Route::get('/dashboard',     [UserController::class, 'dashboard']);
-    Route::get('/users',         [UserController::class, 'index']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    // User management — trashed MUST come before {id} routes
+    Route::get('/dashboard',           [UserController::class, 'dashboard']);
+    Route::get('/users/trashed',       [UserController::class, 'trashed']);
+    Route::get('/users',               [UserController::class, 'index']);
+    Route::delete('/users/{id}',       [UserController::class, 'destroy']);
+    Route::post('/users/{id}/restore', [UserController::class, 'restore']);
+    Route::delete('/users/{id}/force', [UserController::class, 'forceDelete']);
 });

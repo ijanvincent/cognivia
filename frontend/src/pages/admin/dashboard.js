@@ -6,16 +6,17 @@ import api from './../../services/api.js';
 function AdminDashboard() {
     const context = useContext(AppSettings);
     const [stats, setStats] = useState({
-        total_users: 0,
-        new_today: 0,
-        new_this_month: 0,
+        total_users:         0,
+        new_today:           0,
+        new_this_month:      0,
+        total_deleted_users: 0,
     });
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [users, setUsers]           = useState([]);
+    const [loading, setLoading]       = useState(true);
+    const [search, setSearch]         = useState('');
     const [deletingId, setDeletingId] = useState(null);
     const [confirmModal, setConfirmModal] = useState(null);
-    const [toast, setToast] = useState(null);
+    const [toast, setToast]           = useState(null);
 
     useEffect(() => {
         context.handleSetAppSidebarNone(false);
@@ -27,7 +28,6 @@ function AdminDashboard() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
-        
     }, []);
 
     const fetchDashboard = async () => {
@@ -67,8 +67,12 @@ function AdminDashboard() {
         try {
             await api.delete(`/admin/users/${id}`);
             setUsers(prev => prev.filter(u => u.id !== id));
-            setStats(prev => ({ ...prev, total_users: prev.total_users - 1 }));
-            showToast(`User "${username}" deleted successfully.`, 'success');
+            setStats(prev => ({
+                ...prev,
+                total_users:         prev.total_users - 1,
+                total_deleted_users: prev.total_deleted_users + 1,
+            }));
+            showToast(`"${username}" moved to trash.`, 'success');
         } catch (error) {
             console.error('Delete error:', error);
             showToast('Failed to delete user. Please try again.', 'danger');
@@ -84,7 +88,8 @@ function AdminDashboard() {
 
     return (
         <div>
-   
+
+            {/* ── Toast ── */}
             {toast && (
                 <div style={{
                     position: 'fixed', top: '70px', right: '20px',
@@ -99,18 +104,19 @@ function AdminDashboard() {
                 </div>
             )}
 
+            {/* ── Confirm modal ── */}
             {confirmModal && (
                 <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 9998 }}>
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header border-0 pb-0">
                                 <h5 className="modal-title fw-bold">
-                                    <i className="fa fa-exclamation-triangle text-danger me-2"></i>
-                                    Confirm Delete
+                                    <i className="fa fa-trash text-danger me-2"></i>
+                                    Move to Trash
                                 </h5>
                             </div>
                             <div className="modal-body">
-                                <p className="mb-1">You are about to delete user:</p>
+                                <p className="mb-1">You are about to delete this user:</p>
                                 <div className="d-flex align-items-center p-3 bg-light rounded mt-2">
                                     <div
                                         className="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold me-3"
@@ -123,9 +129,9 @@ function AdminDashboard() {
                                         <small className="text-muted">{confirmModal.email}</small>
                                     </div>
                                 </div>
-                                <p className="text-danger mt-3 mb-0">
-                                    <i className="fa fa-exclamation-circle me-1"></i>
-                                    This action cannot be undone!
+                                <p className="text-warning mt-3 mb-0">
+                                    <i className="fa fa-info-circle me-1"></i>
+                                    Their data will be preserved. You can restore them from User Management.
                                 </p>
                             </div>
                             <div className="modal-footer border-0 pt-0">
@@ -139,7 +145,7 @@ function AdminDashboard() {
                                     className="btn btn-danger"
                                     onClick={handleDelete}
                                 >
-                                    <i className="fa fa-trash me-1"></i>Yes, Delete
+                                    <i className="fa fa-trash me-1"></i>Move to Trash
                                 </button>
                             </div>
                         </div>
@@ -147,6 +153,7 @@ function AdminDashboard() {
                 </div>
             )}
 
+            {/* ── Breadcrumb + header ── */}
             <ol className="breadcrumb float-xl-end">
                 <li className="breadcrumb-item"><Link to="/admin/dashboard">Home</Link></li>
                 <li className="breadcrumb-item active">Dashboard</li>
@@ -155,7 +162,7 @@ function AdminDashboard() {
                 Admin Dashboard <small>Cognivia overview</small>
             </h1>
 
-        
+            {/* ── Stat widgets ── */}
             <div className="row">
                 <div className="col-xl-3 col-md-6">
                     <div className="widget widget-stats bg-blue">
@@ -199,23 +206,25 @@ function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+
+                {/* ── Replaced PLATFORMS widget with TRASHED USERS ── */}
                 <div className="col-xl-3 col-md-6">
                     <div className="widget widget-stats bg-red">
-                        <div className="stats-icon"><i className="fa fa-mobile"></i></div>
+                        <div className="stats-icon"><i className="fa fa-trash"></i></div>
                         <div className="stats-info">
-                            <h4>PLATFORMS</h4>
-                            <p>Web + Mobile</p>
+                            <h4>TRASHED USERS</h4>
+                            <p>{stats.total_deleted_users}</p>
                         </div>
                         <div className="stats-link">
-                            <Link to="/admin/users/analytics">
-                                View Detail <i className="fa fa-arrow-alt-circle-right"></i>
+                            <Link to="/admin/users">
+                                View Trash <i className="fa fa-arrow-alt-circle-right"></i>
                             </Link>
                         </div>
                     </div>
                 </div>
             </div>
 
-           
+            {/* ── Recent users table ── */}
             <div className="row mt-2">
                 <div className="col-xl-12">
                     <div className="panel panel-inverse">
