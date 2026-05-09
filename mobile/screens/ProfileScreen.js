@@ -9,11 +9,13 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '../ThemeContext';
+import { useDecks } from '../DeckContext';
 import api from '../services/api';
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
     const { theme, colors, toggleTheme } = useTheme();
+    const { refreshDecks } = useDecks();
     const isDarkMode = theme === 'dark';
 
     const [profileImage, setProfileImage] = useState(null);
@@ -95,9 +97,13 @@ const ProfileScreen = () => {
         setIsImporting(true);
         try {
             const response = await api.post('/decks/import', { shareCode });
+
+            // ✅ Refresh decks in context so home screen updates instantly
+            await refreshDecks();
+
             Alert.alert(
                 'Success! 🎉',
-                `"${response.data.deck.title}" has been imported with ${response.data.deck.cardCount} cards!`,
+                `"${response.data.deck.title}" has been imported with ${response.data.deck.card_count} cards!`,
                 [{ text: 'OK', onPress: () => {
                     setInputLink('');
                     navigation.navigate('HomeTabs', { screen: 'Home' });
@@ -105,7 +111,10 @@ const ProfileScreen = () => {
             );
         } catch (error) {
             console.error('Import error:', error);
-            const msg = error?.response?.data?.message || error.message || 'Could not import the deck. Please try again.';
+            const msg = error?.response?.data?.message
+                || error?.response?.data?.errors?.share_code?.[0]
+                || error.message
+                || 'Could not import the deck. Please try again.';
             Alert.alert('Import Failed', msg);
         } finally {
             setIsImporting(false);

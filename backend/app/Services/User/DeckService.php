@@ -29,7 +29,7 @@ class DeckService
             'mastery'    => $data['mastery']    ?? 0,
             'progress'   => $data['progress']   ?? 0,
             'status'     => $data['status']     ?? 'New',
-            'share_code' => 'FC-' . strtoupper(Str::random(8)),
+            'share_code' => $this->generateUniqueShareCode(),
         ]);
     }
 
@@ -59,6 +59,15 @@ class DeckService
         $this->deckRepository->delete($deck);
     }
 
+    private function generateUniqueShareCode(): string
+    {
+        do {
+            $code = 'FC-' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 8));
+        } while (Deck::where('share_code', $code)->exists());
+
+        return $code;
+    }
+
     public function importDeck(string $shareCode, int $importerId): Deck
     {
         // Find the original deck by share code
@@ -77,9 +86,9 @@ class DeckService
             ]);
         }
 
-        // Prevent duplicate imports
+        // Prevent duplicate imports — track by original deck's id
         $alreadyImported = Deck::where('user_id', $importerId)
-            ->where('share_code', $original->share_code)
+            ->where('original_deck_id', $original->id)
             ->exists();
 
         if ($alreadyImported) {
@@ -90,14 +99,15 @@ class DeckService
 
         // Copy deck to importer — new share_code so they can re-share their copy
         $newDeck = $this->deckRepository->create([
-            'user_id'    => $importerId,
-            'title'      => $original->title,
-            'source'     => $original->source,
-            'card_count' => $original->card_count,
-            'mastery'    => 0,
-            'progress'   => 0,
-            'status'     => 'Imported',
-            'share_code' => 'FC-' . strtoupper(Str::random(8)),
+            'user_id'          => $importerId,
+            'title'            => $original->title,
+            'source'           => $original->source,
+            'card_count'       => $original->card_count,
+            'mastery'          => 0,
+            'progress'         => 0,
+            'status'           => 'Imported',
+            'share_code'       => $this->generateUniqueShareCode(),
+            'original_deck_id' => $original->id,
         ]);
 
         // Copy all flashcards to the new deck

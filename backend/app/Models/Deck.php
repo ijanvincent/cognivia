@@ -15,6 +15,7 @@ class Deck extends Model
         'progress',
         'status',
         'share_code',
+        'original_deck_id',
     ];
 
     public function user()
