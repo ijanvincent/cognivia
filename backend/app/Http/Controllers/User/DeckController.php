@@ -73,4 +73,21 @@ class DeckController extends Controller
             'message' => 'Deck removed successfully.',
         ]);
     }
+
+    public function import(Request $request): JsonResponse
+    {
+        $request->validate([
+            'shareCode' => ['required', 'string', 'regex:/^FC-[A-Z0-9]{8}$/i'],
+        ]);
+
+        $deck = $this->deckService->importDeck(
+            $request->input('shareCode'),
+            $request->user()->id
+        );
+
+        return response()->json([
+            'message' => 'Deck imported successfully.',
+            'deck'    => new DeckResource($deck),
+        ], 201);
+    }
 }
