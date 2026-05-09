@@ -18,6 +18,7 @@ class DeckResource extends JsonResource
             'mastery'    => $this->mastery,
             'progress'   => $this->progress,
             'status'     => $this->status,
+            'share_code' => $this->share_code,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

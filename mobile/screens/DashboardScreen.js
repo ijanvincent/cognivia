@@ -54,11 +54,7 @@ const StatPill = ({ icon, label, value, colors }) => (
     </View>
 );
 
-// ── Helper: generate a valid, importable share code ───────────────────────────
-const generateShareCode = (deckId) => {
-    // Pad the ID to exactly 8 chars so it always matches /FC-([A-Z0-9]{8})/
-    return `FC-${deckId.toString().padStart(8, '0').toUpperCase()}`;
-};
+
 
 const DashboardScreen = ({ navigation }) => {
     const { decks, removeDeck, loading } = useDecks();
@@ -130,8 +126,8 @@ const DashboardScreen = ({ navigation }) => {
         const masteryColor = mastery >= 75 ? '#34d399' : mastery >= 50 ? '#fbbf24' : '#f87171';
         const cardCount    = deck.card_count || deck.cardCount || 0;
 
-        // ✅ Fixed: always produces exactly FC-XXXXXXXX (8 chars)
-        const shareCode = generateShareCode(deck.id);
+        // ✅ Use share_code directly from the backend
+        const shareCode = deck.share_code;
 
         const handleOptions = (deck, event) => {
             if (event) event.stopPropagation();

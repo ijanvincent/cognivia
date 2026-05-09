@@ -5,6 +5,7 @@ namespace App\Services\User;
 use App\Models\Deck;
 use App\Repositories\User\DeckRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class DeckService
@@ -23,11 +24,12 @@ class DeckService
         return $this->deckRepository->create([
             'user_id'    => $userId,
             'title'      => $data['title'],
-            'source'     => $data['source']     ?? null,
-            'card_count' => $data['card_count']  ?? 0,
-            'mastery'    => $data['mastery']     ?? 0,
-            'progress'   => $data['progress']    ?? 0,
-            'status'     => $data['status']      ?? 'New',
+            'source'     => $data['source']    ?? null,
+            'card_count' => $data['card_count'] ?? 0,
+            'mastery'    => $data['mastery']    ?? 0,
+            'progress'   => $data['progress']   ?? 0,
+            'status'     => $data['status']     ?? 'New',
+            'share_code' => 'FC-' . strtoupper(Str::random(8)),
         ]);
     }
 
@@ -55,5 +57,71 @@ class DeckService
         }
 
         $this->deckRepository->delete($deck);
+    }
+
+    public function importDeck(string $shareCode, int $importerId): Deck
+    {
+        // Find the original deck by share code
+        $original = Deck::where('share_code', strtoupper($shareCode))->first();
+
+        if (!$original) {
+            throw ValidationException::withMessages([
+                'share_code' => ['No deck found with that share code.'],
+            ]);
+        }
+
+        // Prevent importing your own deck
+        if ($original->user_id === $importerId) {
+            throw ValidationException::withMessages([
+                'share_code' => ['You cannot import your own deck.'],
+            ]);
+        }
+
+        // Prevent duplicate imports
+        $alreadyImported = Deck::where('user_id', $importerId)
+            ->where('share_code', $original->share_code)
+            ->exists();
+
+        if ($alreadyImported) {
+            throw ValidationException::withMessages([
+                'share_code' => ['You have already imported this deck.'],
+            ]);
+        }
+
+        // Copy deck to importer — new share_code so they can re-share their copy
+        $newDeck = $this->deckRepository->create([
+            'user_id'    => $importerId,
+            'title'      => $original->title,
+            'source'     => $original->source,
+            'card_count' => $original->card_count,
+            'mastery'    => 0,
+            'progress'   => 0,
+            'status'     => 'Imported',
+            'share_code' => 'FC-' . strtoupper(Str::random(8)),
+        ]);
+
+        // Copy all flashcards to the new deck
+        $originalCards = $original->flashcards()->get();
+
+        if ($originalCards->isNotEmpty()) {
+            $now  = now()->toDateTimeString();
+            $rows = $originalCards->map(fn($c) => [
+                'deck_id'      => $newDeck->id,
+                'user_id'      => $importerId,
+                'type'         => $c->type,
+                'question'     => $c->question,
+                'answer'       => $c->answer,
+                'options'      => is_array($c->options) ? json_encode($c->options) : $c->options,
+                'explanation'  => $c->explanation,
+                'mastered'     => false,
+                'review_count' => 0,
+                'created_at'   => $now,
+                'updated_at'   => $now,
+            ])->toArray();
+
+            \Illuminate\Support\Facades\DB::table('flashcards')->insert($rows);
+        }
+
+        return $newDeck;
     }
 }

@@ -38,10 +38,11 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
     Route::post('/auth/profile/update', [AuthController::class, 'updateProfile']);
 
     // Decks
-    Route::get('/decks',         [DeckController::class, 'index']);
-    Route::post('/decks',        [DeckController::class, 'store']);
-    Route::put('/decks/{id}',    [DeckController::class, 'update']);
-    Route::delete('/decks/{id}', [DeckController::class, 'destroy']);
+    Route::get('/decks',             [DeckController::class, 'index']);
+    Route::post('/decks',            [DeckController::class, 'store']);
+    Route::post('/decks/import',     [DeckController::class, 'import']);  // ← new
+    Route::put('/decks/{id}',        [DeckController::class, 'update']);
+    Route::delete('/decks/{id}',     [DeckController::class, 'destroy']);
 
     // Flashcards
     Route::get('/decks/{deckId}/flashcards',  [FlashcardController::class, 'index']);
@@ -51,7 +52,6 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
     Route::post('/document/parse', [DocumentParserController::class, 'parse']);
 
     // AI Flashcard Generation — proxied server-side via OpenRouter
-    // Key never reaches the mobile bundle
     Route::post('/flashcards/generate',     [FlashcardGenerationController::class, 'generate']);
     Route::post('/flashcards/check-answer', [CheckAnswerController::class,          'check']);
 });

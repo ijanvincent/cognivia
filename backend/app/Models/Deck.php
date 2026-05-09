@@ -14,10 +14,16 @@ class Deck extends Model
         'mastery',
         'progress',
         'status',
+        'share_code',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function flashcards()
+    {
+        return $this->hasMany(Flashcard::class);
     }
 }
