@@ -17,9 +17,7 @@ class UserController extends Controller
     {
         $stats = $this->userService->getDashboardStats();
 
-        return response()->json([
-            'stats' => $stats,
-        ]);
+        return response()->json(['stats' => $stats]);
     }
 
     public function index(): JsonResponse
@@ -31,18 +29,49 @@ class UserController extends Controller
         ]);
     }
 
+    // Soft delete
     public function destroy(int $id): JsonResponse
     {
         $deleted = $this->userService->deleteUser($id);
 
         if (!$deleted) {
-            return response()->json([
-                'message' => 'User not found'
-            ], 404);
+            return response()->json(['message' => 'User not found'], 404);
         }
 
+        return response()->json(['message' => 'User deleted successfully']);
+    }
+
+    // Get all soft-deleted users
+    public function trashed(): JsonResponse
+    {
+        $users = $this->userService->getDeletedUsers();
+
         return response()->json([
-            'message' => 'User deleted successfully'
+            'users' => UserResource::collection(collect($users)),
         ]);
+    }
+
+    // Restore a soft-deleted user
+    public function restore(int $id): JsonResponse
+    {
+        $restored = $this->userService->restoreUser($id);
+
+        if (!$restored) {
+            return response()->json(['message' => 'User not found in trash'], 404);
+        }
+
+        return response()->json(['message' => 'User restored successfully']);
+    }
+
+    // Permanently delete
+    public function forceDelete(int $id): JsonResponse
+    {
+        $deleted = $this->userService->forceDeleteUser($id);
+
+        if (!$deleted) {
+            return response()->json(['message' => 'User not found in trash'], 404);
+        }
+
+        return response()->json(['message' => 'User permanently deleted']);
     }
 }
