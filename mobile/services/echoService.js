@@ -82,14 +82,74 @@ export const disconnectEcho = () => {
 // Internal — shared Echo + Pusher builder.
 // ---------------------------------------------------------------------------
 const _buildEchoInstance = (token) => {
+    const authHeaders = {
+        Authorization: `Bearer ${token}`,
+        'X-Platform': 'mobile',
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+    };
+
     const pusherClient = new Pusher(PUSHER_KEY, {
         wsHost:            PUSHER_HOST,
         wssPort:           PUSHER_PORT,
+        wsPath:            '/ws',
+        httpPath:          '/ws',
         forceTLS:          true,
         encrypted:         true,
         disableStats:      true,
         enabledTransports: ['wss'],
         cluster:           PUSHER_CLUSTER,
+        channelAuthorization: {
+            customHandler: async ({ socketId, channelName }, callback) => {
+                try {
+                    const response = await fetch(`${API_URL}/broadcasting/auth`, {
+                        method: 'POST',
+                        headers: authHeaders,
+                        body: JSON.stringify({
+                            socket_id: socketId,
+                            channel_name: channelName,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        callback(new Error(data?.message || 'Broadcast authorization failed.'), null);
+                        return;
+                    }
+
+                    callback(null, data);
+                } catch (error) {
+                    callback(error, null);
+                }
+            },
+        },
+        authorizer: (channel) => ({
+            authorize: async (socketId, callback) => {
+                try {
+                    const response = await fetch(`${API_URL}/broadcasting/auth`, {
+                        method: 'POST',
+                        headers: authHeaders,
+                        body: JSON.stringify({
+                            socket_id: socketId,
+                            channel_name: channel.name,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        callback(new Error(data?.message || 'Broadcast authorization failed.'), null);
+                        return;
+                    }
+
+                    callback(null, data);
+                } catch (error) {
+                    callback(error, null);
+                }
+            },
+        }),
     });
 
     return new Echo({
@@ -98,11 +158,7 @@ const _buildEchoInstance = (token) => {
         client:       pusherClient,
         authEndpoint: `${API_URL}/broadcasting/auth`,
         auth: {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'X-Platform':  'mobile',
-                Accept:        'application/json',
-            },
+            headers: authHeaders,
         },
     });
 };

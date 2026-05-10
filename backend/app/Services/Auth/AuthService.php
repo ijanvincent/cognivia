@@ -16,6 +16,7 @@ use App\Repositories\Auth\AuthRepository;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -175,11 +176,11 @@ class AuthService
      * Approve a pending login request.
      *
      * What: Called by Platform A when the user taps "Allow".
-     *       Creates a real session token for Platform B and fires LoginApproved.
+     *       Marks the request approved and fires LoginApproved.
      *
-     * Why: Platform B is listening on its private channel. On receiving
-     *      LoginApproved it stores the token and navigates to the dashboard
-     *      without requiring another login round-trip.
+     * Why: Platform B is listening/polling. Realtime is treated as a wake-up
+     *      signal only; the final session token is minted exactly once by the
+     *      status endpoint over HTTPS.
      *
      * Security:
      * - Token is looked up by SHA-256 hash only
@@ -209,22 +210,156 @@ class AuthService
         // Mark as approved immediately to prevent replay attacks.
         $pending->update(['status' => 'approved']);
 
-        // Revoke any existing tokens on the requesting platform.
-        $this->authRepository->revokeTokensByPlatform($approvingUser, $pending->requesting_platform);
-
-        // Create a real session token for Platform B.
-        $sessionToken = $this->authRepository->createPlatformToken(
-            $approvingUser,
-            'user_token',
-            $pending->requesting_platform,
-            now()->addHours(24)
-        );
-
-        // Fire LoginApproved so Platform B can proceed.
+        // Fire LoginApproved so Platform B polls the status endpoint immediately.
         broadcast(new LoginApproved(
             userId:           $approvingUser->id,
-            sessionToken:     $sessionToken,
-            user:             $approvingUser->only(['id', 'username', 'email', 'avatar', 'role']),
+            approvedPlatform: $pending->requesting_platform,
+        ));
+    }
+
+    public function getPendingLoginForActiveSession(User $user): ?array
+    {
+        $platform = $user->currentAccessToken()?->platform;
+
+        if (! in_array($platform, ['web', 'mobile'], true)) {
+            return null;
+        }
+
+        PendingLogin::where('user_id', $user->id)
+            ->where('expires_at', '<', now())
+            ->where('status', 'pending')
+            ->update(['status' => 'denied']);
+
+        $pending = PendingLogin::where('user_id', $user->id)
+            ->where('active_platform', $platform)
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
+
+        if (! $pending) {
+            return null;
+        }
+
+        return [
+            'id' => $pending->id,
+            'requesting_platform' => $pending->requesting_platform,
+            'expires_in' => max(0, now()->diffInSeconds($pending->expires_at, false)),
+        ];
+    }
+
+    /**
+     * Check a requesting platform's pending login status.
+     *
+     * What: Provides an HTTP fallback for clients waiting on approval.
+     * Why: WebSocket delivery can fail through tunnels, mobile networks, or
+     *      browser state. The requester still holds a high-entropy approval
+     *      token, so it can safely poll without receiving a full session until
+     *      the active platform has explicitly approved.
+     *
+     * Security:
+     * - Plaintext approval tokens are never stored; lookup uses SHA-256 hash.
+     * - Approved records are consumed by deleting the pending row after token
+     *   issuance, preventing replay of the approval token.
+     * - Denied and expired records never mint a session token.
+     */
+    public function getPendingLoginStatus(string $approvalToken): array
+    {
+        return DB::transaction(function () use ($approvalToken): array {
+            $pending = PendingLogin::with('user')
+                ->where('token_hash', hash('sha256', $approvalToken))
+                ->lockForUpdate()
+                ->first();
+
+            if (! $pending) {
+                return [
+                    'status' => 'denied',
+                    'message' => 'Sign-in request is no longer available. Please try again.',
+                ];
+            }
+
+            if ($pending->status === 'approved' && $pending->user) {
+                $user = $pending->user;
+                $requestingPlatform = $pending->requesting_platform;
+
+                $this->authRepository->revokeTokensByPlatform($user, $requestingPlatform);
+
+                $sessionToken = $this->authRepository->createPlatformToken(
+                    $user,
+                    'user_token',
+                    $requestingPlatform,
+                    now()->addHours(24)
+                );
+
+                $pending->delete();
+
+                return [
+                    'status' => 'approved',
+                    'token' => $sessionToken,
+                    'user' => $user->only(['id', 'username', 'email', 'avatar', 'role']),
+                    'platform' => $requestingPlatform,
+                ];
+            }
+
+            if ($pending->status === 'denied') {
+                $pending->delete();
+
+                return [
+                    'status' => 'denied',
+                    'message' => 'Your sign-in request was denied by the active session.',
+                ];
+            }
+
+            if ($pending->isExpired()) {
+                $deniedPlatform = $pending->requesting_platform;
+                $pending->update(['status' => 'denied']);
+
+                broadcast(new LoginDenied(
+                    userId: $pending->user_id,
+                    reason: 'The approval window has expired. Please try logging in again.',
+                    deniedPlatform: $deniedPlatform,
+                ));
+
+                return [
+                    'status' => 'denied',
+                    'message' => 'The approval window has expired. Please try logging in again.',
+                ];
+            }
+
+            if ($pending->status === 'pending') {
+                return [
+                    'status' => 'pending',
+                    'expires_in' => max(0, now()->diffInSeconds($pending->expires_at, false)),
+                ];
+            }
+
+            return [
+                'status' => 'denied',
+                'message' => 'Sign-in request is no longer valid. Please try again.',
+            ];
+        });
+    }
+
+    public function approvePendingLoginById(int $pendingLoginId, User $approvingUser): void
+    {
+        $pending = $this->findPendingLoginByIdForActiveSession($pendingLoginId, $approvingUser);
+
+        if (! $pending || $pending->isExpired()) {
+            if ($pending) {
+                $pending->update(['status' => 'denied']);
+                broadcast(new LoginDenied(
+                    userId: $approvingUser->id,
+                    reason: 'The approval window has expired. Please try logging in again.',
+                    deniedPlatform: $pending->requesting_platform,
+                ));
+            }
+            return;
+        }
+
+        $pending->update(['status' => 'approved']);
+
+        broadcast(new LoginApproved(
+            userId: $approvingUser->id,
             approvedPlatform: $pending->requesting_platform,
         ));
     }
@@ -260,6 +395,38 @@ class AuthService
             reason:         'Your sign-in request was denied by the active session.',
             deniedPlatform: $pending->requesting_platform,
         ));
+    }
+
+    public function denyPendingLoginById(int $pendingLoginId, User $denyingUser): void
+    {
+        $pending = $this->findPendingLoginByIdForActiveSession($pendingLoginId, $denyingUser);
+
+        if (! $pending) {
+            return;
+        }
+
+        $pending->update(['status' => 'denied']);
+
+        broadcast(new LoginDenied(
+            userId: $denyingUser->id,
+            reason: 'Your sign-in request was denied by the active session.',
+            deniedPlatform: $pending->requesting_platform,
+        ));
+    }
+
+    private function findPendingLoginByIdForActiveSession(int $pendingLoginId, User $user): ?PendingLogin
+    {
+        $platform = $user->currentAccessToken()?->platform;
+
+        if (! in_array($platform, ['web', 'mobile'], true)) {
+            return null;
+        }
+
+        return PendingLogin::where('id', $pendingLoginId)
+            ->where('user_id', $user->id)
+            ->where('active_platform', $platform)
+            ->where('status', 'pending')
+            ->first();
     }
 
     // =========================================================================
