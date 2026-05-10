@@ -29,6 +29,14 @@ const CARD_TIME_LIMITS = {
     [CARD_TYPES.TRUE_FALSE]: 10,
 };
 
+const CARD_TYPE_LABELS = {
+    [CARD_TYPES.IDENTIFICATION]:  'Identification',
+    [CARD_TYPES.MULTIPLE_CHOICE]: 'Multiple Choice',
+    [CARD_TYPES.EXPLANATORY]:     'Explanatory',
+    [CARD_TYPES.TRUE_FALSE]:      'True or False',
+    [CARD_TYPES.MIXED]:           'Mixed',
+};
+
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -121,6 +129,24 @@ const shuffleCards = (cards) => {
 
 const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoBack, colors }) => {
     const correctCount = responses.filter(response => response.isCorrect).length;
+    const missedResponses = responses.filter(response => !response.isCorrect);
+    const weakestTypes = Object.values(
+        missedResponses.reduce((groups, response) => {
+            const type = response.card?.type || CARD_TYPES.IDENTIFICATION;
+            const label = CARD_TYPE_LABELS[type] || 'Flashcards';
+
+            if (!groups[type]) {
+                groups[type] = { type, label, count: 0 };
+            }
+
+            groups[type].count += 1;
+            return groups;
+        }, {})
+    ).sort((a, b) => b.count - a.count);
+    const missedCount = missedResponses.length;
+    const focusSummary = missedCount
+        ? `${missedCount} ${missedCount === 1 ? 'answer was' : 'answers were'} missed. Review the question formats below, then go through each missed question before retrying.`
+        : 'You completed this round without missed cards. Keep the momentum by reviewing again later.';
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -167,6 +193,100 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                             <Text style={[styles.reviewStatLabel, { color: colors.subtext }]}>Mastery</Text>
                         </View>
                     </View>
+                </View>
+
+                <View style={[styles.focusCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.focusHeader}>
+                        <View style={[styles.focusIcon, { backgroundColor: missedResponses.length ? 'rgba(248,113,113,0.14)' : 'rgba(52,211,153,0.14)' }]}>
+                            <MaterialCommunityIcons
+                                name={missedResponses.length ? 'lightbulb-on-outline' : 'trophy-outline'}
+                                size={20}
+                                color={missedResponses.length ? '#f87171' : '#34d399'}
+                            />
+                        </View>
+                        <View style={styles.focusTitleWrap}>
+                            <Text style={[styles.focusEyebrow, { color: colors.subtext }]}>Personalized Coaching</Text>
+                            <Text style={[styles.focusTitle, { color: colors.text }]}>
+                                {missedResponses.length ? 'Where to Focus Next' : 'Strong Session'}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Text style={[styles.focusInsight, { color: colors.text }]}>{focusSummary}</Text>
+
+                    {missedResponses.length ? (
+                        <>
+                            <View style={[styles.coachingRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                                <View style={styles.coachingMetric}>
+                                    <Text style={styles.coachingMetricValue}>{missedCount}</Text>
+                                    <Text style={[styles.coachingMetricLabel, { color: colors.subtext }]}>to revisit</Text>
+                                </View>
+                                <View style={styles.coachingDivider} />
+                                <View style={styles.coachingCopy}>
+                                    <Text style={[styles.coachingCopyTitle, { color: colors.text }]}>Recommended plan</Text>
+                                    <Text style={[styles.coachingCopyText, { color: colors.subtext }]}>
+                                        Review the explanations, say the answer out loud, then use Study Again for a shuffled retry.
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <Text style={[styles.focusSectionLabel, { color: colors.subtext }]}>Question formats to review</Text>
+                            <View style={styles.weaknessList}>
+                                {weakestTypes.map(item => (
+                                    <View
+                                        key={item.type}
+                                        style={[styles.weaknessRow, { backgroundColor: colors.background, borderColor: colors.border }]}
+                                    >
+                                        <View style={styles.weaknessRowLeft}>
+                                            <Text style={[styles.weaknessRowTitle, { color: colors.text }]}>{item.label}</Text>
+                                            <Text style={[styles.weaknessRowMeta, { color: colors.subtext }]}>
+                                                {item.count} {item.count === 1 ? 'missed answer' : 'missed answers'}
+                                            </Text>
+                                        </View>
+                                        <View style={[styles.weaknessSeverity, { backgroundColor: item.count > 1 ? 'rgba(248,113,113,0.14)' : 'rgba(251,191,36,0.16)' }]}>
+                                            <Text style={[styles.weaknessSeverityText, { color: item.count > 1 ? '#f87171' : '#f59e0b' }]}>
+                                                {item.count > 1 ? 'High focus' : 'Review'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+
+                            <View style={styles.focusSectionHeader}>
+                                <Text style={[styles.focusSectionLabel, { color: colors.subtext }]}>Missed questions</Text>
+                                <Text style={[styles.focusSectionCount, { color: colors.subtext }]}>
+                                    {missedCount} {missedCount === 1 ? 'item' : 'items'}
+                                </Text>
+                            </View>
+                            {missedResponses.map((response, index) => (
+                                <View key={`focus-${response.card.id}-${index}`} style={[styles.focusItem, { borderTopColor: colors.border }]}>
+                                    <View style={styles.focusItemTop}>
+                                        <Text style={[styles.focusItemLabel, { color: colors.subtext }]}>
+                                            Missed question {index + 1} of {missedCount}
+                                        </Text>
+                                        <Text style={styles.focusItemBadge}>{CARD_TYPE_LABELS[response.card?.type] || 'Card'}</Text>
+                                    </View>
+                                    <Text style={[styles.focusItemText, { color: colors.text }]} numberOfLines={2}>
+                                        {response.card.question}
+                                    </Text>
+                                </View>
+                            ))}
+                        </>
+                    ) : (
+                        <View style={[styles.coachingRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                            <View style={styles.coachingMetric}>
+                                <Text style={[styles.coachingMetricValue, { color: '#34d399' }]}>100%</Text>
+                                <Text style={[styles.coachingMetricLabel, { color: colors.subtext }]}>accuracy</Text>
+                            </View>
+                            <View style={styles.coachingDivider} />
+                            <View style={styles.coachingCopy}>
+                                <Text style={[styles.coachingCopyTitle, { color: colors.text }]}>Keep it fresh</Text>
+                                <Text style={[styles.coachingCopyText, { color: colors.subtext }]}>
+                                    Use Study Again later to reinforce recall with a shuffled question order.
+                                </Text>
+                            </View>
+                        </View>
+                    )}
                 </View>
 
                 {responses.map((response, index) => (
@@ -962,6 +1082,36 @@ const styles = StyleSheet.create({
     reviewStat:         { flex: 1, borderRadius: 14, borderWidth: 1, paddingVertical: 12, alignItems: 'center' },
     reviewStatValue:    { fontSize: 20, fontWeight: '900', marginBottom: 2 },
     reviewStatLabel:    { fontSize: 11, fontWeight: '800' },
+    focusCard:          { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 12 },
+    focusHeader:        { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    focusIcon:          { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+    focusTitleWrap:     { flex: 1 },
+    focusEyebrow:       { fontSize: 11, fontWeight: '900', letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: 2 },
+    focusTitle:         { fontSize: 18, fontWeight: '900' },
+    focusInsight:       { fontSize: 14, lineHeight: 21, fontWeight: '700', marginBottom: 12 },
+    coachingRow:        { flexDirection: 'row', borderWidth: 1, borderRadius: 15, padding: 12, marginBottom: 14 },
+    coachingMetric:     { width: 72, alignItems: 'center', justifyContent: 'center' },
+    coachingMetricValue:{ color: '#f87171', fontSize: 22, fontWeight: '900', marginBottom: 2 },
+    coachingMetricLabel:{ fontSize: 11, fontWeight: '800' },
+    coachingDivider:    { width: 1, backgroundColor: 'rgba(148,163,184,0.25)', marginHorizontal: 12 },
+    coachingCopy:       { flex: 1, justifyContent: 'center' },
+    coachingCopyTitle:  { fontSize: 14, fontWeight: '900', marginBottom: 4 },
+    coachingCopyText:   { fontSize: 13, lineHeight: 18 },
+    focusSectionLabel:  { fontSize: 11, fontWeight: '900', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8, marginTop: 2 },
+    focusSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 2, marginBottom: 8 },
+    focusSectionCount:  { fontSize: 11, fontWeight: '800' },
+    weaknessList:       { gap: 8, marginBottom: 12 },
+    weaknessRow:        { minHeight: 64, borderWidth: 1, borderRadius: 14, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+    weaknessRowLeft:    { flex: 1 },
+    weaknessRowTitle:   { fontSize: 14, fontWeight: '900', marginBottom: 3 },
+    weaknessRowMeta:    { fontSize: 12, fontWeight: '700' },
+    weaknessSeverity:   { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
+    weaknessSeverityText:{ fontSize: 11, fontWeight: '900' },
+    focusItem:          { borderTopWidth: 1, paddingTop: 10, marginTop: 10 },
+    focusItemTop:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 },
+    focusItemLabel:     { fontSize: 11, fontWeight: '900', letterSpacing: 0.7, textTransform: 'uppercase' },
+    focusItemBadge:     { backgroundColor: 'rgba(56,189,248,0.14)', color: '#38bdf8', fontSize: 11, fontWeight: '900', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20, overflow: 'hidden' },
+    focusItemText:      { fontSize: 14, lineHeight: 20, fontWeight: '700' },
     reviewCard:         { borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 12 },
     reviewCardTop:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
     reviewCardNumber:   { fontSize: 12, fontWeight: '800' },
