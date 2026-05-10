@@ -10,6 +10,7 @@ import hideIcon  from './../../assets/hide.png';
 // Approval window must match backend APPROVAL_TTL_SECONDS (60).
 const APPROVAL_TTL_SECONDS = 60;
 const DENIED_NOTICE_DISMISS_MS = 3500;
+const NOTICE_EXIT_ANIMATION_MS = 260;
 
 function UserLogin() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ function UserLogin() {
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [autoDismissGeneralError, setAutoDismissGeneralError] = useState(false);
+  const [generalErrorExiting, setGeneralErrorExiting] = useState(false);
 
   // ── Approval gate state ────────────────────────────────────────────────────
   // What: tracks whether we're waiting for the active session to approve/deny.
@@ -35,6 +37,7 @@ function UserLogin() {
 
   const echoInstanceRef  = useRef(null);
   const countdownRef     = useRef(null);
+  const generalErrorDismissRef = useRef(null);
   const formDataRef      = useRef(formData);
   const approvalCompletedRef = useRef(false);
 
@@ -45,6 +48,7 @@ function UserLogin() {
     return () => {
       cleanupEcho();
       clearInterval(countdownRef.current);
+      clearTimeout(generalErrorDismissRef.current);
     };
   }, []);
 
@@ -141,6 +145,7 @@ function UserLogin() {
     setConflictState(null);
     setLoading(false);
     setAutoDismissGeneralError(true);
+    setGeneralErrorExiting(false);
     setErrors({ general: message || 'Your sign-in request was denied by the active session.' });
   }, [cleanupEcho]);
 
@@ -148,12 +153,26 @@ function UserLogin() {
     if (!autoDismissGeneralError || !errors.general || conflictState) return undefined;
 
     const timer = setTimeout(() => {
-      setErrors(prev => ({ ...prev, general: null }));
-      setAutoDismissGeneralError(false);
+      setGeneralErrorExiting(true);
+      generalErrorDismissRef.current = setTimeout(() => {
+        setErrors(prev => ({ ...prev, general: null }));
+        setAutoDismissGeneralError(false);
+        setGeneralErrorExiting(false);
+      }, NOTICE_EXIT_ANIMATION_MS);
     }, DENIED_NOTICE_DISMISS_MS);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(generalErrorDismissRef.current);
+    };
   }, [autoDismissGeneralError, errors.general, conflictState]);
+
+  useEffect(() => {
+    if (errors.general) return;
+
+    setGeneralErrorExiting(false);
+    clearTimeout(generalErrorDismissRef.current);
+  }, [errors.general]);
 
   const checkApprovalStatus = useCallback(async (approvalToken) => {
     if (approvalCompletedRef.current) return true;
@@ -236,6 +255,8 @@ function UserLogin() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    clearTimeout(generalErrorDismissRef.current);
+    setGeneralErrorExiting(false);
     setErrors(prev => ({ ...prev, [name]: null, general: null }));
     setAutoDismissGeneralError(false);
     if (conflictState) {
@@ -266,6 +287,7 @@ function UserLogin() {
     setConflictState(null);
     setLoading(true);
     setErrors({});
+    setGeneralErrorExiting(false);
     setAutoDismissGeneralError(false);
 
     try {
@@ -404,7 +426,12 @@ function UserLogin() {
 
       {/* ── Error modal (non-conflict errors) ──────────────────────────────── */}
       {(errors.general && ! isWaiting) && (
-        <div className={styles.toastScrim} role="dialog" aria-modal="true" aria-labelledby="session-alert-title">
+        <div
+          className={`${styles.toastScrim} ${generalErrorExiting ? styles.toastScrimExiting : ''}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="session-alert-title"
+        >
           <div className={styles.toast}>
             <div className={styles.toastIconWrap} aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 16 16" fill="var(--error)">
