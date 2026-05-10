@@ -22,6 +22,7 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
  */
 
 const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
+const APPROVAL_TTL_SECONDS = 60;
 
 const IconUser = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -73,6 +74,9 @@ function UserDashboard() {
   const [mounted, setMounted]           = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser]                 = useState(() => getStoredUser());
+  const [incomingRequest, setIncomingRequest] = useState(null);
+  const [approvalBusy, setApprovalBusy]       = useState(false);
+  const [approvalError, setApprovalError]     = useState('');
   const navigate                        = useNavigate();
 
   const userName    = user.name || user.username || 'Learner';
@@ -89,25 +93,6 @@ function UserDashboard() {
     window.addEventListener('cognivia:userUpdated', handleUserUpdated);
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
-
-  useEffect(() => {
-    const userId = user?.id;
-    if (!userId) return;
-
-    const echo = getEcho();
-    if (!echo) return;
-
-    echo.private(`user.${userId}`)
-      .listen('.force.logout', (e) => {
-        if (e.platform === 'web') {
-          handleLogout();
-        }
-      });
-
-    return () => {
-      disconnectEcho();
-    };
-  }, [user?.id]);
 
   /*
    * NAMESPACE FIX — handleLogout removes namespaced user keys only.
@@ -132,6 +117,97 @@ function UserDashboard() {
     window.location.replace('/login');
   };
 
+  useEffect(() => {
+    const userId = user?.id;
+    if (!userId) return;
+
+    const echo = getEcho();
+    if (!echo) return;
+
+    echo.private(`user.${userId}`)
+      .listen('.force.logout', (e) => {
+        if (e.platform === 'web') {
+          handleLogout();
+        }
+      })
+      .listen('.new.login.request', (event) => {
+        setApprovalError('');
+        setIncomingRequest({
+          approvalToken: event.approval_token,
+          requestingPlatform: event.requesting_platform,
+          expiresIn: event.expires_in ?? APPROVAL_TTL_SECONDS,
+        });
+      });
+
+    return () => {
+      disconnectEcho();
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!incomingRequest) return undefined;
+
+    const timer = setTimeout(() => {
+      setIncomingRequest(null);
+      setApprovalBusy(false);
+    }, incomingRequest.expiresIn * 1000);
+
+    return () => clearTimeout(timer);
+  }, [incomingRequest]);
+
+  useEffect(() => {
+    let stopped = false;
+
+    const checkPendingLogin = async () => {
+      if (stopped || incomingRequest || approvalBusy) return;
+
+      try {
+        const response = await api.get('/auth/login/pending');
+        const pending = response.data?.pending_login;
+
+        if (!pending || stopped) return;
+
+        setApprovalError('');
+        setIncomingRequest({
+          pendingLoginId: pending.id,
+          approvalToken: null,
+          requestingPlatform: pending.requesting_platform,
+          expiresIn: pending.expires_in ?? APPROVAL_TTL_SECONDS,
+        });
+      } catch (_) {
+        // Polling is the fallback for realtime delivery; transient errors should not interrupt the dashboard.
+      }
+    };
+
+    checkPendingLogin();
+    const interval = setInterval(checkPendingLogin, 3000);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+    };
+  }, [incomingRequest, approvalBusy]);
+
+  const respondToLoginRequest = async (action) => {
+    if (!incomingRequest?.approvalToken && !incomingRequest?.pendingLoginId) return;
+
+    setApprovalBusy(true);
+    setApprovalError('');
+
+    try {
+      const payload = incomingRequest.approvalToken
+        ? { approval_token: incomingRequest.approvalToken }
+        : { pending_login_id: incomingRequest.pendingLoginId };
+
+      await api.post(`/auth/login/${action}`, payload);
+      setIncomingRequest(null);
+    } catch {
+      setApprovalError(`Could not ${action} the sign-in request. Please try again.`);
+    } finally {
+      setApprovalBusy(false);
+    }
+  };
+
   const handleEditProfile = () => {
     setDropdownOpen(false);
     navigate('/profile');
@@ -139,6 +215,42 @@ function UserDashboard() {
 
   return (
     <div className={`${styles.page} ${mounted ? styles.mounted : ''}`}>
+      {incomingRequest && (
+        <div className={styles.approvalScrim} role="dialog" aria-modal="true" aria-labelledby="approval-title">
+          <div className={styles.approvalModal}>
+            <div className={styles.approvalIcon} aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            </div>
+            <h2 id="approval-title" className={styles.approvalTitle}>New Sign-In Request</h2>
+            <p className={styles.approvalBody}>
+              Someone is trying to sign in to your account from a {incomingRequest.requestingPlatform === 'mobile' ? 'mobile device' : 'web browser'}.
+              Is this you?
+            </p>
+            {approvalError && <p className={styles.approvalError}>{approvalError}</p>}
+            <div className={styles.approvalActions}>
+              <button
+                type="button"
+                className={styles.approvalDeny}
+                onClick={() => respondToLoginRequest('deny')}
+                disabled={approvalBusy}
+              >
+                Deny
+              </button>
+              <button
+                type="button"
+                className={styles.approvalAllow}
+                onClick={() => respondToLoginRequest('approve')}
+                disabled={approvalBusy}
+              >
+                {approvalBusy ? 'Working...' : 'Allow'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className={styles.pageHeader}>
         <div>

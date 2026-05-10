@@ -365,6 +365,7 @@ const LoginScreen = () => {
 
     const conflictEchoRef   = useRef(null);  // Echo for Platform B waiting
     const countdownRef      = useRef(null);
+    const approvalCompletedRef = useRef(false);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -392,6 +393,7 @@ const LoginScreen = () => {
             setConflictState(prev => {
                 if (!prev) return null;
                 if (prev.secondsLeft <= 1) {
+                    approvalCompletedRef.current = true;
                     clearInterval(countdownRef.current);
                     cleanupConflictEcho();
                     return null;
@@ -407,13 +409,76 @@ const LoginScreen = () => {
     /**
      * What: Platform B (mobile) subscribes to private user.{userId} using
      *       the short-lived conflict_token, listens for login.approved /
-     *       login.denied events.
+     *       login.denied events, then consumes the result through HTTPS.
      *
      * Why: Mobile has no real session token yet at this point. The
      *      conflict_token is a limited Sanctum token that only authenticates
      *      the WS channel subscription.
      */
-    const subscribeToApprovalChannel = useCallback((userId, conflictToken) => {
+    const completeApprovedLogin = useCallback(async (token, approvedUser) => {
+        if (approvalCompletedRef.current) return;
+        approvalCompletedRef.current = true;
+
+        clearInterval(countdownRef.current);
+        cleanupConflictEcho();
+        setConflictState(null);
+        setIsLoading(true);
+
+        try {
+            const userToStore = {
+                id:       approvedUser.id,
+                username: approvedUser.username,
+                email:    approvedUser.email,
+                avatar:   approvedUser.avatar || null,
+                role:     approvedUser.role,
+            };
+
+            await SecureStore.setItemAsync('token', token);
+            await SecureStore.setItemAsync('user', JSON.stringify(userToStore));
+
+            navigation.replace('HomeTabs');
+        } catch (err) {
+            setErrors({ general: 'Sign-in approved but session setup failed. Please try again.' });
+            setIsLoading(false);
+        }
+    }, [cleanupConflictEcho, navigation]);
+
+    const handleDeniedLogin = useCallback((message) => {
+        if (approvalCompletedRef.current) return;
+        approvalCompletedRef.current = true;
+
+        clearInterval(countdownRef.current);
+        cleanupConflictEcho();
+        setConflictState(null);
+        setIsLoading(false);
+        setErrors({ general: message || 'Your sign-in request was denied.' });
+    }, [cleanupConflictEcho]);
+
+    const checkApprovalStatus = useCallback(async (approvalToken) => {
+        if (approvalCompletedRef.current) return true;
+
+        const response = await api.post('/auth/login/status', {
+            approval_token: approvalToken,
+        });
+
+        if (approvalCompletedRef.current) return true;
+
+        const status = response.data?.status;
+
+        if (status === 'approved' && response.data?.platform === 'mobile') {
+            await completeApprovedLogin(response.data.token, response.data.user);
+            return true;
+        }
+
+        if (status === 'denied') {
+            handleDeniedLogin(response.data?.message);
+            return true;
+        }
+
+        return false;
+    }, [completeApprovedLogin, handleDeniedLogin]);
+
+    const subscribeToApprovalChannel = useCallback((userId, conflictToken, approvalToken) => {
         const echo = getEchoWithToken(conflictToken);
         if (!echo) {
             setErrors({ general: 'Could not connect to approval channel. Please try again.' });
@@ -427,38 +492,44 @@ const LoginScreen = () => {
                 // Only handle if this approval is for mobile (our platform)
                 if (event.platform !== 'mobile') return;
 
-                clearInterval(countdownRef.current);
-                cleanupConflictEcho();
-                setConflictState(null);
-                setIsLoading(true);
-
                 try {
-                    const userToStore = {
-                        id:       event.user.id,
-                        username: event.user.username,
-                        email:    event.user.email,
-                        avatar:   event.user.avatar || null,
-                        role:     event.user.role,
-                    };
-
-                    await SecureStore.setItemAsync('token', event.token);
-                    await SecureStore.setItemAsync('user', JSON.stringify(userToStore));
-
-                    navigation.replace('HomeTabs');
-                } catch (err) {
-                    setErrors({ general: 'Sign-in approved but session setup failed. Please try again.' });
-                    setIsLoading(false);
+                    await checkApprovalStatus(approvalToken);
+                } catch (_) {
+                    // The interval poll remains active if this immediate check fails.
                 }
             })
             .listen('.login.denied', (event) => {
                 if (event.platform !== 'mobile') return;
 
-                clearInterval(countdownRef.current);
-                cleanupConflictEcho();
-                setConflictState(null);
-                setErrors({ general: event.reason || 'Your sign-in request was denied.' });
+                handleDeniedLogin(event.reason);
             });
-    }, [cleanupConflictEcho, navigation]);
+    }, [checkApprovalStatus, handleDeniedLogin]);
+
+    useEffect(() => {
+        if (!conflictState?.approvalToken) return undefined;
+
+        let stopped = false;
+        let intervalId = null;
+
+        const pollApprovalStatus = async () => {
+            try {
+                if (stopped) return;
+                const isFinished = await checkApprovalStatus(conflictState.approvalToken);
+                if (stopped) return;
+                if (isFinished && intervalId) clearInterval(intervalId);
+            } catch (_) {
+                // Keep waiting for the normal timeout. The WebSocket listener remains active too.
+            }
+        };
+
+        pollApprovalStatus();
+        intervalId = setInterval(pollApprovalStatus, 2000);
+
+        return () => {
+            stopped = true;
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [conflictState?.approvalToken, checkApprovalStatus]);
 
     // ── Platform A: listen for incoming login requests on active session ──────
     /**
@@ -545,6 +616,7 @@ const LoginScreen = () => {
         if (errors.general) setErrors(prev => ({ ...prev, general: null }));
         // If user types again while waiting, cancel the conflict wait
         if (conflictState) {
+            approvalCompletedRef.current = true;
             clearInterval(countdownRef.current);
             cleanupConflictEcho();
             setConflictState(null);
@@ -565,6 +637,7 @@ const LoginScreen = () => {
         // Cancel any previous conflict wait
         clearInterval(countdownRef.current);
         cleanupConflictEcho();
+        approvalCompletedRef.current = true;
         setConflictState(null);
 
         setIsLoading(true);
@@ -605,6 +678,8 @@ const LoginScreen = () => {
                 const approvalToken = error.response.data.approval_token;
                 const userId        = error.response.data.conflict_user_id;
 
+                approvalCompletedRef.current = false;
+
                 setConflictState({
                     userId,
                     conflictToken,
@@ -613,7 +688,7 @@ const LoginScreen = () => {
                 });
 
                 if (conflictToken && userId) {
-                    subscribeToApprovalChannel(userId, conflictToken);
+                    subscribeToApprovalChannel(userId, conflictToken, approvalToken);
                 }
 
             } else if (status === 401) {
@@ -719,6 +794,7 @@ const LoginScreen = () => {
                                 </View>
                                 <TouchableOpacity
                                     onPress={() => {
+                                        approvalCompletedRef.current = true;
                                         clearInterval(countdownRef.current);
                                         cleanupConflictEcho();
                                         setConflictState(null);

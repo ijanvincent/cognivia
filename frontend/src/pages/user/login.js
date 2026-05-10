@@ -34,6 +34,7 @@ function UserLogin() {
   const echoInstanceRef  = useRef(null);
   const countdownRef     = useRef(null);
   const formDataRef      = useRef(formData);
+  const approvalCompletedRef = useRef(false);
 
   useEffect(() => { formDataRef.current = formData; }, [formData]);
 
@@ -69,6 +70,7 @@ function UserLogin() {
       setConflictState(prev => {
         if (! prev) return null;
         if (prev.secondsLeft <= 1) {
+          approvalCompletedRef.current = true;
           clearInterval(countdownRef.current);
           cleanupEcho();
           return null;
@@ -95,9 +97,74 @@ function UserLogin() {
    *     The old implementation listened for force.logout which required
    *     the active user to fully log out before the new login could
    *     proceed. The new flow is explicit: Platform A sends Allow or Deny,
-   *     and Platform B receives the appropriate event with its session token
-   *     already included in the approved payload.
+   *     and Platform B treats realtime as a wake-up signal before consuming
+   *     the approved request through the HTTPS status endpoint.
    */
+  const completeApprovedLogin = useCallback((token, approvedUser) => {
+    if (approvalCompletedRef.current) return;
+    approvalCompletedRef.current = true;
+
+    clearInterval(countdownRef.current);
+    cleanupEcho();
+    setConflictState(null);
+    setLoading(true);
+
+    try {
+      const { rememberMe } = formDataRef.current;
+      const storage = rememberMe ? localStorage : sessionStorage;
+      const user = { ...approvedUser };
+
+      if (user.avatar && ! user.avatar.startsWith('http')) {
+        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
+          user.avatar.startsWith('/') ? '' : '/storage/'
+        }${user.avatar}`;
+      }
+
+      storage.setItem(STORAGE_KEYS.USER_TOKEN, token);
+      storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setErrors({ general: 'Sign-in approved but session setup failed. Please try again.' });
+      setLoading(false);
+    }
+  }, [cleanupEcho, navigate]);
+
+  const handleDeniedLogin = useCallback((message) => {
+    if (approvalCompletedRef.current) return;
+    approvalCompletedRef.current = true;
+
+    clearInterval(countdownRef.current);
+    cleanupEcho();
+    setConflictState(null);
+    setLoading(false);
+    setErrors({ general: message || 'Your sign-in request was denied.' });
+  }, [cleanupEcho]);
+
+  const checkApprovalStatus = useCallback(async (approvalToken) => {
+    if (approvalCompletedRef.current) return true;
+
+    const response = await api.post('/auth/login/status', {
+      approval_token: approvalToken,
+    });
+
+    if (approvalCompletedRef.current) return true;
+
+    const status = response.data?.status;
+
+    if (status === 'approved' && response.data?.platform === 'web') {
+      completeApprovedLogin(response.data.token, response.data.user);
+      return true;
+    }
+
+    if (status === 'denied') {
+      handleDeniedLogin(response.data?.message);
+      return true;
+    }
+
+    return false;
+  }, [completeApprovedLogin, handleDeniedLogin]);
+
   const subscribeToApprovalChannel = useCallback((userId, conflictToken, approvalToken) => {
     const echo = getEchoWithToken(conflictToken);
     if (! echo) {
@@ -112,47 +179,52 @@ function UserLogin() {
         // Only handle if this approval is for web (our platform)
         if (event.platform !== 'web') return;
 
-        clearInterval(countdownRef.current);
-        cleanupEcho();
-        setConflictState(null);
-        setLoading(true);
-
         try {
-          const { rememberMe } = formDataRef.current;
-          const storage = rememberMe ? localStorage : sessionStorage;
-          const user    = event.user;
-
-          if (user.avatar && ! user.avatar.startsWith('http')) {
-            user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
-              user.avatar.startsWith('/') ? '' : '/storage/'
-            }${user.avatar}`;
-          }
-
-          storage.setItem(STORAGE_KEYS.USER_TOKEN, event.token);
-          storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));
-
-          navigate('/dashboard', { replace: true });
-        } catch (err) {
-          setErrors({ general: 'Sign-in approved but session setup failed. Please try again.' });
-          setLoading(false);
+          await checkApprovalStatus(approvalToken);
+        } catch (_) {
+          // The normal interval poll remains active if the immediate check fails.
         }
       })
       .listen('.login.denied', (event) => {
         if (event.platform !== 'web') return;
 
-        clearInterval(countdownRef.current);
-        cleanupEcho();
-        setConflictState(null);
-        setLoading(false);
-        setErrors({ general: event.reason || 'Your sign-in request was denied.' });
+        handleDeniedLogin(event.reason);
       });
-  }, [cleanupEcho, navigate]);
+  }, [checkApprovalStatus, handleDeniedLogin]);
+
+  useEffect(() => {
+    if (! conflictState?.approvalToken) return;
+
+    let stopped = false;
+
+    let intervalId = null;
+
+    const pollApprovalStatus = async () => {
+      try {
+        if (stopped) return;
+        const isFinished = await checkApprovalStatus(conflictState.approvalToken);
+        if (stopped) return;
+        if (isFinished && intervalId) clearInterval(intervalId);
+      } catch (_) {
+        // Keep waiting for the normal timeout. The WebSocket listener remains active too.
+      }
+    };
+
+    pollApprovalStatus();
+    intervalId = setInterval(pollApprovalStatus, 2000);
+
+    return () => {
+      stopped = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [conflictState?.approvalToken, checkApprovalStatus]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setErrors(prev => ({ ...prev, [name]: null, general: null }));
     if (conflictState) {
+      approvalCompletedRef.current = true;
       clearInterval(countdownRef.current);
       cleanupEcho();
       setConflictState(null);
@@ -175,6 +247,7 @@ function UserLogin() {
 
     clearInterval(countdownRef.current);
     cleanupEcho();
+    approvalCompletedRef.current = true;
     setConflictState(null);
     setLoading(true);
     setErrors({});
@@ -227,6 +300,8 @@ function UserLogin() {
           const approvalToken  = error.response?.data?.approval_token;
           const userId         = error.response?.data?.conflict_user_id;
 
+          approvalCompletedRef.current = false;
+
           setConflictState({
             userId,
             conflictToken,
@@ -265,6 +340,7 @@ function UserLogin() {
 
   // ── Cancel waiting ─────────────────────────────────────────────────────────
   const handleCancelWaiting = () => {
+    approvalCompletedRef.current = true;
     clearInterval(countdownRef.current);
     cleanupEcho();
     setConflictState(null);

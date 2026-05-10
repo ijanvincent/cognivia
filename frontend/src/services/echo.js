@@ -65,6 +65,7 @@ const _buildEchoInstance = (token) => {
     enabledTransports: ['wss'],
     cluster:           process.env.REACT_APP_PUSHER_APP_CLUSTER,
     wsPath:            '/ws',
+    httpPath:          '/ws',
     authEndpoint:      `${process.env.REACT_APP_API_URL}/broadcasting/auth`,
     auth: {
       headers: {
