@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity,
     Switch, Alert, Platform, Image,
-    TextInput, ActivityIndicator
+    TextInput, ActivityIndicator, ScrollView, StatusBar,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
@@ -25,6 +26,7 @@ const ProfileScreen = () => {
         name: 'Loading...',
         email: 'Loading...',
     });
+    const userInitial = (userData.name || 'U').charAt(0).toUpperCase();
 
     useEffect(() => {
         const loadUser = async () => {
@@ -123,7 +125,6 @@ const ProfileScreen = () => {
 
     const handleToggleAppTheme = () => {
         toggleTheme();
-        Alert.alert('Theme Change', `App Theme changed to ${!isDarkMode ? 'Dark' : 'Light'} Mode.`);
     };
 
     const handleAboutUs = () => navigation.navigate('About');
@@ -152,144 +153,190 @@ const ProfileScreen = () => {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
-                <View style={{ width: 34 }} />
-            </View>
+            <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={styles.header}>
+                    <View>
+                        <Text style={[styles.headerEyebrow, { color: colors.subtext }]}>Account</Text>
+                        <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
+                    </View>
+                </View>
 
-            {/* Avatar + Name */}
-            <View style={styles.profileInfo}>
-                <View style={styles.avatarWrapper}>
-                    {profileImage ? (
-                        <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                    ) : (
-                        <View style={[styles.avatarPlaceholder, { backgroundColor: isDarkMode ? '#333' : '#E0E0E0' }]}>
-                            <MaterialCommunityIcons name="account" size={52} color={isDarkMode ? '#888' : '#aaa'} />
+                <LinearGradient
+                    colors={isDarkMode ? ['#171923', '#0f172a'] : ['#ffffff', '#eef6ff']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.profileCard, { borderColor: colors.border }]}
+                >
+                    <View style={styles.profileTopRow}>
+                        <View style={styles.avatarWrapper}>
+                            {profileImage ? (
+                                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                            ) : (
+                                <View style={[styles.avatarPlaceholder, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : '#e0f2fe' }]}>
+                                    <Text style={[styles.avatarInitial, { color: colors.text }]}>{userInitial}</Text>
+                                </View>
+                            )}
+                            <TouchableOpacity
+                                onPress={handleEditProfile}
+                                style={styles.editBadge}
+                                activeOpacity={0.85}
+                            >
+                                <MaterialCommunityIcons name="camera-outline" size={15} color="#07111f" />
+                            </TouchableOpacity>
                         </View>
-                    )}
-                    <TouchableOpacity
-                        onPress={handleEditProfile}
-                        style={[styles.editBadge, { backgroundColor: colors.primary }]}
-                    >
-                        <MaterialCommunityIcons name="pencil" size={14} color="#000" />
-                    </TouchableOpacity>
-                </View>
-                <Text style={[styles.userName, { color: colors.text }]}>{userData.name}</Text>
-                <Text style={[styles.userEmail, { color: colors.subtext }]}>{userData.email}</Text>
-            </View>
 
-            {/* Import Deck Card */}
-            <View style={[styles.card, { backgroundColor: colors.card, shadowColor: isDarkMode ? '#fff' : '#000' }]}>
-                <View style={styles.cardHeader}>
-                    <MaterialCommunityIcons name="download-outline" size={20} color={colors.subtext} />
-                    <Text style={[styles.cardLabel, { color: colors.text }]}>Import Deck</Text>
-                </View>
-                <View style={[styles.importRow, { borderColor: colors.border, backgroundColor: isDarkMode ? '#1e1e1e' : '#f5f5f5' }]}>
-                    <TextInput
-                        style={[styles.linkInput, { color: colors.text }]}
-                        placeholder="FC-XXXXXXXX"
-                        placeholderTextColor={colors.subtext}
-                        value={inputLink}
-                        onChangeText={setInputLink}
-                        autoCapitalize="characters"
-                        autoCorrect={false}
-                        editable={!isImporting}
-                    />
+                        <View style={styles.profileCopy}>
+                            <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>{userData.name}</Text>
+                            <Text style={[styles.userEmail, { color: isDarkMode ? '#cbd5e1' : '#64748b' }]} numberOfLines={1}>{userData.email}</Text>
+                            <View style={styles.memberPill}>
+                                <MaterialCommunityIcons name="shield-account-outline" size={13} color="#38bdf8" />
+                                <Text style={styles.memberPillText}>Learner account</Text>
+                            </View>
+                        </View>
+                    </View>
+                </LinearGradient>
+
+                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.cardHeader}>
+                        <View style={[styles.cardIcon, { backgroundColor: 'rgba(56,189,248,0.14)' }]}>
+                            <MaterialCommunityIcons name="download-outline" size={19} color="#38bdf8" />
+                        </View>
+                        <View style={styles.cardHeaderCopy}>
+                            <Text style={[styles.cardLabel, { color: colors.text }]}>Import Deck</Text>
+                            <Text style={[styles.cardSubLabel, { color: colors.subtext }]}>Paste a shared deck code</Text>
+                        </View>
+                    </View>
+
+                    <View style={[styles.importRow, { borderColor: colors.border, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#f8fafc' }]}>
+                        <MaterialCommunityIcons name="key-variant" size={18} color={colors.subtext} />
+                        <TextInput
+                            style={[styles.linkInput, { color: colors.text }]}
+                            placeholder="FC-XXXXXXXX"
+                            placeholderTextColor={colors.subtext}
+                            value={inputLink}
+                            onChangeText={(value) => setInputLink(value.toUpperCase())}
+                            autoCapitalize="characters"
+                            autoCorrect={false}
+                            editable={!isImporting}
+                        />
+                    </View>
+
                     <TouchableOpacity
                         onPress={handleInputLink}
-                        style={[styles.importBtn, { backgroundColor: colors.primary }, isImporting && { opacity: 0.6 }]}
+                        style={[styles.importBtn, isImporting && styles.disabled]}
                         disabled={isImporting}
+                        activeOpacity={0.86}
                     >
-                        {isImporting
-                            ? <ActivityIndicator size="small" color="#000" />
-                            : <Text style={styles.importBtnText}>Import</Text>
-                        }
+                        {isImporting ? (
+                            <ActivityIndicator size="small" color="#07111f" />
+                        ) : (
+                            <>
+                                <MaterialCommunityIcons name="tray-arrow-down" size={18} color="#07111f" />
+                                <Text style={styles.importBtnText}>Import Deck</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
-            </View>
 
-            {/* Settings Card */}
-            <View style={[styles.card, { backgroundColor: colors.card, shadowColor: isDarkMode ? '#fff' : '#000' }]}>
+                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
+
+                    <TouchableOpacity
+                        onPress={handleAboutUs}
+                        style={[styles.settingRow, { borderBottomColor: colors.border }]}
+                        activeOpacity={0.82}
+                    >
+                        <View style={[styles.iconCircle, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#f8fafc' }]}>
+                            <MaterialCommunityIcons name="information-outline" size={20} color={colors.subtext} />
+                        </View>
+                        <View style={styles.settingCopy}>
+                            <Text style={[styles.settingText, { color: colors.text }]}>About CogniVia</Text>
+                            <Text style={[styles.settingSubText, { color: colors.subtext }]}>App information and support</Text>
+                        </View>
+                        <MaterialCommunityIcons name="chevron-right" size={22} color={colors.subtext} />
+                    </TouchableOpacity>
+
+                    <View style={styles.settingRow}>
+                        <View style={[styles.iconCircle, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#f8fafc' }]}>
+                            <MaterialCommunityIcons name="theme-light-dark" size={20} color={colors.subtext} />
+                        </View>
+                        <View style={styles.settingCopy}>
+                            <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
+                            <Text style={[styles.settingSubText, { color: colors.subtext }]}>Use system-friendly contrast</Text>
+                        </View>
+                        <Switch
+                            trackColor={{ false: colors.border, true: '#38bdf8' }}
+                            thumbColor={isDarkMode ? '#ffffff' : '#f8fafc'}
+                            onValueChange={handleToggleAppTheme}
+                            value={isDarkMode}
+                        />
+                    </View>
+                </View>
 
                 <TouchableOpacity
-                    onPress={handleAboutUs}
-                    style={[styles.settingRow, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}
+                    onPress={handleLogout}
+                    style={styles.logoutButton}
+                    activeOpacity={0.86}
                 >
-                    <View style={[styles.iconCircle, { backgroundColor: isDarkMode ? '#2a2a2a' : '#f0f0f0' }]}>
-                        <MaterialCommunityIcons name="information-outline" size={20} color={colors.subtext} />
-                    </View>
-                    <Text style={[styles.settingText, { color: colors.text }]}>About Us</Text>
-                    <MaterialCommunityIcons name="chevron-right" size={22} color={colors.subtext} />
+                    <MaterialCommunityIcons name="logout" size={20} color="#ffffff" />
+                    <Text style={styles.logoutText}>Log Out</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={handleToggleAppTheme} style={styles.settingRow}>
-                    <View style={[styles.iconCircle, { backgroundColor: isDarkMode ? '#2a2a2a' : '#f0f0f0' }]}>
-                        <MaterialCommunityIcons name="theme-light-dark" size={20} color={colors.subtext} />
-                    </View>
-                    <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
-                    <Switch
-                        trackColor={{ false: colors.border, true: colors.primary }}
-                        thumbColor={isDarkMode ? '#fff' : '#f4f3f4'}
-                        onValueChange={handleToggleAppTheme}
-                        value={isDarkMode}
-                    />
-                </TouchableOpacity>
-            </View>
-
-            {/* Logout */}
-            <TouchableOpacity
-                onPress={handleLogout}
-                style={[styles.logoutButton, { backgroundColor: colors.logout }]}
-            >
-                <MaterialCommunityIcons name="logout" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.logoutText}>Log Out</Text>
-            </TouchableOpacity>
-
+            </ScrollView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container:          { flex: 1, paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 30 },
+    container:          { flex: 1 },
+    scroll:             { flex: 1 },
+    scrollContent:      { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 58 : 42, paddingBottom: 78 },
 
-    // Header
-    header:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Platform.OS === 'ios' ? 50 : 30, marginBottom: 28 },
-    backButton:         { padding: 6 },
-    headerTitle:        { fontSize: 20, fontWeight: '700', letterSpacing: 0.3 },
+    header:             { marginBottom: 18 },
+    headerEyebrow:      { fontSize: 13, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 4 },
+    headerTitle:        { fontSize: 30, fontWeight: '900' },
 
-    // Profile
-    profileInfo:        { alignItems: 'center', marginBottom: 24 },
-    avatarWrapper:      { position: 'relative', marginBottom: 12 },
-    profileImage:       { width: 96, height: 96, borderRadius: 48 },
-    avatarPlaceholder:  { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center' },
-    editBadge:          { position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2 },
-    userName:           { fontSize: 20, fontWeight: '700', marginBottom: 4 },
-    userEmail:          { fontSize: 14, fontWeight: '400' },
+    profileCard:        { borderWidth: 1, borderRadius: 20, padding: 18, marginBottom: 14, overflow: 'hidden' },
+    profileTopRow:      { flexDirection: 'row', alignItems: 'center' },
+    avatarWrapper:      { position: 'relative', marginRight: 16 },
+    profileImage:       { width: 86, height: 86, borderRadius: 43 },
+    avatarPlaceholder:  { width: 86, height: 86, borderRadius: 43, alignItems: 'center', justifyContent: 'center' },
+    avatarInitial:      { fontSize: 32, fontWeight: '900' },
+    editBadge:          { position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: '#38bdf8', alignItems: 'center', justifyContent: 'center', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 4 },
+    profileCopy:        { flex: 1 },
+    userName:           { fontSize: 22, fontWeight: '900', marginBottom: 4 },
+    userEmail:          { fontSize: 13, fontWeight: '600', marginBottom: 10 },
+    memberPill:         { alignSelf: 'flex-start', height: 28, borderRadius: 14, paddingHorizontal: 10, backgroundColor: 'rgba(56,189,248,0.14)', flexDirection: 'row', alignItems: 'center', gap: 5 },
+    memberPillText:     { color: '#38bdf8', fontSize: 11, fontWeight: '800' },
 
-    // Cards
-    card:               { borderRadius: 14, marginBottom: 16, paddingVertical: 6, paddingHorizontal: 16, elevation: 2, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
+    card:               { borderWidth: 1, borderRadius: 18, marginBottom: 14, padding: 16 },
+    cardHeader:         { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+    cardIcon:           { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+    cardHeaderCopy:     { flex: 1 },
+    cardLabel:          { fontSize: 17, fontWeight: '900' },
+    cardSubLabel:       { fontSize: 12, fontWeight: '600', marginTop: 2 },
 
-    // Import
-    cardHeader:         { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10 },
-    cardLabel:          { fontSize: 14, fontWeight: '600' },
-    importRow:          { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 4, marginBottom: 12 },
-    linkInput:          { flex: 1, fontSize: 14, paddingVertical: 8, letterSpacing: 1 },
-    importBtn:          { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, minWidth: 76, alignItems: 'center', justifyContent: 'center' },
-    importBtnText:      { fontSize: 14, fontWeight: '700', color: '#000' },
+    importRow:          { height: 50, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 15, paddingHorizontal: 13, marginBottom: 12, gap: 8 },
+    linkInput:          { flex: 1, fontSize: 15, fontWeight: '800', paddingVertical: 8, letterSpacing: 1.2 },
+    importBtn:          { height: 46, borderRadius: 23, backgroundColor: '#38bdf8', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7 },
+    importBtnText:      { fontSize: 15, fontWeight: '900', color: '#07111f' },
 
-    // Settings rows
-    settingRow:         { flexDirection: 'row', alignItems: 'center', paddingVertical: 13 },
-    iconCircle:         { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-    settingText:        { flex: 1, fontSize: 15, fontWeight: '500' },
+    sectionTitle:       { fontSize: 17, fontWeight: '900', marginBottom: 8 },
+    settingRow:         { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1 },
+    iconCircle:         { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    settingCopy:        { flex: 1, paddingRight: 12 },
+    settingText:        { fontSize: 15, fontWeight: '800', marginBottom: 2 },
+    settingSubText:     { fontSize: 12, fontWeight: '600' },
 
-    // Logout
-    logoutButton:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 12, marginTop: 4, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4 },
-    logoutText:         { fontSize: 16, fontWeight: '600', color: '#fff' },
+    logoutButton:       { height: 50, borderRadius: 25, backgroundColor: '#ef4444', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 2 },
+    logoutText:         { fontSize: 16, fontWeight: '900', color: '#ffffff' },
+    disabled:           { opacity: 0.58 },
 });
 
 export default ProfileScreen;
