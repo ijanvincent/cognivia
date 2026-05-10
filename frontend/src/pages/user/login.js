@@ -9,7 +9,7 @@ import hideIcon  from './../../assets/hide.png';
 
 // Approval window must match backend APPROVAL_TTL_SECONDS (60).
 const APPROVAL_TTL_SECONDS = 60;
-const DENIED_NOTICE_DISMISS_MS = 5000;
+const DENIED_NOTICE_DISMISS_MS = 3500;
 
 function UserLogin() {
   const navigate = useNavigate();
