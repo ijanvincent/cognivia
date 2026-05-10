@@ -9,6 +9,7 @@ import hideIcon  from './../../assets/hide.png';
 
 // Approval window must match backend APPROVAL_TTL_SECONDS (60).
 const APPROVAL_TTL_SECONDS = 60;
+const DENIED_NOTICE_DISMISS_MS = 5000;
 
 function UserLogin() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ function UserLogin() {
   const [errors, setErrors]             = useState({});
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [autoDismissGeneralError, setAutoDismissGeneralError] = useState(false);
 
   // ── Approval gate state ────────────────────────────────────────────────────
   // What: tracks whether we're waiting for the active session to approve/deny.
@@ -138,8 +140,20 @@ function UserLogin() {
     cleanupEcho();
     setConflictState(null);
     setLoading(false);
-    setErrors({ general: message || 'Your sign-in request was denied.' });
+    setAutoDismissGeneralError(true);
+    setErrors({ general: message || 'Your sign-in request was denied by the active session.' });
   }, [cleanupEcho]);
+
+  useEffect(() => {
+    if (!autoDismissGeneralError || !errors.general || conflictState) return undefined;
+
+    const timer = setTimeout(() => {
+      setErrors(prev => ({ ...prev, general: null }));
+      setAutoDismissGeneralError(false);
+    }, DENIED_NOTICE_DISMISS_MS);
+
+    return () => clearTimeout(timer);
+  }, [autoDismissGeneralError, errors.general, conflictState]);
 
   const checkApprovalStatus = useCallback(async (approvalToken) => {
     if (approvalCompletedRef.current) return true;
@@ -223,6 +237,7 @@ function UserLogin() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setErrors(prev => ({ ...prev, [name]: null, general: null }));
+    setAutoDismissGeneralError(false);
     if (conflictState) {
       approvalCompletedRef.current = true;
       clearInterval(countdownRef.current);
@@ -251,6 +266,7 @@ function UserLogin() {
     setConflictState(null);
     setLoading(true);
     setErrors({});
+    setAutoDismissGeneralError(false);
 
     try {
       const response = await api.post('/auth/login', {
@@ -395,10 +411,14 @@ function UserLogin() {
                 <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
               </svg>
             </div>
-            <p id="session-alert-title" className={styles.toastTitle}>Session conflict detected</p>
+            <p id="session-alert-title" className={styles.toastTitle}>
+              {autoDismissGeneralError ? 'Sign-in request denied' : 'Sign-in failed'}
+            </p>
             <p className={styles.toastBody}>{errors.general}</p>
             <div className={styles.toastDivider}></div>
-            <span className={styles.toastHint}>Active session found on another device</span>
+            <span className={styles.toastHint}>
+              {autoDismissGeneralError ? 'You can try again when ready' : 'Please review the message and try again'}
+            </span>
           </div>
         </div>
       )}
