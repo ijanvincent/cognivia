@@ -58,7 +58,6 @@ class AuthController extends Controller
 
         } catch (\App\Exceptions\Auth\EmailNotFoundException $e) {
             RateLimiter::hit($throttleKey, 60);
-
             return response()->json([
                 'message'    => $e->getMessage(),
                 'error_code' => 'EMAIL_NOT_FOUND',
@@ -66,31 +65,34 @@ class AuthController extends Controller
 
         } catch (\App\Exceptions\Auth\WrongPasswordException $e) {
             RateLimiter::hit($throttleKey, 60);
-
             return response()->json([
                 'message'    => $e->getMessage(),
                 'error_code' => 'WRONG_PASSWORD',
             ], 401);
 
         } catch (\App\Exceptions\Auth\PlatformConflictException $e) {
+            /*
+             * What changed: added approval_token to the response payload.
+             * Why: the client needs approval_token to identify its pending
+             *      login request when the WebSocket LoginApproved/LoginDenied
+             *      event arrives. conflict_token remains for WS auth only.
+             */
             return response()->json([
                 'message'          => $e->getMessage(),
                 'error_code'       => 'PLATFORM_CONFLICT',
                 'conflict_user_id' => $e->userId,
                 'conflict_token'   => $e->conflictToken,
+                'approval_token'   => $e->approvalToken,
             ], 422);
 
         } catch (ValidationException $e) {
             RateLimiter::hit($throttleKey, 60);
-
             $errors  = $e->errors();
             $message = collect($errors)->flatten()->first();
-
             $code = 'VALIDATION_ERROR';
             if (str_contains($message, 'Invalid email or password')) {
                 $code = 'ADMIN_ACCOUNT';
             }
-
             return response()->json([
                 'message'    => $message,
                 'error_code' => $code,
@@ -99,7 +101,6 @@ class AuthController extends Controller
 
         } catch (\Exception $e) {
             RateLimiter::hit($throttleKey, 60);
-
             return response()->json([
                 'message'    => 'Invalid credentials. Please try again.',
                 'error_code' => 'INVALID_CREDENTIALS',
@@ -134,16 +135,12 @@ class AuthController extends Controller
 
         if (RateLimiter::tooManyAttempts($ipKey, 5)) {
             $seconds = RateLimiter::availableIn($ipKey);
-            return response()->json([
-                'message' => "Too many requests. Please try again in {$seconds} seconds.",
-            ], 429);
+            return response()->json(['message' => "Too many requests. Please try again in {$seconds} seconds."], 429);
         }
 
         if (RateLimiter::tooManyAttempts($emailKey, 3)) {
             $seconds = RateLimiter::availableIn($emailKey);
-            return response()->json([
-                'message' => "Too many requests. Please try again in {$seconds} seconds.",
-            ], 429);
+            return response()->json(['message' => "Too many requests. Please try again in {$seconds} seconds."], 429);
         }
 
         RateLimiter::hit($ipKey, 600);
@@ -162,10 +159,7 @@ class AuthController extends Controller
             'token'                 => ['required', 'string'],
             'email'                 => ['required', 'email', 'max:255'],
             'password'              => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
+                'required', 'string', 'min:8', 'confirmed',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
             ],
             'password_confirmation' => ['required'],
@@ -175,20 +169,11 @@ class AuthController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-
-            return response()->json([
-                'message' => "Too many requests. Please try again in {$seconds} seconds.",
-            ], 429);
+            return response()->json(['message' => "Too many requests. Please try again in {$seconds} seconds."], 429);
         }
 
         RateLimiter::hit($throttleKey, 900);
-
-        $this->authService->resetPassword($request->only([
-            'token',
-            'email',
-            'password',
-        ]));
-
+        $this->authService->resetPassword($request->only(['token', 'email', 'password']));
         RateLimiter::clear($throttleKey);
 
         return response()->json([
@@ -200,12 +185,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => ['sometimes', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_]+$/'],
-            'avatar'   => [
-                'sometimes',
-                'file',
-                'mimes:jpeg,png,jpg,webp',
-                'max:2048',
-            ],
+            'avatar'   => ['sometimes', 'file', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         $data = $request->only(['username']);
@@ -216,44 +196,27 @@ class AuthController extends Controller
             $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
             $realMime     = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file->getRealPath());
 
-            if (!in_array($realMime, $allowedMimes)) {
-                return response()->json([
-                    'message' => 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.',
-                ], 422);
+            if (! in_array($realMime, $allowedMimes)) {
+                return response()->json(['message' => 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.'], 422);
             }
 
             $imageData = file_get_contents($file->getRealPath());
             $image     = imagecreatefromstring($imageData);
 
-            if (!$image) {
-                return response()->json([
-                    'message' => 'Could not process image. Please upload a valid image file.',
-                ], 422);
+            if (! $image) {
+                return response()->json(['message' => 'Could not process image. Please upload a valid image file.'], 422);
             }
 
-            $filename = sprintf(
-                'avatar_%d_%d_%s.jpg',
-                $request->user()->id,
-                time(),
-                bin2hex(random_bytes(4))
-            );
-
+            $filename = sprintf('avatar_%d_%d_%s.jpg', $request->user()->id, time(), bin2hex(random_bytes(4)));
             $tempDir  = storage_path('app/temp');
             $tempPath = $tempDir . '/' . $filename;
 
-            if (!is_dir($tempDir)) {
-                mkdir($tempDir, 0755, true);
-            }
+            if (! is_dir($tempDir)) mkdir($tempDir, 0755, true);
 
             imagejpeg($image, $tempPath, 85);
             imagedestroy($image);
 
-            $path = Storage::disk('public')->putFileAs(
-                'avatars',
-                new File($tempPath),
-                $filename
-            );
-
+            $path = Storage::disk('public')->putFileAs('avatars', new File($tempPath), $filename);
             unlink($tempPath);
 
             $data['avatar'] = '/storage/' . $path;

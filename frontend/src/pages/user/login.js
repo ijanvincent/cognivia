@@ -4,94 +4,50 @@ import api, { STORAGE_KEYS } from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
 import styles from './login.module.css';
 
-/*
- * CHANGE 1a — Removed: import emailIcon from './../../assets/email.png'
- * CHANGE 1b — Removed: import lockIcon  from './../../assets/lock.png'
- *
- * What:  Both PNG asset imports deleted.
- * Why:   Icons are now rendered as inline SVG elements using the same
- *        MaterialCommunityIcons paths (email-outline, lock-outline) that
- *        the mobile CSS already injects via ::before data URIs on ≤768px.
- *        Inline SVG inherits `color: currentColor` — no filter hacks needed,
- *        colour transitions are clean, and the shapes are pixel-identical to
- *        the React Native icons. The PNG files themselves are untouched.
- */
 import eyeIcon   from './../../assets/eye.png';
 import hideIcon  from './../../assets/hide.png';
 
-/*
- * NAMESPACE FIX — Import STORAGE_KEYS constant.
- *
- * What:  Replaced `import STORAGE_KEYS from '../../config/storageKeys.js'`
- *        with named import `{ STORAGE_KEYS }` from `../../services/api.js`.
- *
- * Why (1 — wrong source): storageKeys.js exported a NESTED shape
- *        (STORAGE_KEYS.USER.TOKEN / STORAGE_KEYS.USER.DATA). api.js exports
- *        a FLAT shape (STORAGE_KEYS.USER_TOKEN / STORAGE_KEYS.USER_DATA).
- *        All other files in the system (private-route.jsx,
- *        private-route-admin.jsx, admin/login.js) already consume the flat
- *        shape from api.js. This file was the only remaining outlier.
- *
- * Why (2 — key collision): Both write sites below were calling
- *        STORAGE_KEYS.USER.TOKEN which resolved to `undefined` because the
- *        flat object has no .USER sub-key. storage.setItem('undefined', ...)
- *        was being written to storage. private-route.jsx reads
- *        STORAGE_KEYS.USER_TOKEN ('user_token') — finds nothing — and
- *        redirects every user back to /login indefinitely.
- *
- * Why (3 — single source of truth): The standalone storageKeys.js file is
- *        superseded and must not exist in the project. api.js is and remains
- *        the sole authority for STORAGE_KEYS.
- */
-
-/*
- * CHANGE 3 — Removed: const isMobile = window.innerWidth <= 768
- * Why: Module-level window.innerWidth is evaluated once at parse time.
- * It never reacts to resize, breaks in SSR/hydration environments, and
- * mixes a layout concern into JS when CSS media queries are the correct layer.
- * The bgCanvas div is now rendered unconditionally; CSS controls
- * visibility and animation per breakpoint (already handled via .wavePath
- * and .bgCanvas rules in the stylesheet).
- */
+// Approval window must match backend APPROVAL_TTL_SECONDS (60).
+const APPROVAL_TTL_SECONDS = 60;
 
 function UserLogin() {
   const navigate = useNavigate();
 
-  const [formData, setFormData]                     = useState({ email: '', password: '', rememberMe: false });
-  const [errors, setErrors]                         = useState({});
-  const [loading, setLoading]                       = useState(false);
-  const [showPassword, setShowPassword]             = useState(false);
-  const [isWaitingForMobile, setIsWaitingForMobile] = useState(false);
-  const [waitingDots, setWaitingDots]               = useState('');
+  const [formData, setFormData]         = useState({ email: '', password: '', rememberMe: false });
+  const [errors, setErrors]             = useState({});
+  const [loading, setLoading]           = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const echoInstanceRef = useRef(null);
-  const dotsIntervalRef = useRef(null);
-  const formDataRef     = useRef(formData);
+  // ── Approval gate state ────────────────────────────────────────────────────
+  // What: tracks whether we're waiting for the active session to approve/deny.
+  // Why separate from errors: the waiting state drives a distinct UI (countdown
+  // modal with Allow/Deny buttons) rather than an inline error message.
+  const [conflictState, setConflictState] = useState(null);
+  // conflictState shape: {
+  //   userId:          number,
+  //   conflictToken:   string,   // for WS auth
+  //   approvalToken:   string,   // for identifying the pending login
+  //   requestingFrom:  string,   // 'web' — what platform is waiting
+  //   secondsLeft:     number,
+  // }
+
+  const echoInstanceRef  = useRef(null);
+  const countdownRef     = useRef(null);
+  const formDataRef      = useRef(formData);
 
   useEffect(() => { formDataRef.current = formData; }, [formData]);
 
-  // Animated dots while waiting
-  useEffect(() => {
-    if (isWaitingForMobile) {
-      dotsIntervalRef.current = setInterval(() => {
-        setWaitingDots(d => d.length >= 3 ? '' : d + '.');
-      }, 500);
-    } else {
-      clearInterval(dotsIntervalRef.current);
-      setWaitingDots('');
-    }
-    return () => clearInterval(dotsIntervalRef.current);
-  }, [isWaitingForMobile]);
-
   // Cleanup on unmount
   useEffect(() => {
-    return () => cleanupEcho();
+    return () => {
+      cleanupEcho();
+      clearInterval(countdownRef.current);
+    };
   }, []);
 
   const cleanupEcho = useCallback(() => {
     if (echoInstanceRef.current) {
       try {
-        echoInstanceRef.current.leave(`user.${echoInstanceRef.current._userId}`);
         echoInstanceRef.current.disconnect();
       } catch (_) {}
       echoInstanceRef.current = null;
@@ -99,71 +55,96 @@ function UserLogin() {
     disconnectEcho();
   }, []);
 
-  /**
-   * CHANGED — what: uses getEchoWithToken from echo.js instead of
-   * building Echo inline. why: centralises all Echo config in one place.
-   * If wsHost/port/path changes, only echo.js needs updating.
-   */
-  const subscribeToConflictChannel = useCallback((userId, conflictToken) => {
-    const echo = getEchoWithToken(conflictToken);
-    if (!echo) {
-      console.error('[CogniVia] Could not build Echo instance for conflict channel');
+  // ── Countdown timer ────────────────────────────────────────────────────────
+  // What: counts down secondsLeft in conflictState every second.
+  // Why: shows the user how long they have to wait for a response, and
+  //      auto-cancels when the window expires so the UI doesn't hang.
+  useEffect(() => {
+    if (! conflictState) {
+      clearInterval(countdownRef.current);
       return;
     }
 
-    // Store userId on instance for cleanup reference
-    echo._userId = userId;
+    countdownRef.current = setInterval(() => {
+      setConflictState(prev => {
+        if (! prev) return null;
+        if (prev.secondsLeft <= 1) {
+          clearInterval(countdownRef.current);
+          cleanupEcho();
+          return null;
+        }
+        return { ...prev, secondsLeft: prev.secondsLeft - 1 };
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownRef.current);
+  }, [conflictState?.userId, cleanupEcho]);
+
+  // ── WebSocket subscription ─────────────────────────────────────────────────
+  /**
+   * What: subscribes Platform B (web) to its private channel using the
+   *       short-lived conflict_token, then listens for login.approved
+   *       or login.denied events.
+   *
+   * Why conflict_token for WS auth: Platform B has no real session token
+   *     yet. The conflict_token is a limited Sanctum token that only
+   *     authenticates the WS channel subscription — it cannot call any
+   *     other API endpoint.
+   *
+   * Why listen for login.approved / login.denied (not force.logout):
+   *     The old implementation listened for force.logout which required
+   *     the active user to fully log out before the new login could
+   *     proceed. The new flow is explicit: Platform A sends Allow or Deny,
+   *     and Platform B receives the appropriate event with its session token
+   *     already included in the approved payload.
+   */
+  const subscribeToApprovalChannel = useCallback((userId, conflictToken, approvalToken) => {
+    const echo = getEchoWithToken(conflictToken);
+    if (! echo) {
+      console.error('[CogniVia] Could not build Echo instance for approval channel');
+      return;
+    }
+
     echoInstanceRef.current = echo;
 
     echo.private(`user.${userId}`)
-      .listen('.force.logout', async (event) => {
-        if (event.platform !== 'mobile') return;
+      .listen('.login.approved', async (event) => {
+        // Only handle if this approval is for web (our platform)
+        if (event.platform !== 'web') return;
 
+        clearInterval(countdownRef.current);
         cleanupEcho();
-        setIsWaitingForMobile(false);
+        setConflictState(null);
         setLoading(true);
 
         try {
-          const { email, password, rememberMe } = formDataRef.current;
-
-          const response = await api.post('/auth/login', {
-            email,
-            password,
-            remember_me: rememberMe,
-            platform:    'web',
-          });
-
+          const { rememberMe } = formDataRef.current;
           const storage = rememberMe ? localStorage : sessionStorage;
-          const user    = response.data.user;
+          const user    = event.user;
 
-          if (user.avatar && !user.avatar.startsWith('http')) {
+          if (user.avatar && ! user.avatar.startsWith('http')) {
             user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
               user.avatar.startsWith('/') ? '' : '/storage/'
             }${user.avatar}`;
           }
 
-          /*
-           * NAMESPACE FIX — Conflict auto-login retry write site.
-           *
-           * What:  STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
-           *        STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
-           *
-           * Why:   STORAGE_KEYS is a flat object from api.js. There is no
-           *        .USER sub-key. The nested access resolved to `undefined`,
-           *        writing the token to the key literal "undefined" in storage.
-           *        The flat keys write to 'user_token' / 'user_data' — the
-           *        exact keys private-route.jsx reads to authenticate.
-           */
-          storage.setItem(STORAGE_KEYS.USER_TOKEN, response.data.token);
+          storage.setItem(STORAGE_KEYS.USER_TOKEN, event.token);
           storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));
 
           navigate('/dashboard', { replace: true });
-
-        } catch (retryError) {
-          setErrors({ general: 'Auto-login failed. Please sign in manually.' });
-          setIsWaitingForMobile(false);
+        } catch (err) {
+          setErrors({ general: 'Sign-in approved but session setup failed. Please try again.' });
           setLoading(false);
         }
+      })
+      .listen('.login.denied', (event) => {
+        if (event.platform !== 'web') return;
+
+        clearInterval(countdownRef.current);
+        cleanupEcho();
+        setConflictState(null);
+        setLoading(false);
+        setErrors({ general: event.reason || 'Your sign-in request was denied.' });
       });
   }, [cleanupEcho, navigate]);
 
@@ -171,18 +152,19 @@ function UserLogin() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setErrors(prev => ({ ...prev, [name]: null, general: null }));
-    if (isWaitingForMobile) {
-      setIsWaitingForMobile(false);
+    if (conflictState) {
+      clearInterval(countdownRef.current);
       cleanupEcho();
+      setConflictState(null);
     }
   };
 
   const validateForm = () => {
     const newErrors  = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim())               newErrors.email    = 'Email address is required.';
-    else if (!emailRegex.test(formData.email)) newErrors.email   = 'Please enter a valid email address.';
-    if (!formData.password)                   newErrors.password = 'Password is required.';
+    if (! formData.email.trim())               newErrors.email    = 'Email address is required.';
+    else if (! emailRegex.test(formData.email)) newErrors.email   = 'Please enter a valid email address.';
+    if (! formData.password)                   newErrors.password = 'Password is required.';
     return newErrors;
   };
 
@@ -191,8 +173,9 @@ function UserLogin() {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
+    clearInterval(countdownRef.current);
     cleanupEcho();
-    setIsWaitingForMobile(false);
+    setConflictState(null);
     setLoading(true);
     setErrors({});
 
@@ -207,25 +190,12 @@ function UserLogin() {
       const storage = formData.rememberMe ? localStorage : sessionStorage;
       const user    = response.data.user;
 
-      if (user.avatar && !user.avatar.startsWith('http')) {
+      if (user.avatar && ! user.avatar.startsWith('http')) {
         user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
           user.avatar.startsWith('/') ? '' : '/storage/'
         }${user.avatar}`;
       }
 
-      /*
-       * NAMESPACE FIX — Primary handleSubmit write site.
-       *
-       * What:  STORAGE_KEYS.USER.TOKEN → STORAGE_KEYS.USER_TOKEN
-       *        STORAGE_KEYS.USER.DATA  → STORAGE_KEYS.USER_DATA
-       *
-       * Why:   Identical reasoning to the retry write site above.
-       *        This is the primary path — hit on every normal login.
-       *        Flat keys write to 'user_token' / 'user_data' so that:
-       *        1. api.js interceptor reads the correct token by role.
-       *        2. Admin sessions at 'admin_token' remain independent.
-       *        3. private-route.jsx finds the token and grants access.
-       */
       storage.setItem(STORAGE_KEYS.USER_TOKEN, response.data.token);
       storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));
       navigate('/dashboard', { replace: true });
@@ -243,22 +213,30 @@ function UserLogin() {
           case 'WRONG_PASSWORD':
             setErrors({ password: message || 'The password you entered is incorrect.' });
             break;
-          case 'TOO_MANY_ATTEMPTS':
-            setErrors({ general: message || 'Too many attempts. Please try again later.' });
-            break;
           default:
             setErrors({ email: 'Please check your email address.', password: 'Please check your password.' });
         }
       } else if (status === 422) {
         if (code === 'PLATFORM_CONFLICT') {
-          const conflictToken = error.response?.data?.conflict_token;
-          const userId        = error.response?.data?.conflict_user_id;
+          // What: store conflict data and subscribe to approval channel.
+          // Why: Platform B (web) must now wait for Platform A (mobile) to
+          //      explicitly allow or deny this login attempt. We subscribe
+          //      using the conflict_token (WS auth only) and store the
+          //      approval_token so we can correlate the WS event.
+          const conflictToken  = error.response?.data?.conflict_token;
+          const approvalToken  = error.response?.data?.approval_token;
+          const userId         = error.response?.data?.conflict_user_id;
 
-          setIsWaitingForMobile(true);
-          setErrors({ general: message });
+          setConflictState({
+            userId,
+            conflictToken,
+            approvalToken,
+            requestingFrom: 'web',
+            secondsLeft:    APPROVAL_TTL_SECONDS,
+          });
 
           if (conflictToken && userId) {
-            subscribeToConflictChannel(userId, conflictToken);
+            subscribeToApprovalChannel(userId, conflictToken, approvalToken);
           }
 
         } else if (code === 'ADMIN_ACCOUNT') {
@@ -285,42 +263,66 @@ function UserLogin() {
     }
   };
 
+  // ── Cancel waiting ─────────────────────────────────────────────────────────
+  const handleCancelWaiting = () => {
+    clearInterval(countdownRef.current);
+    cleanupEcho();
+    setConflictState(null);
+  };
+
+  const isWaiting = !! conflictState;
+
   return (
     <div className={styles.pageContainer}>
 
-      {/* SESSION CONFLICT MODAL */}
-      {(errors.general || isWaitingForMobile) && (
+      {/* ── Approval gate modal ─────────────────────────────────────────────── */}
+      {isWaiting && (
         <div className={styles.toastScrim} role="dialog" aria-modal="true" aria-labelledby="session-alert-title">
           <div className={styles.toast}>
             <div className={styles.toastIconWrap} aria-hidden="true">
-              {isWaitingForMobile ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--warning, #f59e0b)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
-              ) : (
-                <svg width="22" height="22" viewBox="0 0 16 16" fill="var(--error)">
-                  <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-                </svg>
-              )}
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--warning, #f59e0b)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
             </div>
 
             <p id="session-alert-title" className={styles.toastTitle}>
-              {isWaitingForMobile ? 'Waiting for mobile to log out' : 'Session conflict detected'}
+              Sign-in request sent to your mobile device
             </p>
 
             <p className={styles.toastBody}>
-              {isWaitingForMobile
-                ? `This page will automatically sign you in once your mobile session ends${waitingDots}`
-                : errors.general}
+              Your mobile session received a notification. Open the app and tap <strong>Allow</strong> to continue signing in here.
             </p>
 
             <div className={styles.toastDivider}></div>
 
             <span className={styles.toastHint} aria-live="polite">
-              {isWaitingForMobile
-                ? 'Listening for session release in real-time'
-                : 'Active session found on another device'}
+              Request expires in {conflictState.secondsLeft}s
             </span>
+
+            <button
+              onClick={handleCancelWaiting}
+              className={styles.toastCancelBtn}
+              style={{ marginTop: 12, fontSize: 13, color: 'var(--subtext)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Error modal (non-conflict errors) ──────────────────────────────── */}
+      {(errors.general && ! isWaiting) && (
+        <div className={styles.toastScrim} role="dialog" aria-modal="true" aria-labelledby="session-alert-title">
+          <div className={styles.toast}>
+            <div className={styles.toastIconWrap} aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 16 16" fill="var(--error)">
+                <path fillRule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7 11a1 1 0 102 0V5a1 1 0 10-2 0v6zm1-9a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <p id="session-alert-title" className={styles.toastTitle}>Session conflict detected</p>
+            <p className={styles.toastBody}>{errors.general}</p>
+            <div className={styles.toastDivider}></div>
+            <span className={styles.toastHint}>Active session found on another device</span>
           </div>
         </div>
       )}
@@ -331,13 +333,6 @@ function UserLogin() {
         </div>
       )}
 
-      {/*
-        CHANGE 3 — bgCanvas is now always rendered.
-        Visibility and animation are controlled exclusively by CSS media
-        queries (.bgCanvas display, .wavePath animation: none at ≤768px).
-        On mobile, the static wave SVG overlay (.bgCanvasMobile) is shown
-        instead via CSS — no JS branching needed.
-      */}
       <div className={styles.bgCanvas}>
         <svg className={styles.bgSvg} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(18)].map((_, i) => (
@@ -361,44 +356,16 @@ function UserLogin() {
         </svg>
       </div>
 
-      {/*
-        CHANGE 1 — Mobile wave background.
-        Mirrors the React Native WaveBackground component exactly.
-        Rendered in DOM always; CSS shows it only at ≤768px.
-      */}
       <div className={styles.bgCanvasMobile} aria-hidden="true">
-        <svg
-          style={{ width: '100%', height: '100%' }}
-          viewBox="0 0 400 800"
-          preserveAspectRatio="xMidYMid slice"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg style={{ width: '100%', height: '100%' }} viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           {[...Array(8)].map((_, i) => (
-            <path
-              key={`m-pink-${i}`}
-              d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
-              fill="none"
-              stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
-              strokeWidth="1.2"
-            />
+            <path key={`m-pink-${i}`} d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`} fill="none" stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`} strokeWidth="1.2" />
           ))}
           {[...Array(8)].map((_, i) => (
-            <path
-              key={`m-cyan-${i}`}
-              d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
-              fill="none"
-              stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
-              strokeWidth="1.2"
-            />
+            <path key={`m-cyan-${i}`} d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`} fill="none" stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`} strokeWidth="1.2" />
           ))}
           {[...Array(5)].map((_, i) => (
-            <path
-              key={`m-purple-${i}`}
-              d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
-              fill="none"
-              stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
-              strokeWidth="1"
-            />
+            <path key={`m-purple-${i}`} d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`} fill="none" stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`} strokeWidth="1" />
           ))}
         </svg>
       </div>
@@ -449,23 +416,15 @@ function UserLogin() {
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="email">Email</label>
                 <div className={`${styles.inputContainer} ${errors.email ? styles.inputContainerError : ''}`}>
-                  <svg
-                    className={styles.inputIcon}
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z"
-                    />
+                  <svg className={styles.inputIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M22,6C22,4.89 21.1,4 20,4H4C2.89,4 2,4.89 2,6V18C2,19.1 2.89,20 4,20H20C21.1,20 22,19.1 22,18V6M20,6L12,11L4,6H20M20,18H4V8L12,13L20,8V18Z" />
                   </svg>
                   <input
                     id="email" type="email" name="email"
                     value={formData.email} onChange={handleChange}
                     className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
                     placeholder="you@example.com"
-                    disabled={loading || isWaitingForMobile}
+                    disabled={loading || isWaiting}
                     autoComplete="email" autoFocus
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? 'email-error' : undefined}
@@ -484,30 +443,22 @@ function UserLogin() {
               <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="password">Password</label>
                 <div className={`${styles.inputContainer} ${errors.password ? styles.inputContainerError : ''}`}>
-                  <svg
-                    className={styles.inputIcon}
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"
-                    />
+                  <svg className={styles.inputIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13C13.1,13 14,13.89 14,15C14,16.1 13.1,17 12,17M18,20V10H6V20H18M18,8C19.1,8 20,8.89 20,10V20C20,21.1 19.1,22 18,22H6C4.89,22 4,21.1 4,20V10C4,8.89 4.89,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" />
                   </svg>
                   <input
                     id="password" type={showPassword ? 'text' : 'password'} name="password"
                     value={formData.password} onChange={handleChange}
                     className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
                     placeholder="Password"
-                    disabled={loading || isWaitingForMobile}
+                    disabled={loading || isWaiting}
                     autoComplete="current-password"
                     aria-invalid={!!errors.password}
                     aria-describedby={errors.password ? 'password-error' : undefined}
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className={styles.eyeButton} tabIndex={-1}
-                    disabled={loading || isWaitingForMobile}
+                    disabled={loading || isWaiting}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}>
                     <img src={showPassword ? hideIcon : eyeIcon} alt="" className={styles.eyeIcon} aria-hidden="true" />
                   </button>
@@ -526,18 +477,18 @@ function UserLogin() {
                 <label className={styles.rememberLabel}>
                   <input type="checkbox" name="rememberMe"
                     checked={formData.rememberMe} onChange={handleChange}
-                    disabled={loading || isWaitingForMobile}
+                    disabled={loading || isWaiting}
                     className={styles.rememberCheckbox} />
                   Remember me
                 </label>
                 <Link to="/forgot-password" className={styles.forgotLink}>Forgot your password?</Link>
               </div>
 
-              <button type="submit" disabled={loading || isWaitingForMobile} className={styles.submitButton}>
+              <button type="submit" disabled={loading || isWaiting} className={styles.submitButton}>
                 {loading ? (
                   <><div className={styles.buttonSpinner} aria-hidden="true"></div>Signing in...</>
-                ) : isWaitingForMobile ? (
-                  <>Waiting for mobile logout{waitingDots}</>
+                ) : isWaiting ? (
+                  <>Waiting for approval ({conflictState.secondsLeft}s)...</>
                 ) : (
                   'Sign In'
                 )}

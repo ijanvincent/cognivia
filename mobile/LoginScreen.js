@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator,
     StyleSheet, KeyboardAvoidingView, Platform,
-    ScrollView, TextInput, Dimensions, Animated,
+    ScrollView, TextInput, Dimensions, Animated, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -12,8 +12,12 @@ import * as SecureStore from 'expo-secure-store';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS } from './components/AuthInput';
 import api from './services/api';
+import { getEchoWithToken, disconnectEcho } from './services/echoService';
 
 const { height: H } = Dimensions.get('window');
+
+// Approval window must match backend APPROVAL_TTL_SECONDS (60).
+const APPROVAL_TTL_SECONDS = 60;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WaveBackground — unchanged
@@ -97,30 +101,7 @@ const useFloatAnim = ({ value, onFocusCallback, onBlurCallback }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants — shell geometry in one place so all derived values stay in sync
-//
-// SHELL_HEIGHT    : total height of inputWrap (60px)
-// SHELL_PADDING_T : paddingTop of inputWrap (18px)
-// LABEL_SIZE_REST : font size when label is at rest inside the shell (15px)
-// LABEL_SIZE_FLOAT: font size when label is floated (11px)
-//
-// The floatContainer sits INSIDE the shell. Its top edge is offset from the
-// shell top by the shell's borderWidth (1px) + paddingTop (18px) = 19px.
-// The floatContainer height = SHELL_HEIGHT - paddingTop - paddingBottom
-//                           = 60 - 18 - 6 = 36px.
-//
-// floatingLabelWrapper is anchored at top:'50%' of floatContainer = 18px
-// from floatContainer's top = 18 + 19 = 37px from shell top.
-//
-// marginTop: -LABEL_SIZE_REST/2 offsets the anchor to the label's vertical
-// midpoint at rest = 37 - 7.5 ≈ 29.5px from shell top.
-//
-// To land the label's midpoint ON the shell's top border (y = 0 of shell,
-// accounting for the 1px borderWidth → center at 0.5px, effectively 0):
-//   required translateY = -(29.5px) = -30px (rounded)
-//
-// We use -32 to place the label center at -2.5px from the shell top edge,
-// which visually straddles the 1px border exactly as seen in Image 3 / web.
+// Constants — shell geometry (unchanged)
 // ─────────────────────────────────────────────────────────────────────────────
 const SHELL_HEIGHT     = 60;
 const SHELL_PADDING_T  = 18;
@@ -128,67 +109,20 @@ const SHELL_PADDING_B  = 6;
 const LABEL_SIZE_REST  = 15;
 const LABEL_SIZE_FLOAT = 11;
 const SHELL_BORDER_W   = 1;
-
-// Derived: distance from floatContainer top to shell top
-const CONTAINER_OFFSET = SHELL_BORDER_W + SHELL_PADDING_T; // 19
-// Derived: floatContainer height
-const CONTAINER_H = SHELL_HEIGHT - SHELL_PADDING_T - SHELL_PADDING_B; // 36
-// Derived: label anchor (top:'50%' + marginTop) from shell top at rest
-const LABEL_ANCHOR_FROM_SHELL_TOP =
-    CONTAINER_OFFSET + (CONTAINER_H / 2) - (LABEL_SIZE_REST / 2); // 19 + 18 - 7.5 = 29.5
-// Derived: translateY needed to center label ON the shell top border
-const LABEL_FLOAT_TRANSLATE_Y = -(LABEL_ANCHOR_FROM_SHELL_TOP + LABEL_SIZE_FLOAT / 2);
-// = -(29.5 + 5.5) = -35 → use Math.round → -35
-// Fine-tuned to -32 after accounting for RN's sub-pixel layout rounding
-// and the fact that 'top: 50%' in RN resolves to floatContainer height / 2
-// (not shell height / 2), which is 18px not 30px.
-/*
- * CHANGE 1 — TRANSLATE_Y_FLOATED: -32 → -38
- *
- * What:  Increased the magnitude of the floated label's translateY by 6dp.
- *
- * Why:   At -32 the label was visually still below the top border line.
- *        Each 1dp increase moves the label 1dp upward in the shell.
- *        -38 places the label's vertical midpoint centered on the top
- *        border, matching the Image 3 / web target exactly.
- *        This is the only change in this file.
- */
-/*
- * TUNING GUIDE — adjust this single value until label sits on border center:
- *   more negative (-35, -36...) → label moves UP
- *   less negative (-33, -32...) → label moves DOWN
- *   current: -34 (midpoint between confirmed too-low -32 and too-high -38)
- */
 const TRANSLATE_Y_FLOATED = -34;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FloatingLabel
+// FloatingLabel — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabel = ({ label, floatAnim, isFocused }) => {
-    /*
-     * CHANGE 1 — translateY output range: [0, -28] → [0, TRANSLATE_Y_FLOATED]
-     *
-     * What:  The animation end value changed from -28 to -32.
-     *
-     * Why:   -28 was insufficient to lift the label out of the shell.
-     *        The floatContainer sits 19px below the shell top (1px border +
-     *        18px paddingTop). top:'50%' resolves to 18px (half of 36px
-     *        container height), not 30px (half of shell). So the label anchor
-     *        is at 19 + 18 - 7.5 = 29.5px from the shell top. A -28 translate
-     *        leaves the label 1.5px inside the shell. -32 moves the label
-     *        midpoint 2.5px above the shell top edge, placing it centered on
-     *        the 1px border line — exactly matching Image 3 / web target.
-     */
     const labelTranslateY = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [0, TRANSLATE_Y_FLOATED],
     });
-
     const labelFontSize = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [LABEL_SIZE_REST, LABEL_SIZE_FLOAT],
     });
-
     const labelColor = floatAnim.interpolate({
         inputRange:  [0, 1],
         outputRange: [
@@ -196,7 +130,6 @@ const FloatingLabel = ({ label, floatAnim, isFocused }) => {
             isFocused ? COLORS.cyan : 'rgba(255,255,255,0.55)',
         ],
     });
-
     const labelBgOpacity = floatAnim.interpolate({
         inputRange:  [0, 0.8, 1],
         outputRange: [0, 0, 1],
@@ -205,19 +138,11 @@ const FloatingLabel = ({ label, floatAnim, isFocused }) => {
     return (
         <Animated.View
             pointerEvents="none"
-            style={[
-                styles.floatingLabelWrapper,
-                { transform: [{ translateY: labelTranslateY }] },
-            ]}
+            style={[styles.floatingLabelWrapper, { transform: [{ translateY: labelTranslateY }] }]}
         >
-            <Animated.View
-                style={[styles.labelBgPatch, { opacity: labelBgOpacity }]}
-            />
+            <Animated.View style={[styles.labelBgPatch, { opacity: labelBgOpacity }]} />
             <Animated.Text
-                style={[
-                    styles.floatingLabel,
-                    { fontSize: labelFontSize, color: labelColor },
-                ]}
+                style={[styles.floatingLabel, { fontSize: labelFontSize, color: labelColor }]}
                 numberOfLines={1}
             >
                 {label}
@@ -230,23 +155,12 @@ const FloatingLabel = ({ label, floatAnim, isFocused }) => {
 // FloatingLabelInput — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 const FloatingLabelInput = ({
-    label,
-    value,
-    onChangeText,
-    secureTextEntry,
-    keyboardType,
-    icon,
-    rightIcon,
-    onRightIconPress,
-    editable,
-    autoCapitalize,
-    onFocusCallback,
-    onBlurCallback,
+    label, value, onChangeText, secureTextEntry, keyboardType,
+    icon, rightIcon, onRightIconPress, editable, autoCapitalize,
+    onFocusCallback, onBlurCallback,
 }) => {
     const { isFocused, floatAnim, handleFocus, handleBlur } = useFloatAnim({
-        value,
-        onFocusCallback,
-        onBlurCallback,
+        value, onFocusCallback, onBlurCallback,
     });
 
     return (
@@ -294,7 +208,137 @@ const FloatingLabelInput = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LoginScreen — unchanged
+// ApprovalRequestModal
+//
+// What: Shown when mobile (Platform A) is already logged in and receives a
+//       NewLoginRequest event — i.e. web (Platform B) is trying to log in.
+//
+// Why a Modal: The LoginScreen might not be the active screen when the event
+//       arrives. Using a Modal (rendered at the LoginScreen level here, but
+//       ideally lifted to a global provider) ensures it overlays whatever
+//       screen is visible. For now it lives here because the echo subscription
+//       for the *active* session is managed in the Dashboard/App level.
+//       See NOTE below about where to ultimately move this listener.
+// ─────────────────────────────────────────────────────────────────────────────
+const ApprovalRequestModal = ({ visible, requestData, onAllow, onDeny, isActioning }) => {
+    const [secondsLeft, setSecondsLeft] = useState(APPROVAL_TTL_SECONDS);
+    const timerRef = useRef(null);
+
+    useEffect(() => {
+        if (!visible) {
+            setSecondsLeft(APPROVAL_TTL_SECONDS);
+            clearInterval(timerRef.current);
+            return;
+        }
+
+        setSecondsLeft(requestData?.expiresIn ?? APPROVAL_TTL_SECONDS);
+
+        timerRef.current = setInterval(() => {
+            setSecondsLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timerRef.current);
+    }, [visible, requestData?.approvalToken]);
+
+    if (!visible || !requestData) return null;
+
+    const platform = requestData.requestingPlatform === 'web' ? 'web browser' : 'mobile device';
+
+    return (
+        <Modal
+            visible={visible}
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+        >
+            <View style={modalStyles.scrim}>
+                <View style={modalStyles.card}>
+                    {/* Icon */}
+                    <View style={modalStyles.iconRow}>
+                        <View style={modalStyles.iconCircle}>
+                            <MaterialCommunityIcons
+                                name="shield-account-outline"
+                                size={28}
+                                color={COLORS.cyan}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Title */}
+                    <Text style={modalStyles.title}>New Sign-In Request</Text>
+                    <Text style={modalStyles.body}>
+                        Someone is trying to sign in to your account from a{' '}
+                        <Text style={modalStyles.highlight}>{platform}</Text>.
+                        Is this you?
+                    </Text>
+
+                    {/* Countdown */}
+                    <View style={modalStyles.countdownRow}>
+                        <MaterialCommunityIcons
+                            name="clock-outline"
+                            size={14}
+                            color={secondsLeft <= 10 ? COLORS.error : 'rgba(255,255,255,0.4)'}
+                        />
+                        <Text style={[
+                            modalStyles.countdownText,
+                            secondsLeft <= 10 && { color: COLORS.error },
+                        ]}>
+                            Expires in {secondsLeft}s
+                        </Text>
+                    </View>
+
+                    <View style={modalStyles.divider} />
+
+                    {/* Actions */}
+                    <View style={modalStyles.actions}>
+                        {/* Deny */}
+                        <TouchableOpacity
+                            style={[modalStyles.btnDeny, isActioning && modalStyles.btnDisabled]}
+                            onPress={onDeny}
+                            disabled={isActioning}
+                            activeOpacity={0.8}
+                        >
+                            {isActioning ? (
+                                <ActivityIndicator size="small" color={COLORS.error} />
+                            ) : (
+                                <>
+                                    <MaterialCommunityIcons name="close" size={16} color={COLORS.error} />
+                                    <Text style={modalStyles.btnDenyText}>Deny</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+
+                        {/* Allow */}
+                        <TouchableOpacity
+                            style={[modalStyles.btnAllow, isActioning && modalStyles.btnDisabled]}
+                            onPress={onAllow}
+                            disabled={isActioning}
+                            activeOpacity={0.88}
+                        >
+                            {isActioning ? (
+                                <ActivityIndicator size="small" color="#07080f" />
+                            ) : (
+                                <>
+                                    <MaterialCommunityIcons name="check" size={16} color="#07080f" />
+                                    <Text style={modalStyles.btnAllowText}>Allow</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LoginScreen
 // ─────────────────────────────────────────────────────────────────────────────
 const LoginScreen = () => {
     const navigation = useNavigation();
@@ -303,10 +347,208 @@ const LoginScreen = () => {
     const [isLoading, setIsLoading]       = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    // ── Approval gate — Platform B waiting state ──────────────────────────────
+    // What: when mobile is Platform B (web is logged in, mobile trying to login).
+    // mobile gets 422 PLATFORM_CONFLICT, subscribes to WS, waits for approval.
+    const [conflictState, setConflictState] = useState(null);
+    // conflictState shape: { userId, conflictToken, approvalToken, secondsLeft }
+
+    // ── Incoming request state — Platform A receiving a request ───────────────
+    // What: when mobile is Platform A (already logged in), web tries to login.
+    // mobile receives .new.login.request via its active session Echo instance.
+    // NOTE: In a production app this listener belongs in a global provider
+    //       (e.g. App.js or a context) so it works regardless of active screen.
+    //       It lives here for now because LoginScreen owns the auth flow.
+    const [incomingRequest, setIncomingRequest] = useState(null);
+    // incomingRequest shape: { approvalToken, requestingPlatform, expiresIn }
+    const [isActioning, setIsActioning]         = useState(false);
+
+    const conflictEchoRef   = useRef(null);  // Echo for Platform B waiting
+    const countdownRef      = useRef(null);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            cleanupConflictEcho();
+            clearInterval(countdownRef.current);
+        };
+    }, []);
+
+    const cleanupConflictEcho = useCallback(() => {
+        if (conflictEchoRef.current) {
+            try { conflictEchoRef.current.disconnect(); } catch (_) {}
+            conflictEchoRef.current = null;
+        }
+    }, []);
+
+    // ── Countdown for Platform B waiting ─────────────────────────────────────
+    useEffect(() => {
+        if (!conflictState) {
+            clearInterval(countdownRef.current);
+            return;
+        }
+
+        countdownRef.current = setInterval(() => {
+            setConflictState(prev => {
+                if (!prev) return null;
+                if (prev.secondsLeft <= 1) {
+                    clearInterval(countdownRef.current);
+                    cleanupConflictEcho();
+                    return null;
+                }
+                return { ...prev, secondsLeft: prev.secondsLeft - 1 };
+            });
+        }, 1000);
+
+        return () => clearInterval(countdownRef.current);
+    }, [conflictState?.userId, cleanupConflictEcho]);
+
+    // ── Platform B: subscribe to approval channel after PLATFORM_CONFLICT ─────
+    /**
+     * What: Platform B (mobile) subscribes to private user.{userId} using
+     *       the short-lived conflict_token, listens for login.approved /
+     *       login.denied events.
+     *
+     * Why: Mobile has no real session token yet at this point. The
+     *      conflict_token is a limited Sanctum token that only authenticates
+     *      the WS channel subscription.
+     */
+    const subscribeToApprovalChannel = useCallback((userId, conflictToken) => {
+        const echo = getEchoWithToken(conflictToken);
+        if (!echo) {
+            setErrors({ general: 'Could not connect to approval channel. Please try again.' });
+            return;
+        }
+
+        conflictEchoRef.current = echo;
+
+        echo.private(`user.${userId}`)
+            .listen('.login.approved', async (event) => {
+                // Only handle if this approval is for mobile (our platform)
+                if (event.platform !== 'mobile') return;
+
+                clearInterval(countdownRef.current);
+                cleanupConflictEcho();
+                setConflictState(null);
+                setIsLoading(true);
+
+                try {
+                    const userToStore = {
+                        id:       event.user.id,
+                        username: event.user.username,
+                        email:    event.user.email,
+                        avatar:   event.user.avatar || null,
+                        role:     event.user.role,
+                    };
+
+                    await SecureStore.setItemAsync('token', event.token);
+                    await SecureStore.setItemAsync('user', JSON.stringify(userToStore));
+
+                    navigation.replace('HomeTabs');
+                } catch (err) {
+                    setErrors({ general: 'Sign-in approved but session setup failed. Please try again.' });
+                    setIsLoading(false);
+                }
+            })
+            .listen('.login.denied', (event) => {
+                if (event.platform !== 'mobile') return;
+
+                clearInterval(countdownRef.current);
+                cleanupConflictEcho();
+                setConflictState(null);
+                setErrors({ general: event.reason || 'Your sign-in request was denied.' });
+            });
+    }, [cleanupConflictEcho, navigation]);
+
+    // ── Platform A: listen for incoming login requests on active session ──────
+    /**
+     * What: When mobile is already logged in and navigates to LoginScreen
+     *       (edge case), or more importantly — this pattern should be lifted
+     *       to App.js/DashboardScreen so the active session always listens.
+     *
+     * This useEffect wires up the listener using the stored session token
+     * so mobile can receive .new.login.request events while authenticated.
+     *
+     * IMPORTANT: Move this to your DashboardScreen or a global Echo context
+     * so it runs whenever the user is authenticated, not just on LoginScreen.
+     */
+    useEffect(() => {
+        let activeEcho = null;
+
+        const setupActiveSessionListener = async () => {
+            const storedToken = await SecureStore.getItemAsync('token');
+            if (!storedToken) return;
+
+            // User is already logged in — set up listener for incoming requests
+            activeEcho = getEchoWithToken(storedToken);
+            if (!activeEcho) return;
+
+            const storedUserRaw = await SecureStore.getItemAsync('user');
+            if (!storedUserRaw) return;
+            const storedUser = JSON.parse(storedUserRaw);
+
+            activeEcho.private(`user.${storedUser.id}`)
+                .listen('.new.login.request', (event) => {
+                    setIncomingRequest({
+                        approvalToken:      event.approval_token,
+                        requestingPlatform: event.requesting_platform,
+                        expiresIn:          event.expires_in ?? APPROVAL_TTL_SECONDS,
+                    });
+                });
+        };
+
+        setupActiveSessionListener();
+
+        return () => {
+            if (activeEcho) {
+                try { activeEcho.disconnect(); } catch (_) {}
+            }
+        };
+    }, []);
+
+    // ── Platform A: Allow handler ─────────────────────────────────────────────
+    const handleAllow = async () => {
+        if (!incomingRequest?.approvalToken) return;
+        setIsActioning(true);
+        try {
+            await api.post('/auth/login/approve', {
+                approval_token: incomingRequest.approvalToken,
+            });
+            setIncomingRequest(null);
+        } catch (err) {
+            setErrors({ general: 'Failed to approve sign-in. Please try again.' });
+            setIncomingRequest(null);
+        } finally {
+            setIsActioning(false);
+        }
+    };
+
+    // ── Platform A: Deny handler ──────────────────────────────────────────────
+    const handleDeny = async () => {
+        if (!incomingRequest?.approvalToken) return;
+        setIsActioning(true);
+        try {
+            await api.post('/auth/login/deny', {
+                approval_token: incomingRequest.approvalToken,
+            });
+            setIncomingRequest(null);
+        } catch (err) {
+            setIncomingRequest(null);
+        } finally {
+            setIsActioning(false);
+        }
+    };
+
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field])  setErrors(prev => ({ ...prev, [field]: null }));
         if (errors.general) setErrors(prev => ({ ...prev, general: null }));
+        // If user types again while waiting, cancel the conflict wait
+        if (conflictState) {
+            clearInterval(countdownRef.current);
+            cleanupConflictEcho();
+            setConflictState(null);
+        }
     };
 
     const validate = () => {
@@ -316,20 +558,14 @@ const LoginScreen = () => {
         return e;
     };
 
-    const extractErrorMessage = (error) => {
-        if (error.response?.data?.message)  return error.response.data.message;
-        if (error.response?.data?.errors) {
-            const firstKey = Object.keys(error.response.data.errors)[0];
-            return error.response.data.errors[firstKey][0];
-        }
-        if (error.response?.status === 401) return 'Invalid email or password.';
-        if (error.message === 'Network Error') return 'Cannot connect to server. Please check your connection.';
-        return 'Login failed. Please try again.';
-    };
-
     const handleLogin = async () => {
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return; }
+
+        // Cancel any previous conflict wait
+        clearInterval(countdownRef.current);
+        cleanupConflictEcho();
+        setConflictState(null);
 
         setIsLoading(true);
         setErrors({});
@@ -353,18 +589,80 @@ const LoginScreen = () => {
             await SecureStore.setItemAsync('user', JSON.stringify(userToStore));
 
             navigation.replace('HomeTabs');
+
         } catch (error) {
-            setErrors({ general: extractErrorMessage(error) });
+            const status = error.response?.status;
+            const code   = error.response?.data?.error_code;
+
+            if (status === 422 && code === 'PLATFORM_CONFLICT') {
+                /**
+                 * What: Mobile is Platform B — web is logged in, mobile is waiting.
+                 * Why:  Subscribe to approval channel with conflict_token so we
+                 *       receive LoginApproved/LoginDenied events from the backend
+                 *       when the web user responds.
+                 */
+                const conflictToken = error.response.data.conflict_token;
+                const approvalToken = error.response.data.approval_token;
+                const userId        = error.response.data.conflict_user_id;
+
+                setConflictState({
+                    userId,
+                    conflictToken,
+                    approvalToken,
+                    secondsLeft: APPROVAL_TTL_SECONDS,
+                });
+
+                if (conflictToken && userId) {
+                    subscribeToApprovalChannel(userId, conflictToken);
+                }
+
+            } else if (status === 401) {
+                const message = error.response?.data?.message;
+                switch (code) {
+                    case 'EMAIL_NOT_FOUND':
+                        setErrors({ email: message || 'No account found with this email.' });
+                        break;
+                    case 'WRONG_PASSWORD':
+                        setErrors({ password: message || 'The password you entered is incorrect.' });
+                        break;
+                    default:
+                        setErrors({ general: 'Invalid email or password.' });
+                }
+            } else if (status === 429) {
+                const retryAfter = error.response?.data?.retry_after;
+                setErrors({
+                    general: retryAfter
+                        ? `Too many attempts. Try again in ${retryAfter}s.`
+                        : 'Too many login attempts. Please try again later.',
+                });
+            } else if (status === 422 && code === 'ADMIN_ACCOUNT') {
+                setErrors({ email: 'This account is not authorized here.' });
+            } else if (error.message === 'Network Error') {
+                setErrors({ general: 'Cannot connect to server. Please check your connection.' });
+            } else {
+                setErrors({ general: error.response?.data?.message || 'Login failed. Please try again.' });
+            }
         } finally {
             setIsLoading(false);
         }
     };
+
+    const isWaiting = !!conflictState;
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <StatusBar style="light" backgroundColor={COLORS.bg} translucent={false} />
             <WaveBackground />
             <View style={styles.overlay} />
+
+            {/* ── Platform A: incoming request modal ─────────────────────── */}
+            <ApprovalRequestModal
+                visible={!!incomingRequest}
+                requestData={incomingRequest}
+                onAllow={handleAllow}
+                onDeny={handleDeny}
+                isActioning={isActioning}
+            />
 
             <KeyboardAvoidingView
                 style={styles.flex}
@@ -383,6 +681,7 @@ const LoginScreen = () => {
 
                     <View style={styles.formSection}>
 
+                        {/* General error alert */}
                         {!!errors.general && (
                             <View style={styles.errorAlert}>
                                 <View style={styles.errorAlertIconWrap}>
@@ -396,13 +695,52 @@ const LoginScreen = () => {
                             </View>
                         )}
 
+                        {/* Platform B: waiting for approval banner */}
+                        {isWaiting && (
+                            <View style={styles.waitingBanner}>
+                                <MaterialCommunityIcons
+                                    name="clock-outline"
+                                    size={18}
+                                    color={COLORS.cyan}
+                                    style={{ marginTop: 1 }}
+                                />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.waitingTitle}>
+                                        Waiting for web approval…
+                                    </Text>
+                                    <Text style={styles.waitingBody}>
+                                        Open your web browser and tap{' '}
+                                        <Text style={{ fontWeight: '700', color: '#fff' }}>Allow</Text>
+                                        {' '}to sign in here. Expires in{' '}
+                                        <Text style={{ color: conflictState.secondsLeft <= 10 ? COLORS.error : COLORS.cyan }}>
+                                            {conflictState.secondsLeft}s
+                                        </Text>
+                                    </Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        clearInterval(countdownRef.current);
+                                        cleanupConflictEcho();
+                                        setConflictState(null);
+                                    }}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="close"
+                                        size={18}
+                                        color="rgba(255,255,255,0.4)"
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
                         <FloatingLabelInput
                             label="Email"
                             value={formData.email}
                             onChangeText={v => updateField('email', v)}
                             keyboardType="email-address"
                             icon="email-outline"
-                            editable={!isLoading}
+                            editable={!isLoading && !isWaiting}
                         />
                         {!!errors.email && (
                             <Text style={styles.fieldError}>{errors.email}</Text>
@@ -416,7 +754,7 @@ const LoginScreen = () => {
                             icon="lock-outline"
                             rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
                             onRightIconPress={() => setShowPassword(p => !p)}
-                            editable={!isLoading}
+                            editable={!isLoading && !isWaiting}
                         />
                         {!!errors.password && (
                             <Text style={styles.fieldError}>{errors.password}</Text>
@@ -424,7 +762,7 @@ const LoginScreen = () => {
 
                         <TouchableOpacity
                             onPress={() => navigation.navigate('ForgotPassword')}
-                            disabled={isLoading}
+                            disabled={isLoading || isWaiting}
                             style={styles.forgotRow}
                         >
                             <Text style={styles.forgotLink}>Forgot your password?</Text>
@@ -432,14 +770,19 @@ const LoginScreen = () => {
 
                         <TouchableOpacity
                             onPress={handleLogin}
-                            disabled={isLoading}
+                            disabled={isLoading || isWaiting}
                             activeOpacity={0.88}
-                            style={[styles.btnSignIn, isLoading && styles.btnDisabled]}
+                            style={[styles.btnSignIn, (isLoading || isWaiting) && styles.btnDisabled]}
                         >
-                            {isLoading
-                                ? <ActivityIndicator color="#07080f" />
-                                : <Text style={styles.btnSignInText}>Sign in</Text>
-                            }
+                            {isLoading ? (
+                                <ActivityIndicator color="#07080f" />
+                            ) : isWaiting ? (
+                                <Text style={styles.btnSignInText}>
+                                    Waiting… ({conflictState.secondsLeft}s)
+                                </Text>
+                            ) : (
+                                <Text style={styles.btnSignInText}>Sign in</Text>
+                            )}
                         </TouchableOpacity>
 
                         <View style={styles.registerRow}>
@@ -448,7 +791,7 @@ const LoginScreen = () => {
                             </Text>
                             <TouchableOpacity
                                 onPress={() => navigation.navigate('Register')}
-                                disabled={isLoading}
+                                disabled={isLoading || isWaiting}
                             >
                                 <Text style={styles.registerLink}>Sign up</Text>
                             </TouchableOpacity>
@@ -462,7 +805,7 @@ const LoginScreen = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Styles
+// Styles — LoginScreen (all original styles preserved)
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
     safeArea:      { flex: 1, backgroundColor: COLORS.bg },
@@ -473,25 +816,9 @@ const styles = StyleSheet.create({
     brandSub:      { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },
     formSection:   { width: '100%' },
 
-    // ── Input shell ───────────────────────────────────────────────────────────
-    /*
-     * CHANGE 2 — inputWrap: alignItems 'flex-start' → 'center'
-     *
-     * What:  alignItems changed from 'flex-start' to 'center'.
-     *
-     * Why:   'flex-start' caused iconWrap and eyeWrap to anchor to the top
-     *        of the shell content area (below paddingTop: 18), which pushed
-     *        the icon visually downward. 'center' vertically centers all
-     *        direct children (iconWrap, floatContainer, eyeWrap) within the
-     *        60px shell, matching the RN design intent and the web version
-     *        where the icon sits at the shell's vertical midpoint.
-     *        The floatContainer uses position:'relative' with absolute label
-     *        children, so centering the container does not affect label
-     *        animation geometry — only the icon and eye button alignment.
-     */
     inputWrap: {
         flexDirection:     'row',
-        alignItems:        'center',          // ← was 'flex-start'
+        alignItems:        'center',
         borderWidth:       SHELL_BORDER_W,
         borderColor:       'rgba(255,255,255,0.15)',
         borderRadius:      12,
@@ -507,28 +834,9 @@ const styles = StyleSheet.create({
         borderColor:     COLORS.cyan,
         backgroundColor: 'rgba(34,211,238,0.04)',
     },
+    iconWrap: { marginRight: 12 },
+    eyeWrap:  { paddingLeft: 10 },
 
-    // ── iconWrap & eyeWrap ────────────────────────────────────────────────────
-    /*
-     * CHANGE 3 — iconWrap / eyeWrap: removed alignSelf + justifyContent
-     *
-     * What:  Removed alignSelf:'stretch' and justifyContent:'center' from
-     *        both iconWrap and eyeWrap.
-     *
-     * Why:   These were needed previously to vertically center icons when
-     *        alignItems was 'flex-start' on the parent. Now that inputWrap
-     *        uses alignItems:'center', the parent handles centering.
-     *        Keeping alignSelf:'stretch' would override the parent's
-     *        cross-axis alignment and reintroduce the downward shift.
-     */
-    iconWrap: {
-        marginRight: 12,
-    },
-    eyeWrap: {
-        paddingLeft: 10,
-    },
-
-    // ── Floating label ────────────────────────────────────────────────────────
     floatContainer: {
         flex:           1,
         position:       'relative',
@@ -537,17 +845,7 @@ const styles = StyleSheet.create({
     floatingLabelWrapper: {
         position:      'absolute',
         top:           '50%',
-        /*
-         * CHANGE 4 — marginTop: -8 → -Math.round(LABEL_SIZE_REST / 2)
-         *
-         * What:  marginTop value stays -8 (unchanged from source) because
-         *        LABEL_SIZE_REST / 2 = 7.5 → rounds to 8. No numeric change.
-         *        This comment documents WHY -8 is correct: it offsets the
-         *        wrapper by half the resting label height so top:'50%' anchors
-         *        to the label's visual midpoint at rest, not its top edge.
-         *        The actual positioning fix is entirely in TRANSLATE_Y_FLOATED.
-         */
-        marginTop:     -Math.round(LABEL_SIZE_REST / 2),  // = -8, same as before
+        marginTop:     -Math.round(LABEL_SIZE_REST / 2),
         left:          0,
         flexDirection: 'row',
         alignItems:    'center',
@@ -559,12 +857,7 @@ const styles = StyleSheet.create({
         marginHorizontal: -3,
         borderRadius:     2,
     },
-    floatingLabel: {
-        fontWeight:    '400',
-        letterSpacing: 0.1,
-    },
-
-    // ── TextInput ─────────────────────────────────────────────────────────────
+    floatingLabel: { fontWeight: '400', letterSpacing: 0.1 },
     input: {
         flex:            1,
         fontSize:        15,
@@ -573,7 +866,7 @@ const styles = StyleSheet.create({
         paddingTop:      2,
     },
 
-    // ── Error alert ───────────────────────────────────────────────────────────
+    // ── Error alert ────────────────────────────────────────────────────────────
     errorAlert: {
         flexDirection:   'row',
         alignItems:      'flex-start',
@@ -585,10 +878,7 @@ const styles = StyleSheet.create({
         padding:         14,
         marginBottom:    16,
     },
-    errorAlertIconWrap: {
-        marginTop:  1,
-        flexShrink: 0,
-    },
+    errorAlertIconWrap: { marginTop: 1, flexShrink: 0 },
     errorAlertText: {
         flex:       1,
         fontSize:   13.5,
@@ -597,20 +887,149 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
 
-    // ── Field-level errors ────────────────────────────────────────────────────
-    fieldError: { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
+    // ── Waiting banner (Platform B) ────────────────────────────────────────────
+    waitingBanner: {
+        flexDirection:   'row',
+        alignItems:      'flex-start',
+        gap:             12,
+        backgroundColor: 'rgba(34,211,238,0.06)',
+        borderWidth:     1,
+        borderColor:     'rgba(34,211,238,0.25)',
+        borderRadius:    12,
+        padding:         14,
+        marginBottom:    16,
+    },
+    waitingTitle: {
+        fontSize:    13.5,
+        fontWeight:  '600',
+        color:       COLORS.cyan,
+        marginBottom: 3,
+    },
+    waitingBody: {
+        fontSize:   13,
+        lineHeight: 19,
+        color:      'rgba(255,255,255,0.6)',
+    },
 
-    // ── Forgot password ───────────────────────────────────────────────────────
-    forgotRow:  { alignItems: 'flex-end', marginBottom: 24 },
-    forgotLink: { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
-
-    // ── Submit ────────────────────────────────────────────────────────────────
+    fieldError:     { fontSize: 12, color: COLORS.error, marginTop: -10, marginBottom: 10, marginLeft: 4 },
+    forgotRow:      { alignItems: 'flex-end', marginBottom: 24 },
+    forgotLink:     { fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecorationLine: 'underline' },
     btnSignIn:      { height: 56, backgroundColor: '#ffffff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
     btnDisabled:    { opacity: 0.6 },
     btnSignInText:  { fontFamily: 'Syne_700Bold', fontSize: 15, fontWeight: '700', color: '#07080f', letterSpacing: 0.3 },
     registerRow:    { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
     registerPrompt: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
     registerLink:   { fontFamily: 'Syne_700Bold', fontSize: 14, color: '#ffffff', fontWeight: '700' },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Modal styles
+// ─────────────────────────────────────────────────────────────────────────────
+const modalStyles = StyleSheet.create({
+    scrim: {
+        flex:            1,
+        backgroundColor: 'rgba(7,8,15,0.85)',
+        alignItems:      'center',
+        justifyContent:  'center',
+        paddingHorizontal: 28,
+    },
+    card: {
+        width:           '100%',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth:     1,
+        borderColor:     'rgba(255,255,255,0.12)',
+        borderRadius:    20,
+        padding:         24,
+        alignItems:      'center',
+    },
+    iconRow: {
+        marginBottom: 16,
+    },
+    iconCircle: {
+        width:           56,
+        height:          56,
+        borderRadius:    28,
+        backgroundColor: 'rgba(34,211,238,0.1)',
+        borderWidth:     1,
+        borderColor:     'rgba(34,211,238,0.3)',
+        alignItems:      'center',
+        justifyContent:  'center',
+    },
+    title: {
+        fontSize:     18,
+        fontWeight:   '700',
+        color:        '#ffffff',
+        marginBottom: 10,
+        textAlign:    'center',
+    },
+    body: {
+        fontSize:   14,
+        lineHeight: 22,
+        color:      'rgba(255,255,255,0.6)',
+        textAlign:  'center',
+        marginBottom: 16,
+    },
+    highlight: {
+        color:      '#ffffff',
+        fontWeight: '600',
+    },
+    countdownRow: {
+        flexDirection: 'row',
+        alignItems:    'center',
+        gap:           6,
+        marginBottom:  16,
+    },
+    countdownText: {
+        fontSize:   13,
+        color:      'rgba(255,255,255,0.4)',
+        fontWeight: '500',
+    },
+    divider: {
+        width:           '100%',
+        height:          1,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        marginBottom:    20,
+    },
+    actions: {
+        flexDirection: 'row',
+        gap:           12,
+        width:         '100%',
+    },
+    btnDeny: {
+        flex:            1,
+        height:          48,
+        borderRadius:    12,
+        borderWidth:     1,
+        borderColor:     'rgba(248,113,113,0.4)',
+        backgroundColor: 'rgba(248,113,113,0.08)',
+        flexDirection:   'row',
+        alignItems:      'center',
+        justifyContent:  'center',
+        gap:             6,
+    },
+    btnDenyText: {
+        fontSize:   15,
+        fontWeight: '600',
+        color:      COLORS.error,
+    },
+    btnAllow: {
+        flex:            1,
+        height:          48,
+        borderRadius:    12,
+        backgroundColor: '#ffffff',
+        flexDirection:   'row',
+        alignItems:      'center',
+        justifyContent:  'center',
+        gap:             6,
+    },
+    btnAllowText: {
+        fontSize:   15,
+        fontWeight: '700',
+        color:      '#07080f',
+    },
+    btnDisabled: {
+        opacity: 0.6,
+    },
 });
 
 export default LoginScreen;
