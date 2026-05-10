@@ -137,11 +137,7 @@ const DashboardScreen = ({ navigation }) => {
                     onPress: async () => {
                         try {
                             await Share.share({
-                                message:
-                                    `🎓 Check out my flashcard deck: "${deck.title}"\n\n` +
-                                    `📚 ${cardCount} cards to help you study!\n\n` +
-                                    `Use this code to import: ${shareCode}\n\n` +
-                                    `Open CogniVia app → Profile → Enter code`,
+                                message: shareCode,
                             });
                         } catch (error) {
                             console.error('Error sharing:', error);
