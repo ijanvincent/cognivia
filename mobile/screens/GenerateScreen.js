@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, TextInput,
-    Alert, ActivityIndicator, ScrollView,
+    Alert, ActivityIndicator, ScrollView, StatusBar,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useDecks } from '../DeckContext';
 import { useTheme } from '../ThemeContext';
@@ -20,11 +20,23 @@ import api from '../services/api';
 // Card type selector — multi-select chip list
 // ---------------------------------------------------------------------------
 
-const CardTypeSelector = ({ selectedTypes, onToggle, disabled, colors }) => (
+const getControlTextColor = (selected, colors, theme) => {
+    if (!selected) return colors.text;
+    return theme === 'dark' ? '#07111f' : '#ffffff';
+};
+
+const getControlIconColor = (selected, colors, theme) => {
+    if (!selected) return colors.subtext;
+    return theme === 'dark' ? '#07111f' : '#ffffff';
+};
+
+const CardTypeSelector = ({ selectedTypes, onToggle, disabled, colors, theme }) => (
     <View style={styles.chipContainer}>
         {Object.values(CARD_TYPES).map((type) => {
             const meta     = CARD_TYPE_META[type];
             const selected = selectedTypes.includes(type);
+            const selectedTextColor = getControlTextColor(selected, colors, theme);
+            const selectedIconColor = getControlIconColor(selected, colors, theme);
 
             return (
                 <TouchableOpacity
@@ -42,24 +54,32 @@ const CardTypeSelector = ({ selectedTypes, onToggle, disabled, colors }) => (
                 >
                     <MaterialCommunityIcons
                         name={meta.icon}
-                        size={16}
-                        color={selected ? '#000' : colors.subtext}
-                        style={{ marginRight: 6 }}
+                        size={18}
+                        color={selectedIconColor}
+                        style={{ marginRight: 10 }}
                     />
-                    <View>
+                    <View style={styles.chipCopy}>
                         <Text style={[
                             styles.chipLabel,
-                            { color: selected ? '#000' : colors.text },
+                            { color: selectedTextColor },
                         ]}>
                             {meta.label}
                         </Text>
                         <Text style={[
                             styles.chipDescription,
-                            { color: selected ? '#000' : colors.subtext },
+                            { color: selected ? selectedTextColor : colors.subtext },
                         ]}>
                             {meta.description}
                         </Text>
                     </View>
+                    {selected && (
+                        <MaterialCommunityIcons
+                            name="check-circle"
+                            size={18}
+                            color={selectedIconColor}
+                            style={styles.chipCheck}
+                        />
+                    )}
                 </TouchableOpacity>
             );
         })}
@@ -82,26 +102,28 @@ const GenerateScreen = () => {
     const [fileContent, setFileContent]             = useState('');
     const [isLoading, setIsLoading]                 = useState(false);
     const [loadingMessage, setLoadingMessage]       = useState('');
+    const isDark = theme === 'dark';
+    const hasSelectedFile = selectedFileName !== 'No file selected' && !!fileContent;
+    const selectedTypeSummary = selectedTypes.includes(CARD_TYPES.MIXED)
+        ? 'Mixed generation'
+        : CARD_TYPE_META[selectedTypes[0]]?.label ?? 'One type selected';
+    const canDecreaseCards = numberOfCards > 10 && !isLoading;
+    const canIncreaseCards = numberOfCards < 60 && !isLoading;
 
     // -----------------------------------------------------------------------
     // Type toggle — enforces at least one selection at all times
     // -----------------------------------------------------------------------
 
     const handleTypeToggle = (type) => {
-        setSelectedTypes((prev) => {
-            if (prev.includes(type) && prev.length === 1) return prev;
+        setSelectedTypes([type]);
+    };
 
-            if (type !== CARD_TYPES.MIXED && prev.includes(CARD_TYPES.MIXED)) {
-                return [type];
-            }
+    const adjustCardCount = (delta) => {
+        if (isLoading) return;
 
-            if (type === CARD_TYPES.MIXED) {
-                return [CARD_TYPES.MIXED];
-            }
-
-            return prev.includes(type)
-                ? prev.filter((t) => t !== type)
-                : [...prev, type];
+        setNumberOfCards((current) => {
+            const nextValue = current + delta;
+            return Math.min(60, Math.max(10, nextValue));
         });
     };
 
@@ -250,7 +272,7 @@ const GenerateScreen = () => {
     };
 
     const isGenerateDisabled = isLoading
-        || selectedFileName === 'No file selected'
+        || !hasSelectedFile
         || !deckName.trim();
 
     // -----------------------------------------------------------------------
@@ -258,104 +280,193 @@ const GenerateScreen = () => {
     // -----------------------------------------------------------------------
 
     return (
-        <ScrollView
-            style={{ backgroundColor: colors.background }}
-            contentContainerStyle={styles.container}
-            keyboardShouldPersistTaps="handled"
-        >
+        <View style={[styles.screen, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
             {isLoading && (
                 <View style={styles.loadingOverlay}>
-                    <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
+                    <View style={[styles.loadingBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <ActivityIndicator size="large" color={colors.primary} />
-                        <Text style={[styles.loadingText, { color: colors.text }]}>
+                        <Text style={[styles.loadingTitle, { color: colors.text }]}>Building your deck</Text>
+                        <Text style={[styles.loadingText, { color: colors.subtext }]}>
                             {loadingMessage}
                         </Text>
                     </View>
                 </View>
             )}
 
-            {/* File picker */}
-            <TouchableOpacity
-                style={[
-                    styles.selectFileButton,
-                    { backgroundColor: colors.primary },
-                    isLoading && styles.disabled,
-                ]}
-                onPress={handleSelectFile}
-                disabled={isLoading}
+            <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.container}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
-                <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="black" />
-                <Text style={styles.selectFileButtonText}>Select File (PDF, DOCX, PPTX)</Text>
-            </TouchableOpacity>
+                <LinearGradient
+                    colors={isDark ? ['#171923', '#0f172a'] : ['#ffffff', '#eef6ff']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.heroCard, { borderColor: colors.border }]}
+                >
+                    <View style={styles.heroTopRow}>
+                        <View style={styles.heroIcon}>
+                            <MaterialCommunityIcons name="creation-outline" size={22} color="#38bdf8" />
+                        </View>
+                        <View style={styles.heroCopy}>
+                            <Text style={[styles.heroEyebrow, { color: isDark ? '#94a3b8' : '#64748b' }]}>AI deck builder</Text>
+                            <Text style={[styles.heroTitle, { color: colors.text }]}>Generate flashcards</Text>
+                        </View>
+                    </View>
+                    <Text style={[styles.heroBody, { color: isDark ? '#cbd5e1' : '#475569' }]}>
+                        Upload a study document, choose the card style, and let CogniVia prepare a focused review deck.
+                    </Text>
+                </LinearGradient>
 
-            {/* Deck name */}
-            <Text style={[styles.label, { color: colors.text }]}>Deck Name</Text>
-            <TextInput
-                style={[
-                    styles.textInput,
-                    { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
-                ]}
-                value={deckName}
-                onChangeText={setDeckName}
-                placeholder="Enter deck name"
-                placeholderTextColor={colors.subtext}
-                editable={!isLoading}
-            />
+                <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.sectionHeader}>
+                        <View>
+                            <Text style={[styles.sectionTitle, { color: colors.text }]}>Source Document</Text>
+                            <Text style={[styles.sectionSubtitle, { color: colors.subtext }]}>PDF, DOCX, or PPTX</Text>
+                        </View>
+                        <View style={[styles.statusPill, { backgroundColor: hasSelectedFile ? 'rgba(52,211,153,0.14)' : 'rgba(148,163,184,0.14)' }]}>
+                            <MaterialCommunityIcons
+                                name={hasSelectedFile ? 'check-circle-outline' : 'clock-outline'}
+                                size={14}
+                                color={hasSelectedFile ? '#34d399' : colors.subtext}
+                            />
+                            <Text style={[styles.statusPillText, { color: hasSelectedFile ? '#34d399' : colors.subtext }]}>
+                                {hasSelectedFile ? 'Ready' : 'Required'}
+                            </Text>
+                        </View>
+                    </View>
 
-            <Text style={[styles.generatedFromFileText, { color: colors.subtext }]}>
-                {selectedFileName === 'No file selected'
-                    ? 'No file selected yet'
-                    : `Generate from "${selectedFileName}"`}
-            </Text>
+                    <TouchableOpacity
+                        style={[
+                            styles.fileDropzone,
+                            { borderColor: hasSelectedFile ? '#38bdf8' : colors.border, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc' },
+                            isLoading && styles.disabled,
+                        ]}
+                        onPress={handleSelectFile}
+                        disabled={isLoading}
+                        activeOpacity={0.82}
+                    >
+                        <View style={[styles.fileIconWrap, { backgroundColor: hasSelectedFile ? 'rgba(56,189,248,0.14)' : 'rgba(148,163,184,0.14)' }]}>
+                            <MaterialCommunityIcons
+                                name={hasSelectedFile ? 'file-check-outline' : 'cloud-upload-outline'}
+                                size={28}
+                                color={hasSelectedFile ? '#38bdf8' : colors.subtext}
+                            />
+                        </View>
+                        <View style={styles.fileCopy}>
+                            <Text style={[styles.fileTitle, { color: colors.text }]} numberOfLines={1}>
+                                {hasSelectedFile ? selectedFileName : 'Select study material'}
+                            </Text>
+                            <Text style={[styles.fileSubtitle, { color: colors.subtext }]} numberOfLines={2}>
+                                {hasSelectedFile ? 'Tap to replace this document.' : 'Upload a document with enough readable text for generation.'}
+                            </Text>
+                        </View>
+                        <MaterialCommunityIcons name="chevron-right" size={22} color={colors.subtext} />
+                    </TouchableOpacity>
+                </View>
 
-            {/* Card type selector */}
-            <Text style={[styles.label, { color: colors.text }]}>Card Type</Text>
-            <Text style={[styles.sublabel, { color: colors.subtext }]}>
-                Select one or more types. Mixed lets the AI decide per card.
-            </Text>
-            <CardTypeSelector
-                selectedTypes={selectedTypes}
-                onToggle={handleTypeToggle}
-                disabled={isLoading}
-                colors={colors}
-            />
+                <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.sectionHeader}>
+                        <View>
+                            <Text style={[styles.sectionTitle, { color: colors.text }]}>Deck Details</Text>
+                            <Text style={[styles.sectionSubtitle, { color: colors.subtext }]}>Name and output size</Text>
+                        </View>
+                    </View>
 
-            {/* Number of cards */}
-            <Text style={[styles.label, { color: colors.text }]}>
-                Number of Cards ({Math.round(numberOfCards)} / 60)
-            </Text>
-            <Slider
-                style={styles.slider}
-                minimumValue={10}
-                maximumValue={60}
-                step={1}
-                value={numberOfCards}
-                onValueChange={setNumberOfCards}
-                minimumTrackTintColor={colors.primary}
-                maximumTrackTintColor={colors.border}
-                thumbTintColor={colors.primary}
-                disabled={isLoading}
-            />
-            <Text style={[styles.sliderValueText, { color: colors.text }]}>
-                {Math.round(numberOfCards)}
-            </Text>
+                    <Text style={[styles.fieldLabel, { color: colors.text }]}>Deck Name</Text>
+                    <TextInput
+                        style={[
+                            styles.textInput,
+                            { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', borderColor: colors.border, color: colors.text },
+                        ]}
+                        value={deckName}
+                        onChangeText={setDeckName}
+                        placeholder="Enter deck name"
+                        placeholderTextColor={colors.subtext}
+                        editable={!isLoading}
+                    />
 
-            {/* Generate button */}
-            <TouchableOpacity
-                style={[
-                    styles.generateButton,
-                    { backgroundColor: colors.primary },
-                    isGenerateDisabled && styles.disabled,
-                ]}
-                onPress={handleGenerateFlashcards}
-                disabled={isGenerateDisabled}
-            >
-                <Text style={styles.generateButtonText}>
-                    {isLoading ? 'Generating...' : 'Generate Flashcards with AI'}
+                    <View style={styles.quantityHeader}>
+                        <View>
+                            <Text style={[styles.fieldLabel, { color: colors.text }]}>Number of Cards</Text>
+                            <Text style={[styles.fieldHint, { color: colors.subtext }]}>Adjust in sets of 5. Range: 10-60.</Text>
+                        </View>
+                    </View>
+
+                    <View style={[styles.stepper, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', borderColor: colors.border }]}>
+                        <TouchableOpacity
+                            style={[styles.stepperButton, { borderColor: colors.border }, !canDecreaseCards && styles.disabledStepperButton]}
+                            onPress={() => adjustCardCount(-5)}
+                            disabled={!canDecreaseCards}
+                            activeOpacity={0.82}
+                        >
+                            <MaterialCommunityIcons name="minus" size={20} color={canDecreaseCards ? colors.text : colors.subtext} />
+                        </TouchableOpacity>
+
+                        <View style={styles.stepperValueWrap}>
+                            <Text style={[styles.stepperValue, { color: colors.text }]}>{numberOfCards}</Text>
+                            <Text style={[styles.stepperLabel, { color: colors.subtext }]}>cards</Text>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.stepperButton, { borderColor: colors.border }, !canIncreaseCards && styles.disabledStepperButton]}
+                            onPress={() => adjustCardCount(5)}
+                            disabled={!canIncreaseCards}
+                            activeOpacity={0.82}
+                        >
+                            <MaterialCommunityIcons name="plus" size={20} color={canIncreaseCards ? colors.text : colors.subtext} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.sectionHeader}>
+                        <View>
+                            <Text style={[styles.sectionTitle, { color: colors.text }]}>Card Types</Text>
+                            <Text style={[styles.sectionSubtitle, { color: colors.subtext }]}>
+                                Choose one format. Mixed lets AI decide per card.
+                            </Text>
+                        </View>
+                        <View style={[styles.statusPill, { backgroundColor: 'rgba(56,189,248,0.14)' }]}>
+                            <MaterialCommunityIcons name="card-multiple-outline" size={14} color="#38bdf8" />
+                            <Text style={[styles.statusPillText, { color: '#38bdf8' }]}>
+                                {selectedTypeSummary}
+                            </Text>
+                        </View>
+                    </View>
+                    <CardTypeSelector
+                        selectedTypes={selectedTypes}
+                        onToggle={handleTypeToggle}
+                        disabled={isLoading}
+                        colors={colors}
+                        theme={theme}
+                    />
+                </View>
+
+                <TouchableOpacity
+                    style={[
+                        styles.generateButton,
+                        { backgroundColor: '#38bdf8' },
+                        isGenerateDisabled && styles.disabled,
+                    ]}
+                    onPress={handleGenerateFlashcards}
+                    disabled={isGenerateDisabled}
+                    activeOpacity={0.88}
+                >
+                    <MaterialCommunityIcons name="creation" size={19} color="#07111f" />
+                    <Text style={styles.generateButtonText}>
+                        {isLoading ? 'Generating...' : 'Generate Flashcards'}
+                    </Text>
+                </TouchableOpacity>
+
+                <Text style={[styles.footerNote, { color: colors.subtext }]}>
+                    Generation quality depends on the clarity and amount of text in your source document.
                 </Text>
-            </TouchableOpacity>
-
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 };
 
@@ -364,25 +475,76 @@ const GenerateScreen = () => {
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-    container:            { padding: 20, paddingTop: 40, paddingBottom: 60 },
-    loadingOverlay:       { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
-    loadingBox:           { padding: 30, borderRadius: 15, alignItems: 'center', minWidth: 200 },
-    loadingText:          { marginTop: 15, fontSize: 16, textAlign: 'center' },
-    selectFileButton:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 10, marginBottom: 30, marginTop: 20, elevation: 3 },
-    selectFileButtonText: { color: 'black', fontSize: 18, fontWeight: '600', marginLeft: 10 },
-    label:                { fontSize: 16, fontWeight: '600', marginBottom: 6 },
-    sublabel:             { fontSize: 13, marginBottom: 12 },
-    textInput:            { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 20, elevation: 1 },
-    generatedFromFileText:{ fontSize: 14, marginBottom: 25, fontStyle: 'italic' },
-    chipContainer:        { flexDirection: 'column', gap: 10, marginBottom: 28 },
-    chip:                 { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 14 },
-    chipLabel:            { fontSize: 15, fontWeight: '600' },
-    chipDescription:      { fontSize: 12, marginTop: 1 },
-    slider:               { width: '100%', height: 40, marginTop: 10, marginBottom: 5 },
-    sliderValueText:      { fontSize: 16, textAlign: 'center', marginBottom: 30 },
-    generateButton:       { padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 5, elevation: 3 },
-    generateButtonText:   { color: 'black', fontSize: 18, fontWeight: '600' },
-    disabled:             { opacity: 0.5 },
+    screen:              { flex: 1 },
+    scroll:              { flex: 1 },
+    container:           { paddingHorizontal: 20, paddingTop: 42, paddingBottom: 72 },
+
+    loadingOverlay:      {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(7,8,15,0.72)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        padding: 28,
+    },
+    loadingBox:          {
+        width: '100%',
+        maxWidth: 320,
+        borderWidth: 1,
+        borderRadius: 18,
+        padding: 24,
+        alignItems: 'center',
+    },
+    loadingTitle:        { marginTop: 14, fontSize: 18, fontWeight: '800', textAlign: 'center' },
+    loadingText:         { marginTop: 6, fontSize: 14, lineHeight: 20, textAlign: 'center' },
+
+    heroCard:            { borderRadius: 18, borderWidth: 1, padding: 18, marginBottom: 16, overflow: 'hidden' },
+    heroTopRow:          { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    heroIcon:            { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(56,189,248,0.14)', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    heroCopy:            { flex: 1 },
+    heroEyebrow:         { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 3 },
+    heroTitle:           { fontSize: 26, fontWeight: '800' },
+    heroBody:            { fontSize: 14, lineHeight: 21 },
+
+    sectionCard:         { borderWidth: 1, borderRadius: 18, padding: 16, marginBottom: 14 },
+    sectionHeader:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+    sectionTitle:        { fontSize: 17, fontWeight: '800' },
+    sectionSubtitle:     { fontSize: 12, fontWeight: '600', marginTop: 2 },
+    statusPill:          { height: 28, borderRadius: 14, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    statusPillText:      { fontSize: 11, fontWeight: '800' },
+
+    fileDropzone:        { minHeight: 94, borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center' },
+    fileIconWrap:        { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    fileCopy:            { flex: 1, paddingRight: 8 },
+    fileTitle:           { fontSize: 15, fontWeight: '800', marginBottom: 4 },
+    fileSubtitle:        { fontSize: 12, lineHeight: 17 },
+
+    fieldLabel:          { fontSize: 14, fontWeight: '800', marginBottom: 8 },
+    fieldHint:           { fontSize: 12, fontWeight: '600', marginTop: -2 },
+    textInput:           { borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, height: 48, fontSize: 15, marginBottom: 18 },
+    quantityHeader:      { marginBottom: 12 },
+    stepper:             { height: 68, borderWidth: 1, borderRadius: 18, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    stepperButton:       { width: 44, height: 44, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    disabledStepperButton: { opacity: 0.42 },
+    stepperValueWrap:    { alignItems: 'center', justifyContent: 'center' },
+    stepperValue:        { fontSize: 28, fontWeight: '900' },
+    stepperLabel:        { fontSize: 11, fontWeight: '800', marginTop: -2, textTransform: 'uppercase', letterSpacing: 0.7 },
+
+    chipContainer:       { gap: 10 },
+    chip:                { minHeight: 64, flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 15, paddingVertical: 12, paddingHorizontal: 14 },
+    chipCopy:            { flex: 1 },
+    chipCheck:           { marginLeft: 10 },
+    chipLabel:           { fontSize: 14, fontWeight: '800' },
+    chipDescription:     { fontSize: 12, marginTop: 2, lineHeight: 16 },
+
+    generateButton:      { height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginTop: 4, flexDirection: 'row', gap: 8, elevation: 3 },
+    generateButtonText:  { color: '#07111f', fontSize: 16, fontWeight: '900' },
+    footerNote:          { marginTop: 12, fontSize: 12, lineHeight: 18, textAlign: 'center', paddingHorizontal: 10 },
+    disabled:            { opacity: 0.5 },
 });
 
 export default GenerateScreen;
