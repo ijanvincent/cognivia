@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, TextInput,
     Alert, ActivityIndicator, KeyboardAvoidingView,
-    Platform, ScrollView, StatusBar,
+    Platform, ScrollView, StatusBar, Vibration,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../ThemeContext';
@@ -22,6 +22,7 @@ const CARD_TYPES = {
 };
 
 const MCQ_OPTION_KEYS = ['A', 'B', 'C', 'D'];
+const TIMER_WARNING_SECONDS = 5;
 
 const CARD_TIME_LIMITS = {
     [CARD_TYPES.IDENTIFICATION]: 30,
@@ -68,11 +69,12 @@ const TimerPill = ({ seconds, limit, colors }) => {
     if (!limit) return null;
 
     const isUrgent = seconds <= 3;
-    const accent = isUrgent ? '#f87171' : '#38bdf8';
+    const isWarning = seconds <= TIMER_WARNING_SECONDS;
+    const accent = isUrgent ? '#f87171' : isWarning ? '#f59e0b' : '#38bdf8';
 
     return (
         <View style={[styles.timerPill, { backgroundColor: `${accent}18`, borderColor: `${accent}44` }]}>
-            <MaterialCommunityIcons name="timer-outline" size={14} color={accent} />
+            <MaterialCommunityIcons name={isWarning ? 'timer-alert-outline' : 'timer-outline'} size={14} color={accent} />
             <Text style={[styles.timerText, { color: accent }]}>{seconds}s</Text>
         </View>
     );
@@ -604,6 +606,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
     const [sessionComplete, setSessionComplete] = useState(false);
     const [finalMastery, setFinalMastery] = useState(0);
     const showResultRef = useRef(false);
+    const lastWarningSecondRef = useRef(null);
 
     useEffect(() => { loadFlashcards(); }, []);
     useEffect(() => { showResultRef.current = showResult; }, [showResult]);
@@ -736,6 +739,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         const card = flashcards[currentIndex];
         if (!card) return;
 
+        Vibration.vibrate([0, 90, 50, 160]);
         setIsCorrect(false);
         setFeedback('Time is up. This card has been saved for the final review.');
         recordResponse(card, '', false, 'Time expired before an answer was submitted.');
@@ -754,6 +758,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
             return undefined;
         }
 
+        lastWarningSecondRef.current = null;
         setTimeRemaining(limit);
 
         const interval = setInterval(() => {
@@ -764,7 +769,19 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
                     handleTimedOut();
                     return 0;
                 }
-                return current - 1;
+
+                const next = current - 1;
+                if (
+                    next <= TIMER_WARNING_SECONDS &&
+                    next > 0 &&
+                    lastWarningSecondRef.current !== next &&
+                    Platform.OS !== 'web'
+                ) {
+                    lastWarningSecondRef.current = next;
+                    Vibration.vibrate(next <= 3 ? 80 : 45);
+                }
+
+                return next;
             });
         }, 1000);
 
@@ -783,6 +800,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         setFeedback('');
         setTimeRemaining(null);
         showResultRef.current = false;
+        lastWarningSecondRef.current = null;
     };
 
     const handleNext = () => {
