@@ -4,6 +4,7 @@ import {
     TextInput, TouchableOpacity, Dimensions,
     Alert, Share, ActivityIndicator, StatusBar
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
@@ -60,7 +61,7 @@ const StatCard = ({ icon, label, value, colors, accent }) => (
 
 
 const DashboardScreen = ({ navigation }) => {
-    const { decks, removeDeck, loading } = useDecks();
+    const { decks, removeDeck, loading, refreshDecks } = useDecks();
     const { colors, theme }              = useTheme();
     const [searchText, setSearchText]    = React.useState('');
     const [userName, setUserName]        = useState('User');
@@ -81,6 +82,12 @@ const DashboardScreen = ({ navigation }) => {
         };
         loadUser();
     }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            refreshDecks?.({ silent: true });
+        }, [refreshDecks])
+    );
 
     useEffect(() => {
         let channel = null;

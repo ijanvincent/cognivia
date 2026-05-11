@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';     
 import api from './services/api';
 
@@ -6,6 +6,7 @@ export const DeckContext = createContext({
     decks: [],
     addDeck: () => {},
     removeDeck: () => {},
+    refreshDecks: () => {},
     loading: false,
 });
 
@@ -28,6 +29,19 @@ export const DeckProvider = ({ children }) => {
         loadUser();
     }, []);
 
+    const fetchDecks = useCallback(async ({ silent = false } = {}) => {
+        try {
+            if (!silent) setLoading(true);
+            const response = await api.get('/decks');
+            setDecks(response.data.decks || []);
+        } catch (error) {
+            console.error('Error fetching decks:', error);
+            if (!silent) setDecks([]);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    }, []);
+
 
     useEffect(() => {
         if (!currentUser) {
@@ -36,20 +50,7 @@ export const DeckProvider = ({ children }) => {
             return;
         }
         fetchDecks();
-    }, [currentUser]);
-
-    const fetchDecks = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get('/decks');
-            setDecks(response.data.decks || []);
-        } catch (error) {
-            console.error('Error fetching decks:', error);
-            setDecks([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [currentUser, fetchDecks]);
 
     const addDeck = async (newDeckData) => {
         try {
