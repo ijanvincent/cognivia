@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { STORAGE_KEYS } from '../services/api.js';
+import { parseStoredJson } from '../services/storage.js';
 
 function PublicRoute({ children }) {
     const [isChecking, setIsChecking]         = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        // ONLY localStorage token counts as "remembered"
-        // sessionStorage = no remember me = must login again on public pages
-        const rememberToken = localStorage.getItem('token');
-        const user          = JSON.parse(localStorage.getItem('user') || '{}');
+        // Only localStorage token counts as "remembered".
+        // sessionStorage = no remember me = must login again on public pages.
+        const rememberToken = localStorage.getItem(STORAGE_KEYS.USER_TOKEN);
+        const user          = parseStoredJson(localStorage.getItem(STORAGE_KEYS.USER_DATA));
 
         if (rememberToken && user.role === 'user') {
             setIsAuthenticated(true);

@@ -2,6 +2,7 @@ import React, { useEffect, useContext, useState, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api, { STORAGE_KEYS } from './../../services/api.js';
+import { unwrapResourceData } from './../../services/storage.js';
 // CHANGE 1 — Modified import: api → { api, STORAGE_KEYS }
 // What:  Added named import STORAGE_KEYS to the existing api.js import.
 // Why:   Replaces magic strings 'token'/'user' that caused the namespace
@@ -78,8 +79,14 @@ function AdminLogin() {
       //        user login does. Whichever role logged in last won — the other's
       //        session silently died. Admin always uses localStorage (no
       //        rememberMe concept); namespacing removes the collision entirely.
+      const adminUser = unwrapResourceData(response.data.user);
+
+      if (!response.data.token || adminUser?.role !== 'admin') {
+        throw new Error('Admin login response was incomplete.');
+      }
+
       localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, response.data.token);
-      localStorage.setItem(STORAGE_KEYS.ADMIN_DATA,  JSON.stringify(response.data.user));
+      localStorage.setItem(STORAGE_KEYS.ADMIN_DATA,  JSON.stringify(adminUser));
 
       attemptsRef.current = 0;
       setAttempts(0);
