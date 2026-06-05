@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { STORAGE_KEYS } from '../services/api.js';
+import api, { STORAGE_KEYS } from '../services/api.js';
+import { parseStoredJson, unwrapResourceData } from '../services/storage.js';
 // CHANGE 1 — Added: import STORAGE_KEYS from api.js
 // What:  Imports the centralised storage-key constants.
 // Why:   Admin token is now stored under 'admin_token'. Reading the old
@@ -22,11 +23,57 @@ function AdminPrivateRoute({ children }) {
     //        if their role object happened to contain role:'admin' somehow.
     //        Removing sessionStorage from the admin guard is a security
     //        hardening — not just a cleanup.
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    const user  = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_DATA) || '{}');
+    let mounted = true;
 
-    setIsAuthenticated(!!token && user.role === 'admin');
-    setIsChecking(false);
+    const verifyAdminSession = async () => {
+      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+      if (!token) {
+        if (mounted) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+        }
+        return;
+      }
+
+      const storedUser = parseStoredJson(localStorage.getItem(STORAGE_KEYS.ADMIN_DATA));
+      if (storedUser.role === 'admin') {
+        if (mounted) {
+          setIsAuthenticated(true);
+          setIsChecking(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await api.get('/admin/me');
+        const adminUser = unwrapResourceData(response.data?.user);
+
+        if (adminUser?.role !== 'admin') {
+          throw new Error('Stored token does not belong to an admin account.');
+        }
+
+        localStorage.setItem(STORAGE_KEYS.ADMIN_DATA, JSON.stringify(adminUser));
+
+        if (mounted) {
+          setIsAuthenticated(true);
+          setIsChecking(false);
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_DATA);
+
+        if (mounted) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+        }
+      }
+    };
+
+    verifyAdminSession();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (isChecking) {

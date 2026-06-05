@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { STORAGE_KEYS } from '../services/api.js';
+import { parseStoredJson } from '../services/storage.js';
 // CHANGE 1 — Added: import STORAGE_KEYS from api.js
 // What:  Imports the centralised storage-key constants.
 // Why:   Token and user data are now stored under namespaced keys.
@@ -24,10 +25,9 @@ function PrivateRoute({ children }) {
     const token = localStorage.getItem(STORAGE_KEYS.USER_TOKEN)
       || sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN);
 
-    const user = JSON.parse(
+    const user = parseStoredJson(
       localStorage.getItem(STORAGE_KEYS.USER_DATA)
       || sessionStorage.getItem(STORAGE_KEYS.USER_DATA)
-      || '{}',
     );
 
     setIsAuthenticated(!!token && user.role === 'user');
