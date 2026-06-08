@@ -12,14 +12,10 @@ class ForceLogout implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public string $platform;
-    public int    $userId;
-
-    public function __construct(string $platform, int $userId)
-    {
-        $this->platform = $platform;
-        $this->userId   = $userId;
-    }
+    public function __construct(
+        public readonly string $platform,
+        public readonly int    $userId,
+    ) {}
 
     public function broadcastOn(): array
     {
