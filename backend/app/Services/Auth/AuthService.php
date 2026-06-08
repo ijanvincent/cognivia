@@ -13,10 +13,10 @@ use App\Mail\PasswordResetMail;
 use App\Models\PendingLogin;
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -39,14 +39,14 @@ class AuthService
     {
         $user = $this->authRepository->createUser([
             'username' => $data['username'],
-            'email'    => $data['email'],
+            'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
 
         $token = $user->createToken('user_token')->plainTextToken;
 
         return [
-            'user'  => $user,
+            'user' => $user,
             'token' => $token,
         ];
     }
@@ -78,11 +78,11 @@ class AuthService
         $user = $this->authRepository->findByEmail($data['email']);
 
         if (! $user) {
-            throw new EmailNotFoundException();
+            throw new EmailNotFoundException;
         }
 
         if (! Hash::check($data['password'], $user->password)) {
-            throw new WrongPasswordException();
+            throw new WrongPasswordException;
         }
 
         if ($user->isAdmin()) {
@@ -91,7 +91,7 @@ class AuthService
             ]);
         }
 
-        $platform      = $data['platform'];
+        $platform = $data['platform'];
         $otherPlatform = $platform === 'web' ? 'mobile' : 'web';
 
         $hasOtherSession = $user->tokens()
@@ -113,12 +113,12 @@ class AuthService
             // Store the hash, never the plaintext.
             // Why: if the DB is compromised, hashed tokens cannot be replayed.
             PendingLogin::create([
-                'user_id'              => $user->id,
-                'token_hash'           => hash('sha256', $approvalToken),
-                'requesting_platform'  => $platform,
-                'active_platform'      => $otherPlatform,
-                'status'               => 'pending',
-                'expires_at'           => now()->addSeconds(self::APPROVAL_TTL_SECONDS),
+                'user_id' => $user->id,
+                'token_hash' => hash('sha256', $approvalToken),
+                'requesting_platform' => $platform,
+                'active_platform' => $otherPlatform,
+                'status' => 'pending',
+                'expires_at' => now()->addSeconds(self::APPROVAL_TTL_SECONDS),
             ]);
 
             // Short-lived Sanctum token for WebSocket channel authentication only.
@@ -133,17 +133,17 @@ class AuthService
 
             // Notify the active platform in real-time.
             broadcast(new NewLoginRequest(
-                userId:             $user->id,
+                userId: $user->id,
                 requestingPlatform: $platform,
-                approvalToken:      $approvalToken,
-                expiresInSeconds:   self::APPROVAL_TTL_SECONDS,
+                approvalToken: $approvalToken,
+                expiresInSeconds: self::APPROVAL_TTL_SECONDS,
             ));
 
             throw new PlatformConflictException(
-                otherPlatform:  $otherPlatform,
-                userId:         $user->id,
-                conflictToken:  $conflictToken,
-                approvalToken:  $approvalToken,
+                otherPlatform: $otherPlatform,
+                userId: $user->id,
+                conflictToken: $conflictToken,
+                approvalToken: $approvalToken,
             );
         }
 
@@ -162,8 +162,8 @@ class AuthService
         );
 
         return [
-            'user'     => $user,
-            'token'    => $token,
+            'user' => $user,
+            'token' => $token,
             'platform' => $platform,
         ];
     }
@@ -199,11 +199,12 @@ class AuthService
             if ($pending) {
                 $pending->update(['status' => 'denied']);
                 broadcast(new LoginDenied(
-                    userId:         $approvingUser->id,
-                    reason:         'The approval window has expired. Please try logging in again.',
+                    userId: $approvingUser->id,
+                    reason: 'The approval window has expired. Please try logging in again.',
                     deniedPlatform: $pending->requesting_platform,
                 ));
             }
+
             return;
         }
 
@@ -212,7 +213,7 @@ class AuthService
 
         // Fire LoginApproved so Platform B polls the status endpoint immediately.
         broadcast(new LoginApproved(
-            userId:           $approvingUser->id,
+            userId: $approvingUser->id,
             approvedPlatform: $pending->requesting_platform,
         ));
     }
@@ -353,6 +354,7 @@ class AuthService
                     deniedPlatform: $pending->requesting_platform,
                 ));
             }
+
             return;
         }
 
@@ -391,8 +393,8 @@ class AuthService
         $pending->update(['status' => 'denied']);
 
         broadcast(new LoginDenied(
-            userId:         $denyingUser->id,
-            reason:         'Your sign-in request was denied by the active session.',
+            userId: $denyingUser->id,
+            reason: 'Your sign-in request was denied by the active session.',
             deniedPlatform: $pending->requesting_platform,
         ));
     }
@@ -443,7 +445,7 @@ class AuthService
     public function logout(User $user): void
     {
         $currentToken = $user->currentAccessToken();
-        $platform     = $currentToken->platform ?? 'unknown';
+        $platform = $currentToken->platform ?? 'unknown';
 
         broadcast(new ForceLogout($platform, $user->id));
 
@@ -458,16 +460,30 @@ class AuthService
     {
         $user = $this->authRepository->findByEmail($email);
 
-        if (! $user) return;
+        if (! $user) {
+            return;
+        }
 
         $token = Str::random(64);
         $this->authRepository->storeResetToken($email, $token);
 
         $resetUrl = config('app.frontend_url')
-            . '/reset-password?token=' . $token
-            . '&email=' . urlencode($email);
+            .'/reset-password?token='.$token
+            .'&email='.urlencode($email);
 
-        Mail::to($email)->send(new PasswordResetMail($resetUrl, $user->username));
+        // Why the try/catch: the endpoint returns a deliberately uniform response
+        // to prevent account enumeration. A mail-transport failure (SMTP timeout,
+        // auth error) must not turn that into a 500, which would both break the UX
+        // and leak — via a differential response — that the address is registered.
+        // The failure is logged server-side so delivery issues remain diagnosable.
+        try {
+            Mail::to($email)->send(new PasswordResetMail($resetUrl, $user->username));
+        } catch (\Throwable $e) {
+            Log::error('Password reset email delivery failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function resetPassword(array $data): void
