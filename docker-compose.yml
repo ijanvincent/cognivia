@@ -3,13 +3,15 @@ services:
     build:
       context: ./backend
       dockerfile: ../docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     container_name: cognivia_backend
     restart: unless-stopped
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
-    networks:
-      - cognivia_network
+    network_mode: host
     depends_on:
       - mysql
 
@@ -47,6 +49,8 @@ services:
     depends_on:
       - backend
       - frontend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   mysql:
     image: mysql:8.0
@@ -67,6 +71,9 @@ services:
 networks:
   cognivia_network:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.enable_icc: "true"
 
 volumes:
   cognivia_mysql_data:

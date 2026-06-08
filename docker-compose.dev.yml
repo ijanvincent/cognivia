@@ -3,13 +3,19 @@ services:
     build:
       context: ./backend
       dockerfile: ../docker/php/Dockerfile
+      network: host
+      args:
+        # Match php-fpm's www-data to the host user so it can write to the
+        # bind-mounted volume (storage/, bootstrap/cache). Override per-host
+        # with `UID=$(id -u) GID=$(id -g) docker compose ... build` if needed.
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     container_name: cognivia_backend      
     restart: unless-stopped
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
-    networks:
-      - cognivia_network
+    network_mode: host
     depends_on:
       - mysql
 
@@ -64,6 +70,9 @@ networks:
   cognivia_network:
     driver: bridge
     name: cognivia_network
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.enable_icc: "true"
 
 volumes:
   cognivia_mysql_data:
