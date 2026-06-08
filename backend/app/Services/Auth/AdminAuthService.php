@@ -16,10 +16,16 @@ class AdminAuthService
 
     public function login(array $data): array
     {
+        \Illuminate\Support\Facades\Log::debug('Admin login attempt', [
+            'email' => $data['email'],
+            'ip'    => request()->ip()
+        ]);
+
         $key = 'admin_attempts_' . request()->ip();
         $attempts = Cache::get($key, 0);
 
         if ($attempts >= 3) {
+            \Illuminate\Support\Facades\Log::warning('Admin login blocked: too many attempts', ['email' => $data['email']]);
             throw ValidationException::withMessages([
                 'email' => ['Too many failed attempts. Please try again in 5 minutes.'],
             ]);
@@ -27,7 +33,8 @@ class AdminAuthService
 
         $admin = $this->authRepository->findAdminByEmail($data['email']);
 
-        if (!$admin || !Hash::check($data['password'], $admin->password)) {
+        if (!$admin) {
+            \Illuminate\Support\Facades\Log::warning('Admin login failed: user not found', ['email' => $data['email']]);
             Cache::put($key, $attempts + 1, now()->addMinutes(5));
             $remaining = 3 - ($attempts + 1);
             throw ValidationException::withMessages([
@@ -37,6 +44,18 @@ class AdminAuthService
             ]);
         }
 
+        if (!Hash::check($data['password'], $admin->password)) {
+            \Illuminate\Support\Facades\Log::warning('Admin login failed: password mismatch', ['email' => $data['email']]);
+            Cache::put($key, $attempts + 1, now()->addMinutes(5));
+            $remaining = 3 - ($attempts + 1);
+            throw ValidationException::withMessages([
+                'email' => [$remaining > 0
+                    ? "Invalid credentials. {$remaining} attempt(s) remaining."
+                    : 'Too many failed attempts. Please try again in 5 minutes.'],
+            ]);
+        }
+
+        \Illuminate\Support\Facades\Log::info('Admin login successful', ['email' => $data['email']]);
         Cache::forget($key);
         $admin->tokens()->delete();
         $token = $admin->createToken('admin_token')->plainTextToken;
