@@ -1,5 +1,16 @@
 FROM php:8.4-fpm
 
+# Align the container's www-data user with the host UID/GID so that
+# php-fpm can write to the bind-mounted ./backend volume (storage/framework,
+# storage/app, bootstrap/cache). Without this, the mounted files are owned by
+# the host user (default 1000) while php-fpm runs as the image's www-data (33),
+# leaving runtime dirs read-only to php-fpm and breaking Blade view compilation
+# (e.g. password-reset email) and uploads.
+ARG UID=1000
+ARG GID=1000
+RUN groupmod -o -g ${GID} www-data \
+    && usermod  -o -u ${UID} www-data
+
 RUN apt-get update && apt-get install -y \
     git \
     curl \
