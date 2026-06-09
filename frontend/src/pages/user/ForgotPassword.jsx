@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api.js';
-import styles from './login.module.css';
+import styles from './styles/login.module.css';
 
 /*
  * CHANGE FP-1 — Removed: import emailIcon from './../../assets/email.png'

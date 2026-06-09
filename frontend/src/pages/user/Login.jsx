@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { STORAGE_KEYS } from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
-import styles from './login.module.css';
+import styles from './styles/login.module.css';
 
 import eyeIcon   from './../../assets/eye.png';
 import hideIcon  from './../../assets/hide.png';
