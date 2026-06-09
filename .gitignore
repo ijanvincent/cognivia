@@ -2,6 +2,8 @@
 __MACOSX
 *.log
 .env
+.env.*
+*.env.yml
 ngrok.yml
 GEMINI.md
 CLAUDE.md
