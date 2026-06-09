@@ -224,6 +224,13 @@ class AuthController extends Controller
 
         $user = $this->authService->updateProfile($request->user(), $data);
 
+        broadcast(new \App\Events\ProfileUpdated(
+            userId:         $user->id,
+            username:       $user->username,
+            avatar:         $user->avatar,
+            sourcePlatform: $request->header('X-Platform', 'web'),
+        ));
+
         return response()->json([
             'message' => 'Profile updated successfully.',
             'user'    => new UserResource($user),
