@@ -16,7 +16,6 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'role',
         'avatar',
         'email_verified_at',
     ];
@@ -28,8 +27,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password'          => 'hashed',
-        'deleted_at'        => 'datetime', // <-- add this
+        'password' => 'hashed',
+        'deleted_at' => 'datetime', // <-- add this
     ];
 
     public function isAdmin(): bool
