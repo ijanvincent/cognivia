@@ -347,12 +347,12 @@ function EditProfile() {
           <button
             type="submit"
             disabled={loading || success}
-            className={styles.submitBtn}
+            className={`${styles.submitBtn}${loading ? ` ${styles.submitBtnLoading}` : ''}${success ? ` ${styles.submitBtnSuccess}` : ''}`}
           >
             {loading ? (
-              <><div className={styles.spinner} /> Saving...</>
+              <><div className={styles.spinner} /><span>Saving…</span></>
             ) : success ? (
-              <><IconCheck /> Saved!</>
+              <><IconCheck /><span>Saved!</span></>
             ) : (
               'Save Changes'
             )}
