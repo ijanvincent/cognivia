@@ -317,16 +317,7 @@ function UserLogin() {
       const message = error.response?.data?.message;
 
       if (status === 401) {
-        switch (code) {
-          case 'EMAIL_NOT_FOUND':
-            setErrors({ email: message || 'No account found with this email address.' });
-            break;
-          case 'WRONG_PASSWORD':
-            setErrors({ password: message || 'The password you entered is incorrect.' });
-            break;
-          default:
-            setErrors({ email: 'Please check your email address.', password: 'Please check your password.' });
-        }
+        setErrors({ general: message || 'Invalid email or password.' });
       } else if (status === 422) {
         if (code === 'PLATFORM_CONFLICT') {
           // What: store conflict data and subscribe to approval channel.

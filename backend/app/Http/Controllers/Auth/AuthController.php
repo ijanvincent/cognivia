@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\ProfileUpdated;
+use App\Exceptions\Auth\EmailNotFoundException;
+use App\Exceptions\Auth\PlatformConflictException;
+use App\Exceptions\Auth\WrongPasswordException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Services\Auth\AuthService;
+use Illuminate\Http\File;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\File;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -26,21 +30,21 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Registration successful.',
-            'token'   => $result['token'],
-            'user'    => new UserResource($result['user']),
+            'token' => $result['token'],
+            'user' => new UserResource($result['user']),
         ], 201);
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $throttleKey = 'login:' . strtolower($request->input('email')) . '|' . $request->ip();
+        $throttleKey = 'login:'.strtolower($request->input('email')).'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
 
             return response()->json([
-                'message'     => "Too many login attempts. Please try again in {$seconds} seconds.",
-                'error_code'  => 'TOO_MANY_ATTEMPTS',
+                'message' => "Too many login attempts. Please try again in {$seconds} seconds.",
+                'error_code' => 'TOO_MANY_ATTEMPTS',
                 'retry_after' => $seconds,
             ], 429);
         }
@@ -52,25 +56,27 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Login successful.',
-                'token'   => $result['token'],
-                'user'    => new UserResource($result['user']),
+                'token' => $result['token'],
+                'user' => new UserResource($result['user']),
             ]);
 
-        } catch (\App\Exceptions\Auth\EmailNotFoundException $e) {
+        } catch (EmailNotFoundException $e) {
             RateLimiter::hit($throttleKey, 60);
+
             return response()->json([
-                'message'    => $e->getMessage(),
-                'error_code' => 'EMAIL_NOT_FOUND',
+                'message' => 'Invalid email or password.',
+                'error_code' => 'INVALID_CREDENTIALS',
             ], 401);
 
-        } catch (\App\Exceptions\Auth\WrongPasswordException $e) {
+        } catch (WrongPasswordException $e) {
             RateLimiter::hit($throttleKey, 60);
+
             return response()->json([
-                'message'    => $e->getMessage(),
-                'error_code' => 'WRONG_PASSWORD',
+                'message' => 'Invalid email or password.',
+                'error_code' => 'INVALID_CREDENTIALS',
             ], 401);
 
-        } catch (\App\Exceptions\Auth\PlatformConflictException $e) {
+        } catch (PlatformConflictException $e) {
             /*
              * What changed: added approval_token to the response payload.
              * Why: the client needs approval_token to identify its pending
@@ -78,31 +84,33 @@ class AuthController extends Controller
              *      event arrives. conflict_token remains for WS auth only.
              */
             return response()->json([
-                'message'          => $e->getMessage(),
-                'error_code'       => 'PLATFORM_CONFLICT',
+                'message' => $e->getMessage(),
+                'error_code' => 'PLATFORM_CONFLICT',
                 'conflict_user_id' => $e->userId,
-                'conflict_token'   => $e->conflictToken,
-                'approval_token'   => $e->approvalToken,
+                'conflict_token' => $e->conflictToken,
+                'approval_token' => $e->approvalToken,
             ], 422);
 
         } catch (ValidationException $e) {
             RateLimiter::hit($throttleKey, 60);
-            $errors  = $e->errors();
+            $errors = $e->errors();
             $message = collect($errors)->flatten()->first();
             $code = 'VALIDATION_ERROR';
             if (str_contains($message, 'Invalid email or password')) {
                 $code = 'ADMIN_ACCOUNT';
             }
+
             return response()->json([
-                'message'    => $message,
+                'message' => $message,
                 'error_code' => $code,
-                'errors'     => $errors,
+                'errors' => $errors,
             ], 422);
 
         } catch (\Exception $e) {
             RateLimiter::hit($throttleKey, 60);
+
             return response()->json([
-                'message'    => 'Invalid credentials. Please try again.',
+                'message' => 'Invalid credentials. Please try again.',
                 'error_code' => 'INVALID_CREDENTIALS',
             ], 401);
         }
@@ -130,16 +138,18 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $ipKey    = 'forgot-password-ip:'    . $request->ip();
-        $emailKey = 'forgot-password-email:' . strtolower($request->input('email'));
+        $ipKey = 'forgot-password-ip:'.$request->ip();
+        $emailKey = 'forgot-password-email:'.strtolower($request->input('email'));
 
         if (RateLimiter::tooManyAttempts($ipKey, 5)) {
             $seconds = RateLimiter::availableIn($ipKey);
+
             return response()->json(['message' => "Too many requests. Please try again in {$seconds} seconds."], 429);
         }
 
         if (RateLimiter::tooManyAttempts($emailKey, 3)) {
             $seconds = RateLimiter::availableIn($emailKey);
+
             return response()->json(['message' => "Too many requests. Please try again in {$seconds} seconds."], 429);
         }
 
@@ -156,19 +166,20 @@ class AuthController extends Controller
     public function resetPassword(Request $request): JsonResponse
     {
         $request->validate([
-            'token'                 => ['required', 'string'],
-            'email'                 => ['required', 'email', 'max:255'],
-            'password'              => [
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email', 'max:255'],
+            'password' => [
                 'required', 'string', 'min:8', 'confirmed',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
             ],
             'password_confirmation' => ['required'],
         ]);
 
-        $throttleKey = 'reset-password:' . $request->ip();
+        $throttleKey = 'reset-password:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+
             return response()->json(['message' => "Too many requests. Please try again in {$seconds} seconds."], 429);
         }
 
@@ -185,7 +196,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => ['sometimes', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_ ]+$/'],
-            'avatar'   => ['sometimes', 'file', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'avatar' => ['sometimes', 'file', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         $data = $request->only(['username']);
@@ -194,24 +205,26 @@ class AuthController extends Controller
             $file = $request->file('avatar');
 
             $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-            $realMime     = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file->getRealPath());
+            $realMime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $file->getRealPath());
 
             if (! in_array($realMime, $allowedMimes)) {
                 return response()->json(['message' => 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.'], 422);
             }
 
             $imageData = file_get_contents($file->getRealPath());
-            $image     = imagecreatefromstring($imageData);
+            $image = imagecreatefromstring($imageData);
 
             if (! $image) {
                 return response()->json(['message' => 'Could not process image. Please upload a valid image file.'], 422);
             }
 
             $filename = sprintf('avatar_%d_%d_%s.jpg', $request->user()->id, time(), bin2hex(random_bytes(4)));
-            $tempDir  = storage_path('app/temp');
-            $tempPath = $tempDir . '/' . $filename;
+            $tempDir = storage_path('app/temp');
+            $tempPath = $tempDir.'/'.$filename;
 
-            if (! is_dir($tempDir)) mkdir($tempDir, 0755, true);
+            if (! is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
 
             imagejpeg($image, $tempPath, 85);
             imagedestroy($image);
@@ -219,21 +232,21 @@ class AuthController extends Controller
             $path = Storage::disk('public')->putFileAs('avatars', new File($tempPath), $filename);
             unlink($tempPath);
 
-            $data['avatar'] = '/storage/' . $path;
+            $data['avatar'] = '/storage/'.$path;
         }
 
         $user = $this->authService->updateProfile($request->user(), $data);
 
-        broadcast(new \App\Events\ProfileUpdated(
-            userId:         $user->id,
-            username:       $user->username,
-            avatar:         $user->avatar,
+        broadcast(new ProfileUpdated(
+            userId: $user->id,
+            username: $user->username,
+            avatar: $user->avatar,
             sourcePlatform: $request->header('X-Platform', 'web'),
         ));
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'user'    => new UserResource($user),
+            'user' => new UserResource($user),
         ]);
     }
 }
