@@ -121,6 +121,10 @@ function AdminDashboard() {
     const [stats, setStats] = useState({
         total_users: 0, new_today: 0, new_this_month: 0, total_deleted_users: 0,
     });
+    const [content, setContent] = useState({
+        total_decks: 0, total_flashcards: 0, ai_generated: 0,
+        mastered_cards: 0, pending_approvals: 0, deck_sources: {},
+    });
     const [users, setUsers]           = useState([]);
     const [loading, setLoading]       = useState(true);
     const [search, setSearch]         = useState('');
@@ -203,8 +207,12 @@ function AdminDashboard() {
 
     const fetchDashboard = async () => {
         try {
-            const res = await api.get('/admin/dashboard');
-            setStats(res.data.stats);
+            const [dashRes, contentRes] = await Promise.all([
+                api.get('/admin/dashboard'),
+                api.get('/admin/content/overview').catch(() => ({ data: {} })),
+            ]);
+            setStats(dashRes.data.stats);
+            if (contentRes.data) setContent(contentRes.data);
         } catch (err) {
             console.error('Dashboard error:', err);
         }
@@ -727,12 +735,12 @@ function AdminDashboard() {
                         <PanelBody>
                             <div className="row g-3">
                                 {[
-                                    { icon: 'fa-users',        label: 'Total Users',   value: stats.total_users.toLocaleString(), color: '#4361ee' },
-                                    { icon: 'fa-user-plus',    label: 'New Users',     value: stats.new_this_month,               color: '#06d6a0' },
-                                    { icon: 'fa-eye',          label: 'Page Views',    value: TOTAL_VISITS.toLocaleString(),      color: '#0d6efd' },
-                                    { icon: 'fa-trash',        label: 'Deleted',       value: stats.total_deleted_users,          color: '#ef476f' },
-                                    { icon: 'fa-chart-line',   label: 'Growth',        value: growthRate + '%',                   color: '#7209b7' },
-                                    { icon: 'fa-globe',        label: 'Countries',     value: TRAFFIC_COUNTRIES.length,           color: '#fb8500' },
+                                    { icon: 'fa-users',        label: 'Total Users',   value: stats.total_users.toLocaleString(),      color: '#4361ee' },
+                                    { icon: 'fa-layer-group',  label: 'Total Decks',   value: content.total_decks.toLocaleString(),    color: '#7209b7' },
+                                    { icon: 'fa-clone',        label: 'Flashcards',    value: content.total_flashcards.toLocaleString(), color: '#0d6efd' },
+                                    { icon: 'fa-robot',        label: 'AI Generated',  value: content.ai_generated.toLocaleString(),   color: '#06d6a0' },
+                                    { icon: 'fa-check-double', label: 'Mastered',      value: content.mastered_cards.toLocaleString(), color: '#fb8500' },
+                                    { icon: 'fa-shield-alt',   label: 'Pending Logins',value: content.pending_approvals,              color: content.pending_approvals > 0 ? '#ef476f' : '#6c757d' },
                                 ].map((m, i) => (
                                     <div key={i} className="col-6">
                                         <div className="d-flex align-items-center gap-2">
