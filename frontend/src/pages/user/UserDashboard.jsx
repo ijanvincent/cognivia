@@ -77,6 +77,15 @@ function getStoredUser() {
   } catch { return {}; }
 }
 
+function persistUser(updatedUser) {
+  const serialized = JSON.stringify(updatedUser);
+  if (localStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    try { localStorage.setItem(STORAGE_KEYS.USER_DATA, serialized); } catch {}
+  } else if (sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    try { sessionStorage.setItem(STORAGE_KEYS.USER_DATA, serialized); } catch {}
+  }
+}
+
 function UserDashboard() {
   const [mounted, setMounted]           = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -140,6 +149,15 @@ function UserDashboard() {
     if (!echo) return;
 
     echo.private(`user.${userId}`)
+      .listen('.profile.updated', (event) => {
+        if (event.source_platform !== 'web') {
+          const current = getStoredUser();
+          const merged  = { ...current, username: event.username, avatar: event.avatar };
+          persistUser(merged);
+          setUser(merged);
+          setAvatarError(false);
+        }
+      })
       .listen('.force.logout', (e) => {
         if (e.platform === 'web') {
           handleLogout();
