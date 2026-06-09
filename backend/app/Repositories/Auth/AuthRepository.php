@@ -3,6 +3,7 @@
 namespace App\Repositories\Auth;
 
 use App\Models\User;
+use App\Services\JwtService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -89,9 +90,16 @@ class AuthRepository
         string $platform,
         ?\DateTimeInterface $expiresAt = null
     ): string {
-        $token = $user->createToken($tokenName, ['*'], $expiresAt);
-        $token->accessToken->forceFill(['platform' => $platform])->save();
+        $expiresAt = $expiresAt ?? now()->addHours(24);
 
-        return $token->plainTextToken;
+        $sanctumToken = $user->createToken($tokenName, ['*'], $expiresAt);
+        $sanctumToken->accessToken->forceFill(['platform' => $platform])->save();
+
+        return app(JwtService::class)->sign(
+            tokenId: $sanctumToken->accessToken->id,
+            userId: $user->id,
+            platform: $platform,
+            expiresAt: $expiresAt,
+        );
     }
 }

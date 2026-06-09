@@ -23,7 +23,7 @@ return [
     ],
 
     'ses' => [
-        'key'    => env('AWS_ACCESS_KEY_ID'),
+        'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
@@ -31,7 +31,7 @@ return [
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel'              => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
 
@@ -45,9 +45,13 @@ return [
     |
     */
     'openrouter' => [
-        'api_key'  => env('OPENROUTER_API_KEY'),
-        'model'    => env('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
         'base_url' => 'https://openrouter.ai/api/v1',
+    ],
+
+    'jwt' => [
+        'secret' => env('JWT_SECRET'),
     ],
 
 ];
