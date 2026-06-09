@@ -3,3 +3,8 @@ vendor
 node_modules
 .git
 storage/logs/*.log
+.env
+.env.*
+*.pem
+*.key
+ngrok.yml
