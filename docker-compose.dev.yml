@@ -45,7 +45,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_USER: ${DB_USERNAME}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - cognivia_mysql_data:/var/lib/mysql
     networks:
@@ -57,9 +57,9 @@ services:
     restart: unless-stopped
     ports:
       - "6001:6001"
-      - "9601:9601"
+      - "127.0.0.1:9601:9601"
     environment:
-      SOKETI_DEBUG: "1"
+      SOKETI_DEBUG: "0"
       SOKETI_DEFAULT_APP_ID: "${PUSHER_APP_ID}"
       SOKETI_DEFAULT_APP_KEY: "${PUSHER_APP_KEY}"
       SOKETI_DEFAULT_APP_SECRET: "${PUSHER_APP_SECRET}"
