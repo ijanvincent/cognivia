@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './dashboard.module.css';
+import styles from './styles/dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import api, { STORAGE_KEYS } from '../../services/api.js';
 import { getEcho, disconnectEcho } from '../../services/echo.js';

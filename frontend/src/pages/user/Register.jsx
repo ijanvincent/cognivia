@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import api from './../../services/api.js';
-import styles from './register.module.css';
+import styles from './styles/register.module.css';
 /*
  * CHANGE R-1 — Removed: import emailIcon from './../../assets/email.png'
  * CHANGE R-2 — Removed: import lockIcon  from './../../assets/lock.png'

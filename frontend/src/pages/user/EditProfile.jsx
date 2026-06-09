@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { STORAGE_KEYS } from '../../services/api.js';
-import styles from './editprofile.module.css';
+import styles from './styles/editprofile.module.css';
 
 /*
  * NAMESPACE FIX — Import STORAGE_KEYS constant.
