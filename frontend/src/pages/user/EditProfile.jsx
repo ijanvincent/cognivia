@@ -255,27 +255,32 @@ function EditProfile() {
       </button>
 
       <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h1 className={styles.cardTitle}>Edit Profile</h1>
-          {/*
-           * LABEL FIX
-           * What: Subtitle updated from "username" to "profile name".
-           * Why:  Copy must be consistent with the field label below.
-           */}
-          <p className={styles.cardSubtitle}>Update your profile name and profile picture</p>
-        </div>
-
-        {success && (
-          <div className={styles.successAlert}>
-            <IconCheck />
-            Profile updated successfully! Redirecting...
+        {success ? (
+          <div className={styles.successState}>
+            <svg className={styles.checkIcon} viewBox="0 0 52 52" fill="none">
+              <circle className={styles.checkCircle} cx="26" cy="26" r="24" />
+              <polyline className={styles.checkMark} points="14.5 27 22 34.5 37.5 17.5" />
+            </svg>
+            <div className={styles.successText}>
+              <h2 className={styles.successTitle}>Profile updated!</h2>
+              <p className={styles.successSub}>Redirecting you to dashboard…</p>
+            </div>
+            <div className={styles.successProgress}>
+              <div className={styles.successProgressFill} />
+            </div>
           </div>
-        )}
-        {errors.general && (
-          <div className={styles.errorAlert}>{errors.general}</div>
-        )}
+        ) : (
+          <>
+            <div className={styles.cardHeader}>
+              <h1 className={styles.cardTitle}>Edit Profile</h1>
+              <p className={styles.cardSubtitle}>Update your profile name and profile picture</p>
+            </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+            {errors.general && (
+              <div className={styles.errorAlert}>{errors.general}</div>
+            )}
+
+            <form onSubmit={handleSubmit} className={styles.form}>
 
           <div className={styles.avatarSection}>
             <div className={styles.avatarWrap} onClick={handleAvatarClick}>
@@ -358,7 +363,9 @@ function EditProfile() {
             )}
           </button>
 
-        </form>
+          </form>
+          </>
+        )}
       </div>
     </div>
   );
