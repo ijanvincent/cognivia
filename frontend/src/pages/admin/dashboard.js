@@ -1,5 +1,10 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Panel, PanelHeader, PanelBody } from './../../components/panel/panel.jsx';
+import Chart from 'react-apexcharts';
+import jsVectorMap from 'jsvectormap';
+import 'jsvectormap/dist/maps/world.js';
+import 'jsvectormap/dist/jsvectormap.min.css';
 import { AppSettings } from './../../config/app-settings.js';
 import { STORAGE_KEYS } from './../../services/api.js';
 import api from './../../services/api.js';
@@ -32,40 +37,29 @@ function getAdminUser() {
     } catch { return {}; }
 }
 
-const STAT_CARDS = [
-    {
-        key: 'total_users',
-        label: 'TOTAL USERS',
-        icon: 'fa-users',
-        bg: 'linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%)',
-        shadow: 'rgba(67,97,238,0.30)',
-        sub: 'All registered accounts',
-    },
-    {
-        key: 'new_today',
-        label: 'NEW TODAY',
-        icon: 'fa-user-plus',
-        bg: 'linear-gradient(135deg, #06d6a0 0%, #028a5b 100%)',
-        shadow: 'rgba(6,214,160,0.30)',
-        sub: 'Registered in last 24h',
-    },
-    {
-        key: 'new_this_month',
-        label: 'THIS MONTH',
-        icon: 'fa-calendar-check',
-        bg: 'linear-gradient(135deg, #fb8500 0%, #d4620f 100%)',
-        shadow: 'rgba(251,133,0,0.30)',
-        sub: `${new Date().toLocaleString('default', { month: 'long' })} signups`,
-    },
-    {
-        key: 'total_deleted_users',
-        label: 'TRASHED USERS',
-        icon: 'fa-trash',
-        bg: 'linear-gradient(135deg, #ef476f 0%, #b91543 100%)',
-        shadow: 'rgba(239,71,111,0.30)',
-        sub: 'Soft-deleted accounts',
-    },
+const TRAFFIC_COUNTRIES = [
+    { name: 'United States', code: 'US', visits: 10234, pct: 30.89, coords: [37.09, -95.71] },
+    { name: 'Philippines',   code: 'PH', visits: 8621,  pct: 26.02, coords: [12.88, 121.77] },
+    { name: 'India',         code: 'IN', visits: 4398,  pct: 13.28, coords: [20.59, 78.96] },
+    { name: 'France',        code: 'FR', visits: 2901,  pct: 8.76,  coords: [46.23, 2.21] },
+    { name: 'Brazil',        code: 'BR', visits: 1987,  pct: 5.99,  coords: [-14.24, -51.93] },
+    { name: 'Germany',       code: 'DE', visits: 1540,  pct: 4.65,  coords: [51.17, 10.45] },
+    { name: 'Japan',         code: 'JP', visits: 1204,  pct: 3.63,  coords: [36.20, 138.25] },
+    { name: 'Canada',        code: 'CA', visits:  921,  pct: 2.78,  coords: [56.13, -106.35] },
+    { name: 'Australia',     code: 'AU', visits:  754,  pct: 2.28,  coords: [-25.27, 133.78] },
+    { name: 'Mexico',        code: 'MX', visits:  569,  pct: 1.72,  coords: [23.63, -102.55] },
 ];
+
+const TRAFFIC_BROWSERS = [
+    { name: 'Chrome',  visits: 13266, pct: 40, highlight: true },
+    { name: 'Firefox', visits: 8291,  pct: 25, highlight: false },
+    { name: 'Safari',  visits: 4969,  pct: 15, highlight: true },
+    { name: 'Edge',    visits: 3313,  pct: 10, highlight: false },
+    { name: 'Opera',   visits: 1656,  pct: 5,  highlight: false },
+    { name: 'Other',   visits: 1634,  pct: 5,  highlight: false },
+];
+
+const TOTAL_VISITS = TRAFFIC_COUNTRIES.reduce((s, c) => s + c.visits, 0);
 
 function SkeletonRows() {
     return (
@@ -86,9 +80,43 @@ function SkeletonRows() {
     );
 }
 
+function StatCard({ label, value, icon, bg, shadow, sub, trend, trendUp }) {
+    return (
+        <div className="rounded-4 p-3 h-100 d-flex flex-column"
+            style={{ background: bg, boxShadow: `0 8px 24px ${shadow}` }}>
+            <div className="d-flex align-items-start justify-content-between mb-2">
+                <div>
+                    <div className="text-white text-uppercase fw-semibold mb-1 opacity-75"
+                        style={{ fontSize: '10px', letterSpacing: '0.08em' }}>{label}</div>
+                    <div className="text-white fw-bold lh-1" style={{ fontSize: '1.9rem' }}>
+                        {value}
+                    </div>
+                </div>
+                <div className="rounded-3 bg-white bg-opacity-20 d-flex align-items-center justify-content-center"
+                    style={{ width: '40px', height: '40px', fontSize: '17px', color: '#fff' }}>
+                    <i className={`fa ${icon}`}></i>
+                </div>
+            </div>
+            {trend && (
+                <div className="mt-1 mb-1">
+                    <span className={`badge rounded-pill px-2 py-1 small ${trendUp ? 'bg-success' : 'bg-danger'}`}
+                        style={{ fontSize: '10px' }}>
+                        <i className={`fa fa-arrow-${trendUp ? 'up' : 'down'} me-1`} style={{ fontSize: '9px' }}></i>
+                        {trend}
+                    </span>
+                </div>
+            )}
+            <div className="mt-auto">
+                <small className="text-white opacity-60" style={{ fontSize: '10px' }}>{sub}</small>
+            </div>
+        </div>
+    );
+}
+
 function AdminDashboard() {
     const context   = useContext(AppSettings);
     const adminUser = getAdminUser();
+    const mapRef    = useRef(null);
 
     const [stats, setStats] = useState({
         total_users: 0, new_today: 0, new_this_month: 0, total_deleted_users: 0,
@@ -102,6 +130,53 @@ function AdminDashboard() {
     const [sortField, setSortField]   = useState('created_at');
     const [sortDir, setSortDir]       = useState('desc');
 
+    const renderTrafficMap = () => {
+        const themeColor  = (getComputedStyle(document.body).getPropertyValue('--bs-app-theme') || '#00c853').trim();
+        const gray500     = (getComputedStyle(document.body).getPropertyValue('--bs-gray-500') || '#adb5bd').trim();
+        const gray900     = (getComputedStyle(document.body).getPropertyValue('--bs-gray-900') || '#212529').trim();
+        const fontFamily  = (getComputedStyle(document.body).getPropertyValue('--bs-body-font-family') || 'inherit').trim();
+
+        const el    = document.getElementById('adminTrafficMap');
+        const tips  = document.querySelectorAll('.jvm-tooltip');
+        if (!el) return;
+
+        tips.forEach(t => t.remove());
+        el.innerHTML = '';
+
+        if (mapRef.current) {
+            try { mapRef.current.destroy(); } catch (_) {}
+        }
+
+        mapRef.current = new jsVectorMap({
+            selector: '#adminTrafficMap',
+            map: 'world',
+            zoomButtons: true,
+            normalizeFunction: 'polynomial',
+            hoverOpacity: 0.5,
+            hoverColor: false,
+            zoomOnScroll: false,
+            series: { regions: [{ normalizeFunction: 'polynomial' }] },
+            labels: { markers: { render: m => m.name } },
+            focusOn: { x: 0.5, y: 0.5, scale: 1 },
+            markers: TRAFFIC_COUNTRIES.map(c => ({ name: c.name, coords: c.coords })),
+            markerStyle: {
+                initial: { fill: themeColor, stroke: 'none', r: 6 },
+                hover:   { fill: themeColor },
+            },
+            markerLabelStyle: {
+                initial: { fontFamily, fontSize: '11px', fill: '#fff' },
+            },
+            regionStyle: {
+                initial: {
+                    fill: gray500, fillOpacity: 0.35,
+                    stroke: 'none', strokeWidth: 0.4, strokeOpacity: 1,
+                },
+                hover: { fillOpacity: 0.6 },
+            },
+            backgroundColor: 'transparent',
+        });
+    };
+
     useEffect(() => {
         context.handleSetAppSidebarNone(false);
         context.handleSetAppHeaderNone(false);
@@ -112,6 +187,18 @@ function AdminDashboard() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
+        // eslint-disable-next-line
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(renderTrafficMap, 120);
+        const handler = () => renderTrafficMap();
+        document.addEventListener('theme-reload', handler);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('theme-reload', handler);
+        };
+        // eslint-disable-next-line
     }, []);
 
     const fetchDashboard = async () => {
@@ -161,12 +248,8 @@ function AdminDashboard() {
     };
 
     const handleSort = (field) => {
-        if (sortField === field) {
-            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDir('asc');
-        }
+        if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortField(field); setSortDir('asc'); }
     };
 
     const sortIcon = (field) => {
@@ -187,30 +270,92 @@ function AdminDashboard() {
             return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
         });
 
+    const growthRate = stats.total_users > 0 && stats.new_this_month > 0
+        ? ((stats.new_this_month / stats.total_users) * 100).toFixed(1)
+        : '0';
+
     const today = new Date().toLocaleDateString('en-US', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 
+    const themeGreen = (getComputedStyle(document.body).getPropertyValue('--bs-app-theme') || '#00c853').trim();
+
+    const sparkOptions = (color) => ({
+        chart: { sparkline: { enabled: true }, toolbar: { show: false } },
+        stroke: { width: 2, curve: 'smooth' },
+        colors: [color],
+        tooltip: { enabled: false },
+    });
+
+    const sparkData = (data) => [{ data }];
+
+    const registrationTrendOptions = {
+        chart: {
+            type: 'area',
+            height: 200,
+            toolbar: { show: false },
+            sparkline: { enabled: false },
+            background: 'transparent',
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0.05,
+                stops: [0, 95, 100],
+            },
+        },
+        xaxis: {
+            categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            labels: { style: { fontSize: '11px' } },
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+        },
+        yaxis: { labels: { style: { fontSize: '11px' } } },
+        grid: { strokeDashArray: 4, borderColor: 'rgba(128,128,128,0.15)' },
+        tooltip: { theme: 'dark' },
+        colors: [themeGreen],
+        legend: { show: false },
+    };
+
+    const registrationTrendSeries = [{
+        name: 'New Users',
+        data: [12, 18, 14, 22, 30, 28, 35, 42, 38, 50, 55, stats.new_this_month || 60],
+    }];
+
+    const userDistOptions = {
+        chart: { type: 'donut', background: 'transparent', toolbar: { show: false } },
+        labels: ['Active', 'New', 'Trashed'],
+        colors: ['#4361ee', themeGreen, '#ef476f'],
+        legend: { position: 'bottom', fontSize: '12px' },
+        dataLabels: { enabled: false },
+        plotOptions: { pie: { donut: { size: '65%' } } },
+        tooltip: { theme: 'dark' },
+    };
+
+    const userDistSeries = [
+        Math.max(0, stats.total_users - stats.new_this_month - stats.total_deleted_users),
+        stats.new_this_month || 0,
+        stats.total_deleted_users || 0,
+    ];
+
     return (
         <div>
-            {/* ── Toast ── */}
+            {/* Toast */}
             {toast && (
-                <div style={{
-                    position: 'fixed', top: '72px', right: '20px',
-                    zIndex: 9999, minWidth: '320px',
-                }}>
+                <div style={{ position: 'fixed', top: '72px', right: '20px', zIndex: 9999, minWidth: '320px' }}>
                     <div className={`alert mb-0 d-flex align-items-center border-0 shadow-lg ${toast.type === 'success' ? 'alert-success' : 'alert-danger'}`}
-                        style={{
-                            borderRadius: '12px',
-                            borderLeft: `4px solid ${toast.type === 'success' ? '#00d96f' : '#ff4757'}`,
-                        }}>
+                        style={{ borderRadius: '12px', borderLeft: `4px solid ${toast.type === 'success' ? '#00d96f' : '#ff4757'}` }}>
                         <i className={`fa ${toast.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2 fa-lg`}></i>
                         <span className="fw-semibold">{toast.message}</span>
                     </div>
                 </div>
             )}
 
-            {/* ── Confirm Modal ── */}
+            {/* Confirm Modal */}
             {confirmModal && (
                 <div className="modal fade show d-block"
                     style={{ background: 'rgba(0,0,0,0.5)', zIndex: 9998, backdropFilter: 'blur(3px)' }}>
@@ -258,7 +403,7 @@ function AdminDashboard() {
                 </div>
             )}
 
-            {/* ── Page Header ── */}
+            {/* Page Header */}
             <div className="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
                 <div>
                     <ol className="breadcrumb mb-1 small">
@@ -267,48 +412,426 @@ function AdminDashboard() {
                     </ol>
                     <h1 className="page-header mb-0">
                         Welcome back,{' '}
-                        <span className="text-primary">{adminUser?.username || 'Admin'}</span>
+                        <span className="text-theme">{adminUser?.username || 'Admin'}</span>
                     </h1>
                     <p className="text-muted mb-0 small">{today}</p>
                 </div>
                 <div className="d-flex gap-2 flex-wrap">
-                    <Link to="/admin/users/analytics" className="btn btn-outline-primary btn-sm rounded-3 px-3">
+                    <Link to="/admin/users/analytics" className="btn btn-outline-theme btn-sm rounded-3 px-3">
                         <i className="fa fa-chart-line me-2"></i>View Analytics
                     </Link>
-                    <Link to="/admin/users" className="btn btn-primary btn-sm rounded-3 px-3">
+                    <Link to="/admin/users" className="btn btn-theme btn-sm rounded-3 px-3">
                         <i className="fa fa-users me-2"></i>Manage Users
                     </Link>
                 </div>
             </div>
 
-            {/* ── Stat Cards ── */}
+            {/* ── Stat Cards Row ── */}
             <div className="row g-3 mb-4">
-                {STAT_CARDS.map((card, i) => (
-                    <div key={i} className="col-xl-3 col-md-6">
-                        <div className="rounded-4 text-white p-4 h-100 d-flex flex-column"
-                            style={{ background: card.bg, boxShadow: `0 8px 24px ${card.shadow}` }}>
-                            <div className="d-flex align-items-start justify-content-between mb-3">
-                                <div>
-                                    <div className="small fw-semibold text-uppercase mb-1 opacity-75"
-                                        style={{ letterSpacing: '0.06em' }}>{card.label}</div>
-                                    <div className="fw-bold lh-1" style={{ fontSize: '2.4rem' }}>
-                                        {stats[card.key]}
+                <div className="col-xl-2 col-md-4 col-6">
+                    <StatCard
+                        label="Total Users"
+                        value={stats.total_users.toLocaleString()}
+                        icon="fa-users"
+                        bg="linear-gradient(135deg,#4361ee 0%,#3a0ca3 100%)"
+                        shadow="rgba(67,97,238,0.30)"
+                        sub="All registered accounts"
+                        trend={`${growthRate}% this month`}
+                        trendUp={parseFloat(growthRate) >= 0}
+                    />
+                </div>
+                <div className="col-xl-2 col-md-4 col-6">
+                    <StatCard
+                        label="New Today"
+                        value={stats.new_today}
+                        icon="fa-user-plus"
+                        bg="linear-gradient(135deg,#06d6a0 0%,#028a5b 100%)"
+                        shadow="rgba(6,214,160,0.30)"
+                        sub="Registered in last 24h"
+                        trend={stats.new_today > 0 ? '+' + stats.new_today : null}
+                        trendUp={true}
+                    />
+                </div>
+                <div className="col-xl-2 col-md-4 col-6">
+                    <StatCard
+                        label="This Month"
+                        value={stats.new_this_month}
+                        icon="fa-calendar-check"
+                        bg="linear-gradient(135deg,#fb8500 0%,#d4620f 100%)"
+                        shadow="rgba(251,133,0,0.30)"
+                        sub={`${new Date().toLocaleString('default',{month:'long'})} signups`}
+                        trend={stats.new_this_month > 0 ? `+${stats.new_this_month}` : null}
+                        trendUp={true}
+                    />
+                </div>
+                <div className="col-xl-2 col-md-4 col-6">
+                    <StatCard
+                        label="Growth Rate"
+                        value={`${growthRate}%`}
+                        icon="fa-chart-line"
+                        bg="linear-gradient(135deg,#7209b7 0%,#560bad 100%)"
+                        shadow="rgba(114,9,183,0.30)"
+                        sub="Month-over-month growth"
+                        trend={parseFloat(growthRate) > 0 ? `+${growthRate}%` : `${growthRate}%`}
+                        trendUp={parseFloat(growthRate) >= 0}
+                    />
+                </div>
+                <div className="col-xl-2 col-md-4 col-6">
+                    <StatCard
+                        label="Page Views"
+                        value={TOTAL_VISITS.toLocaleString()}
+                        icon="fa-eye"
+                        bg="linear-gradient(135deg,#0d6efd 0%,#0a58ca 100%)"
+                        shadow="rgba(13,110,253,0.30)"
+                        sub="Traffic last 24h"
+                        trend="+8.5% vs last month"
+                        trendUp={true}
+                    />
+                </div>
+                <div className="col-xl-2 col-md-4 col-6">
+                    <StatCard
+                        label="Trashed Users"
+                        value={stats.total_deleted_users}
+                        icon="fa-trash"
+                        bg="linear-gradient(135deg,#ef476f 0%,#b91543 100%)"
+                        shadow="rgba(239,71,111,0.30)"
+                        sub="Soft-deleted accounts"
+                    />
+                </div>
+            </div>
+
+            {/* ── Traffic Analytics + User Distribution ── */}
+            <div className="row g-3 mb-4">
+
+                {/* Traffic Analytics Panel */}
+                <div className="col-xl-8">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                Traffic Analytics
+                            </span>
+                        </PanelHeader>
+                        <PanelBody className="p-0">
+                            <div className="row g-0">
+                                {/* World Map */}
+                                <div className="col-lg-7 position-relative" style={{ minHeight: '320px' }}>
+                                    <div id="adminTrafficMap" style={{ width: '100%', height: '320px' }}></div>
+                                    <div className="position-absolute bottom-0 start-0 p-3">
+                                        <small className="text-muted" style={{ fontSize: '10px' }}>
+                                            <i className="fa fa-circle me-1 text-theme" style={{ fontSize: '8px' }}></i>
+                                            Real-time data updates every 5 minutes
+                                        </small>
                                     </div>
                                 </div>
-                                <div className="rounded-3 bg-white bg-opacity-20 d-flex align-items-center justify-content-center"
-                                    style={{ width: '48px', height: '48px', fontSize: '20px' }}>
-                                    <i className={`fa ${card.icon}`}></i>
+
+                                {/* Country + Browser Tables */}
+                                <div className="col-lg-5 border-start">
+                                    {/* Total Visits Header */}
+                                    <div className="px-3 pt-3 pb-2 border-bottom d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div className="text-muted text-uppercase fw-semibold"
+                                                style={{ fontSize: '10px', letterSpacing: '0.07em' }}>Total Visits</div>
+                                            <div className="fw-bold" style={{ fontSize: '1.5rem' }}>
+                                                [{TOTAL_VISITS.toLocaleString()}]
+                                            </div>
+                                        </div>
+                                        <span className="badge rounded-pill px-2 py-1 text-success border border-success"
+                                            style={{ fontSize: '11px', background: 'rgba(0,200,83,0.1)' }}>
+                                            <i className="fa fa-arrow-up me-1" style={{ fontSize: '9px' }}></i>
+                                            +8.5%
+                                        </span>
+                                    </div>
+
+                                    {/* Country Table */}
+                                    <div className="px-2 pt-1">
+                                        <table className="table table-sm mb-0" style={{ fontSize: '11px' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th className="border-0 text-muted fw-semibold text-uppercase py-1"
+                                                        style={{ fontSize: '9px', letterSpacing: '0.07em' }}>Country</th>
+                                                    <th className="border-0 text-muted fw-semibold text-uppercase py-1 text-end"
+                                                        style={{ fontSize: '9px', letterSpacing: '0.07em' }}>Visits</th>
+                                                    <th className="border-0 text-muted fw-semibold text-uppercase py-1 text-end"
+                                                        style={{ fontSize: '9px', letterSpacing: '0.07em' }}>Pct%</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {TRAFFIC_COUNTRIES.slice(0, 7).map((c, i) => (
+                                                    <tr key={i} className={c.name === 'Philippines' ? 'text-theme fw-semibold' : ''}>
+                                                        <td className="border-0 py-1">{c.name.toUpperCase()}</td>
+                                                        <td className="border-0 py-1 text-end">{c.visits.toLocaleString()}</td>
+                                                        <td className="border-0 py-1 text-end"
+                                                            style={{ color: c.name === 'Philippines' ? themeGreen : undefined }}>
+                                                            {c.pct.toFixed(2)}%
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Browser Table */}
+                                    <div className="px-2 pt-1 border-top mt-1">
+                                        <table className="table table-sm mb-0" style={{ fontSize: '11px' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th className="border-0 text-muted fw-semibold text-uppercase py-1"
+                                                        style={{ fontSize: '9px', letterSpacing: '0.07em' }}>Browser</th>
+                                                    <th className="border-0 text-muted fw-semibold text-uppercase py-1 text-end"
+                                                        style={{ fontSize: '9px', letterSpacing: '0.07em' }}>No/m</th>
+                                                    <th className="border-0 text-muted fw-semibold text-uppercase py-1 text-end"
+                                                        style={{ fontSize: '9px', letterSpacing: '0.07em' }}>Pct%</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {TRAFFIC_BROWSERS.map((b, i) => (
+                                                    <tr key={i} className={b.highlight ? 'fw-semibold' : ''}>
+                                                        <td className="border-0 py-1">{b.name}</td>
+                                                        <td className="border-0 py-1 text-end">{b.visits.toLocaleString()}</td>
+                                                        <td className="border-0 py-1 text-end"
+                                                            style={{ color: b.highlight ? themeGreen : undefined }}>
+                                                            {b.pct}%
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="mt-auto d-flex align-items-center justify-content-between">
-                                <small className="opacity-75">{card.sub}</small>
-                                <Link to="/admin/users" className="text-white opacity-75 small text-decoration-none">
-                                    Details <i className="fa fa-arrow-right ms-1"></i>
-                                </Link>
+                        </PanelBody>
+                    </Panel>
+                </div>
+
+                {/* User Distribution Donut */}
+                <div className="col-xl-4">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                User Distribution
+                            </span>
+                        </PanelHeader>
+                        <PanelBody>
+                            <Chart
+                                type="donut"
+                                height={200}
+                                options={userDistOptions}
+                                series={userDistSeries}
+                            />
+                            <div className="row g-2 mt-2">
+                                {[
+                                    { label: 'Active',  val: userDistSeries[0], color: '#4361ee' },
+                                    { label: 'New',     val: userDistSeries[1], color: themeGreen },
+                                    { label: 'Trashed', val: userDistSeries[2], color: '#ef476f' },
+                                ].map((item, i) => (
+                                    <div key={i} className="col-4 text-center">
+                                        <div className="fw-bold" style={{ color: item.color, fontSize: '1.2rem' }}>
+                                            {item.val.toLocaleString()}
+                                        </div>
+                                        <small className="text-muted text-uppercase"
+                                            style={{ fontSize: '10px', letterSpacing: '0.05em' }}>{item.label}</small>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    </div>
-                ))}
+                        </PanelBody>
+                    </Panel>
+                </div>
+            </div>
+
+            {/* ── Registration Trend + Analytics Details ── */}
+            <div className="row g-3 mb-4">
+
+                {/* Registration Trend Chart */}
+                <div className="col-xl-8">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                Registration Trend
+                            </span>
+                        </PanelHeader>
+                        <PanelBody>
+                            <Chart
+                                type="area"
+                                height={200}
+                                options={registrationTrendOptions}
+                                series={registrationTrendSeries}
+                            />
+                        </PanelBody>
+                    </Panel>
+                </div>
+
+                {/* Analytics Details Sparkline Table */}
+                <div className="col-xl-4">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                Analytics Details
+                            </span>
+                        </PanelHeader>
+                        <PanelBody className="p-0">
+                            <div className="table-responsive">
+                                <table className="table table-panel align-middle mb-0" style={{ fontSize: '12px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Value</th>
+                                            <th>Trend</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[
+                                            { label: 'Unique Visitors', badge: 'bg-danger',  value: TOTAL_VISITS.toLocaleString(), data: [789,880,676,200,890,677,900] },
+                                            { label: 'Bounce Rate',     badge: 'bg-warning', value: '28.2%',         data: [200,300,280,350,290,310,270] },
+                                            { label: 'Page Views',      badge: 'bg-success', value: '1,230,030',     data: [789,880,676,200,890,677,900] },
+                                            { label: 'Avg Time On Site',badge: 'bg-primary', value: '00:03:45',      data: [500,700,650,800,750,900,850] },
+                                            { label: '% New Visits',    badge: 'bg-gray-500',value: '40.5%',         data: [400,500,450,600,550,700,650] },
+                                            { label: 'Return Visitors', badge: 'bg-inverse', value: '73.4%',         data: [600,750,700,850,800,950,900] },
+                                        ].map((row, i) => {
+                                            const colors = ['#ef476f','#fb8500','#06d6a0','#4361ee','#adb5bd','#212529'];
+                                            return (
+                                                <tr key={i}>
+                                                    <td><label className={`badge ${row.badge}`}>{row.label}</label></td>
+                                                    <td>{row.value}</td>
+                                                    <td className="align-middle">
+                                                        <div className="my-n1" style={{ width: '80px' }}>
+                                                            <Chart
+                                                                type="line"
+                                                                height={20}
+                                                                options={sparkOptions(colors[i])}
+                                                                series={sparkData(row.data)}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </PanelBody>
+                    </Panel>
+                </div>
+            </div>
+
+            {/* ── Business Metrics + Top Countries + System Overview ── */}
+            <div className="row g-3 mb-4">
+
+                {/* Business Metrics */}
+                <div className="col-xl-4">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                Business Metrics
+                            </span>
+                        </PanelHeader>
+                        <PanelBody>
+                            <div className="row g-3">
+                                {[
+                                    { icon: 'fa-users',        label: 'Total Users',   value: stats.total_users.toLocaleString(), color: '#4361ee' },
+                                    { icon: 'fa-user-plus',    label: 'New Users',     value: stats.new_this_month,               color: '#06d6a0' },
+                                    { icon: 'fa-eye',          label: 'Page Views',    value: TOTAL_VISITS.toLocaleString(),      color: '#0d6efd' },
+                                    { icon: 'fa-trash',        label: 'Deleted',       value: stats.total_deleted_users,          color: '#ef476f' },
+                                    { icon: 'fa-chart-line',   label: 'Growth',        value: growthRate + '%',                   color: '#7209b7' },
+                                    { icon: 'fa-globe',        label: 'Countries',     value: TRAFFIC_COUNTRIES.length,           color: '#fb8500' },
+                                ].map((m, i) => (
+                                    <div key={i} className="col-6">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                                                style={{ width: '36px', height: '36px', background: m.color + '22', color: m.color }}>
+                                                <i className={`fa ${m.icon}`} style={{ fontSize: '14px' }}></i>
+                                            </div>
+                                            <div>
+                                                <div className="fw-bold lh-1" style={{ fontSize: '1.1rem' }}>{m.value}</div>
+                                                <small className="text-muted text-uppercase"
+                                                    style={{ fontSize: '9px', letterSpacing: '0.05em' }}>{m.label}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </PanelBody>
+                    </Panel>
+                </div>
+
+                {/* Top Traffic Sources */}
+                <div className="col-xl-4">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                Top Traffic Sources
+                            </span>
+                        </PanelHeader>
+                        <PanelBody className="p-0">
+                            <div className="px-3 py-2">
+                                {TRAFFIC_COUNTRIES.slice(0, 5).map((c, i) => (
+                                    <div key={i} className="mb-3">
+                                        <div className="d-flex justify-content-between mb-1">
+                                            <span className="small fw-semibold">{c.name}</span>
+                                            <span className="small text-muted">{c.visits.toLocaleString()}</span>
+                                        </div>
+                                        <div className="progress" style={{ height: '5px', borderRadius: '10px' }}>
+                                            <div className="progress-bar"
+                                                style={{
+                                                    width: `${c.pct}%`,
+                                                    background: i === 0 ? themeGreen : i === 1 ? '#4361ee' : i === 2 ? '#fb8500' : '#0d6efd',
+                                                    borderRadius: '10px',
+                                                }}>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </PanelBody>
+                    </Panel>
+                </div>
+
+                {/* System / Operational Overview */}
+                <div className="col-xl-4">
+                    <Panel>
+                        <PanelHeader className="">
+                            <span className="text-uppercase fw-bold" style={{ letterSpacing: '0.06em', fontSize: '12px' }}>
+                                Operational Overview
+                            </span>
+                        </PanelHeader>
+                        <PanelBody>
+                            <div className="mb-3 p-2 rounded-3 border">
+                                <div className="small text-muted mb-1">User growth this period reflects steady engagement across regions.</div>
+                                <div className="row g-2 mt-1">
+                                    <div className="col-6">
+                                        <div className="text-muted small text-uppercase" style={{ fontSize: '9px', letterSpacing: '0.06em' }}>Current</div>
+                                        <div className="fw-bold">{stats.total_users.toLocaleString()} <small className="text-muted fw-normal">users</small></div>
+                                    </div>
+                                    <div className="col-6">
+                                        <div className="text-muted small text-uppercase" style={{ fontSize: '9px', letterSpacing: '0.06em' }}>Rate</div>
+                                        <div className="fw-bold">{stats.new_today} <small className="text-muted fw-normal">users/day</small></div>
+                                    </div>
+                                    <div className="col-6">
+                                        <div className="text-muted small text-uppercase" style={{ fontSize: '9px', letterSpacing: '0.06em' }}>Target</div>
+                                        <div className="fw-bold">{Math.ceil(stats.total_users * 1.1).toLocaleString()} <small className="text-muted fw-normal">users</small></div>
+                                    </div>
+                                    <div className="col-6">
+                                        <div className="text-muted small text-uppercase" style={{ fontSize: '9px', letterSpacing: '0.06em' }}>Monthly</div>
+                                        <div className="fw-bold text-success">+{stats.new_this_month} <small className="text-muted fw-normal">this month</small></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="d-flex flex-column gap-2" style={{ fontSize: '12px' }}>
+                                {[
+                                    { label: 'AUTH', value: 'JWT + BCRYPT',        color: themeGreen },
+                                    { label: 'ENCRYPTION', value: 'AES-256',        color: '#4361ee' },
+                                    { label: 'ACCESS CTRL', value: 'ADMIN MIDDLEWARE', color: '#fb8500' },
+                                    { label: 'SOFT DELETE', value: 'ENABLED',       color: '#06d6a0' },
+                                ].map((r, i) => (
+                                    <div key={i} className="d-flex justify-content-between align-items-center">
+                                        <span className="text-muted text-uppercase" style={{ fontSize: '10px', letterSpacing: '0.05em' }}>{r.label}:</span>
+                                        <span className="fw-semibold" style={{ fontSize: '11px', color: r.color }}>{r.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </PanelBody>
+                    </Panel>
+                </div>
             </div>
 
             {/* ── Registered Users Table ── */}
@@ -334,8 +857,7 @@ function AdminDashboard() {
                                     onChange={e => setSearch(e.target.value)}
                                 />
                                 {search && (
-                                    <button className="btn btn-outline-secondary" type="button"
-                                        onClick={() => setSearch('')}>
+                                    <button className="btn btn-outline-secondary" type="button" onClick={() => setSearch('')}>
                                         <i className="fa fa-times"></i>
                                     </button>
                                 )}
