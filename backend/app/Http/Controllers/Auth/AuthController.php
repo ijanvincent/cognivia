@@ -26,7 +26,13 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $result = $this->authService->register($request->validated());
+        $platform = in_array($request->header('X-Platform'), ['web', 'mobile'], true)
+            ? $request->header('X-Platform')
+            : 'web';
+
+        $result = $this->authService->register(
+            array_merge($request->validated(), ['platform' => $platform])
+        );
 
         return response()->json([
             'message' => 'Registration successful.',
