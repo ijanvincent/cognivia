@@ -99,19 +99,86 @@
 }
 
 
-.successAlert {
+/* ── Success takeover state ── */
+.successState {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  background: var(--success-bg);
-  border: 1px solid rgba(52, 211, 153, 0.2);
-  border-left: 3px solid var(--success);
-  color: var(--success);
-  padding: 12px 14px;
-  border-radius: 10px;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 0 32px;
+  text-align: center;
+  animation: fadeUp 0.4s var(--ease) both;
+}
+
+.checkIcon {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.checkCircle {
+  stroke: var(--success);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: drawCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards;
+}
+
+.checkMark {
+  stroke: var(--success);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: drawCheck 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.75s forwards;
+}
+
+@keyframes drawCircle {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck {
+  to { stroke-dashoffset: 0; }
+}
+
+.successText { display: flex; flex-direction: column; gap: 6px; }
+
+.successTitle {
+  font-family: var(--font-d);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+
+.successSub {
   font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 20px;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.successProgress {
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.successProgressFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  border-radius: 2px;
+  animation: fillProgress 1.8s linear forwards;
+}
+
+@keyframes fillProgress {
+  to { width: 100%; }
 }
 
 .errorAlert {
@@ -311,6 +378,8 @@
   justify-content: center;
   gap: 8px;
   margin-top: 4px;
+  position: relative;
+  overflow: hidden;
 }
 
 .submitBtn:hover:not(:disabled) {
@@ -320,18 +389,53 @@
 }
 
 .submitBtn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
+/* Shimmer sweep across the button while loading */
+.submitBtnLoading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { left: -75%; }
+  100% { left: 135%; }
+}
+
+/* Success pulse */
+.submitBtnSuccess {
+  opacity: 1 !important;
+  animation: successPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes successPop {
+  from { transform: scale(0.97); }
+  to   { transform: scale(1); }
+}
+
+/* Conic-gradient arc spinner — Google / Apple style */
 .spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(7, 8, 15, 0.3);
-  border-top: 2px solid #07080f;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  background: conic-gradient(from 0deg, rgba(7, 8, 15, 0) 0%, #07080f 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff 0);
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }

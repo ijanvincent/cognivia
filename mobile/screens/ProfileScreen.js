@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '../ThemeContext';
@@ -28,24 +28,25 @@ const ProfileScreen = () => {
     });
     const userInitial = (userData.name || 'U').charAt(0).toUpperCase();
 
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const userStr = await SecureStore.getItemAsync('user');
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    setUserData({
-                        name:  user.username || user.name || 'User',
-                        email: user.email || '',
-                    });
-                    if (user.avatar) setProfileImage(user.avatar);
-                }
-            } catch (error) {
-                console.error('Error loading user:', error);
+    const loadUser = React.useCallback(async () => {
+        try {
+            const userStr = await SecureStore.getItemAsync('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                setUserData({
+                    name:  user.username || user.name || 'User',
+                    email: user.email || '',
+                });
+                setProfileImage(user.avatar || null);
             }
-        };
-        loadUser();
+        } catch (error) {
+            console.error('Error loading user:', error);
+        }
     }, []);
+
+    useEffect(() => { loadUser(); }, [loadUser]);
+
+    useFocusEffect(loadUser);
 
     const handleEditProfile = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

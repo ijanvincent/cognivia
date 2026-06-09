@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView,
     TextInput, TouchableOpacity, Dimensions,
-    Alert, Share, ActivityIndicator, StatusBar
+    Alert, Share, ActivityIndicator, StatusBar, Image
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -65,23 +65,28 @@ const DashboardScreen = ({ navigation }) => {
     const { colors, theme }              = useTheme();
     const [searchText, setSearchText]    = React.useState('');
     const [userName, setUserName]        = useState('User');
+    const [userAvatar, setUserAvatar]    = useState(null);
 
     const isDark = theme === 'dark';
 
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const userStr = await SecureStore.getItemAsync('user');
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    setUserName(user.username || user.name || 'User');
-                }
-            } catch (e) {
-                console.error('Error loading user:', e);
+    const loadUser = async () => {
+        try {
+            const userStr = await SecureStore.getItemAsync('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                setUserName(user.username || user.name || 'User');
+                setUserAvatar(user.avatar || null);
             }
-        };
-        loadUser();
-    }, []);
+        } catch (e) {
+            console.error('Error loading user:', e);
+        }
+    };
+
+    useEffect(() => { loadUser(); }, []);
+
+    useFocusEffect(
+        React.useCallback(() => { loadUser(); }, [])
+    );
 
     useFocusEffect(
         React.useCallback(() => {
@@ -90,8 +95,7 @@ const DashboardScreen = ({ navigation }) => {
     );
 
     useEffect(() => {
-        let channel = null;
-        let userId  = null;
+        let userId = null;
 
         const setupEcho = async () => {
             try {
@@ -102,7 +106,17 @@ const DashboardScreen = ({ navigation }) => {
                 if (!userId) return;
                 const echo = await getEcho();
                 if (!echo) return;
-                channel = echo.private(`user.${userId}`)
+                echo.private(`user.${userId}`)
+                    .listen('.profile.updated', async (event) => {
+                        if (event.source_platform !== 'mobile') {
+                            const stored = await SecureStore.getItemAsync('user');
+                            const current = stored ? JSON.parse(stored) : {};
+                            const merged  = { ...current, username: event.username, avatar: event.avatar };
+                            await SecureStore.setItemAsync('user', JSON.stringify(merged));
+                            setUserName(event.username);
+                            setUserAvatar(event.avatar || null);
+                        }
+                    })
                     .listen('.force.logout', async (e) => {
                         if (e.platform === 'mobile') {
                             await SecureStore.deleteItemAsync('token');
@@ -293,7 +307,15 @@ const DashboardScreen = ({ navigation }) => {
                         onPress={() => navigation.navigate('Profile')}
                         activeOpacity={0.8}
                     >
-                        <Text style={[styles.avatarInitial, { color: colors.text }]}>{userInitial}</Text>
+                        {userAvatar ? (
+                            <Image
+                                source={{ uri: userAvatar }}
+                                style={styles.avatarImg}
+                                onError={() => setUserAvatar(null)}
+                            />
+                        ) : (
+                            <Text style={[styles.avatarInitial, { color: colors.text }]}>{userInitial}</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
 
@@ -403,7 +425,8 @@ const styles = StyleSheet.create({
     headerCopy:     { flex: 1, paddingRight: 16 },
     greetingLabel:  { fontSize: 13, fontWeight: '600', letterSpacing: 0.2, marginBottom: 3 },
     greetingName:   { fontSize: 28, fontWeight: '800' },
-    avatarBtn:      { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    avatarBtn:      { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+    avatarImg:      { width: 44, height: 44, borderRadius: 22 },
     avatarInitial:  { fontSize: 17, fontWeight: '800' },
 
     // overview
