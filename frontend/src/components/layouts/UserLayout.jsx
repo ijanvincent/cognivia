@@ -8,7 +8,7 @@ import { Outlet } from 'react-router-dom';
  */
 function UserLayout() {
   return (
-    <div style={{ minHeight: '100vh', background: '#07080f' }}>
+    <div style={{ minHeight: '100vh', background: '#07080f', overflowX: 'hidden' }}>
       <Outlet />
     </div>
   );
