@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
+use App\Services\JwtService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -56,11 +57,19 @@ class AdminAuthService
         Log::info('Admin login successful', ['ip' => request()->ip()]);
         Cache::forget($key);
         $admin->tokens()->delete();
-        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        $expiresAt = now()->addHours(8);
+        $sanctumToken = $admin->createToken('admin_token', ['*'], $expiresAt);
+        $jwt = app(JwtService::class)->sign(
+            tokenId: $sanctumToken->accessToken->id,
+            userId: $admin->id,
+            platform: null,
+            expiresAt: $expiresAt,
+        );
 
         return [
             'user' => $admin,
-            'token' => $token,
+            'token' => $jwt,
         ];
     }
 
