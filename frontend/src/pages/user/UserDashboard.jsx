@@ -24,6 +24,13 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
 const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 const APPROVAL_TTL_SECONDS = 60;
 
+function resolveAvatarUrl(avatar) {
+  if (!avatar) return null;
+  if (avatar.startsWith('blob:') || avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
+  const base = 'http://localhost:3000';
+  return avatar.startsWith('/') ? `${base}${avatar}` : `${base}/storage/${avatar}`;
+}
+
 const IconUser = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="8" r="4"/>
@@ -70,10 +77,20 @@ function getStoredUser() {
   } catch { return {}; }
 }
 
+function persistUser(updatedUser) {
+  const serialized = JSON.stringify(updatedUser);
+  if (localStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    try { localStorage.setItem(STORAGE_KEYS.USER_DATA, serialized); } catch {}
+  } else if (sessionStorage.getItem(STORAGE_KEYS.USER_TOKEN)) {
+    try { sessionStorage.setItem(STORAGE_KEYS.USER_DATA, serialized); } catch {}
+  }
+}
+
 function UserDashboard() {
   const [mounted, setMounted]           = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser]                 = useState(() => getStoredUser());
+  const [avatarError, setAvatarError]   = useState(false);
   const [incomingRequest, setIncomingRequest] = useState(null);
   const [approvalBusy, setApprovalBusy]       = useState(false);
   const [approvalError, setApprovalError]     = useState('');
@@ -89,7 +106,14 @@ function UserDashboard() {
   }, []);
 
   useEffect(() => {
-    const handleUserUpdated = (e) => setUser(e.detail || getStoredUser());
+    setAvatarError(false);
+  }, [user?.avatar]);
+
+  useEffect(() => {
+    const handleUserUpdated = (e) => {
+      setUser(e.detail || getStoredUser());
+      setAvatarError(false);
+    };
     window.addEventListener('cognivia:userUpdated', handleUserUpdated);
     return () => window.removeEventListener('cognivia:userUpdated', handleUserUpdated);
   }, []);
@@ -125,6 +149,15 @@ function UserDashboard() {
     if (!echo) return;
 
     echo.private(`user.${userId}`)
+      .listen('.profile.updated', (event) => {
+        if (event.source_platform !== 'web') {
+          const current = getStoredUser();
+          const merged  = { ...current, username: event.username, avatar: event.avatar };
+          persistUser(merged);
+          setUser(merged);
+          setAvatarError(false);
+        }
+      })
       .listen('.force.logout', (e) => {
         if (e.platform === 'web') {
           handleLogout();
@@ -266,15 +299,12 @@ function UserDashboard() {
             onClick={() => setDropdownOpen(prev => !prev)}
           >
             <div className={styles.avatar}>
-              {user.avatar ? (
+              {user.avatar && !avatarError ? (
                 <img
-                  src={user.avatar}
+                  src={resolveAvatarUrl(user.avatar)}
                   alt={userName}
                   className={styles.avatarImg}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement.textContent = userInitial;
-                  }}
+                  onError={() => setAvatarError(true)}
                 />
               ) : userInitial}
             </div>

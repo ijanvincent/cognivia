@@ -184,7 +184,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request): JsonResponse
     {
         $request->validate([
-            'username' => ['sometimes', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_]+$/'],
+            'username' => ['sometimes', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_ ]+$/'],
             'avatar'   => ['sometimes', 'file', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
@@ -223,6 +223,13 @@ class AuthController extends Controller
         }
 
         $user = $this->authService->updateProfile($request->user(), $data);
+
+        broadcast(new \App\Events\ProfileUpdated(
+            userId:         $user->id,
+            username:       $user->username,
+            avatar:         $user->avatar,
+            sourcePlatform: $request->header('X-Platform', 'web'),
+        ));
 
         return response()->json([
             'message' => 'Profile updated successfully.',
