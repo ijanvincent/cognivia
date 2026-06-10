@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { STORAGE_KEYS } from '../../services/api.js';
+import api, { STORAGE_KEYS, resolveAvatarUrl } from '../../services/api.js';
 import styles from './styles/editprofile.module.css';
 
 /*
@@ -46,16 +46,6 @@ const IconCheck = () => (
     <polyline points="20 6 9 17 4 12"/>
   </svg>
 );
-
-function resolveAvatarUrl(avatar) {
-  if (!avatar) return null;
-  if (avatar.startsWith('blob:')) return avatar;
-  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
-  const base = 'http://localhost:3000';
-  if (avatar.startsWith('/storage/')) return `${base}${avatar}`;
-  if (avatar.startsWith('/'))        return `${base}${avatar}`;
-  return `${base}/storage/${avatar}`;
-}
 
 /*
  * NAMESPACE FIX — getStoredUser reads from namespaced user keys only.
@@ -212,11 +202,10 @@ function EditProfile() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
+      // Persist the raw avatar path as returned by the API. Resolving to an
+      // absolute URL happens at render time only — a persisted absolute URL
+      // goes stale when the app is served from a different host (ngrok/LAN).
       const updatedUser = response.data.user;
-
-      if (updatedUser.avatar) {
-        updatedUser.avatar = resolveAvatarUrl(updatedUser.avatar);
-      }
 
       // Targeted write — only touches the storage slot that owns user_token.
       persistUser(updatedUser);
