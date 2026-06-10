@@ -10,6 +10,8 @@ import AdminDashboard from './../pages/admin/Dashboard.jsx';
 import AdminUsers from './../pages/admin/Users.jsx';
 import AdminUsersAnalytics from './../pages/admin/UsersAnalytics.jsx';
 import AdminLogin from './../pages/admin/Login.jsx';
+import AdminDecks from './../pages/admin/decks.js';
+import AdminLoginApprovals from './../pages/admin/login-approvals.js';
 
 import UserDashboard from '../pages/user/UserDashboard.jsx';
 import UserLogin from './../pages/user/Login.jsx';
@@ -124,9 +126,11 @@ const AppRoute = [
     children: [
       { path: 'admin',                 element: <Navigate to='/admin/login' replace /> },
       { path: 'admin/login',           element: <AdminLogin /> },
-      { path: 'admin/dashboard',       element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute> },
-      { path: 'admin/users',           element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute> },
-      { path: 'admin/users/analytics', element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute> },
+      { path: 'admin/dashboard',        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute> },
+      { path: 'admin/users',            element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute> },
+      { path: 'admin/users/analytics',  element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute> },
+      { path: 'admin/decks',            element: <AdminPrivateRoute><AdminDecks /></AdminPrivateRoute> },
+      { path: 'admin/login-approvals',  element: <AdminPrivateRoute><AdminLoginApprovals /></AdminPrivateRoute> },
       { path: 'email/*', element: <Outlet />, children: [
         { path: 'inbox',   element: <EmailInbox /> },
         { path: 'compose', element: <EmailCompose /> },

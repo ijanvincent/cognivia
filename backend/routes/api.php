@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\AuthController;
@@ -101,4 +102,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore']);
     Route::delete('/users/{id}/force', [UserController::class, 'forceDelete']);
+
+    Route::get('/content/overview',  [ContentController::class, 'overview']);
+    Route::get('/decks',             [ContentController::class, 'decks']);
+    Route::get('/login-approvals',   [ContentController::class, 'loginApprovals']);
 });
