@@ -59,6 +59,26 @@ function resolveApiBaseURL() {
 
 export const API_BASE_URL = resolveApiBaseURL();
 
+// ---------------------------------------------------------------------------
+// Avatar/asset URL resolution.
+// What:  Single shared resolver for user-uploaded asset paths (/storage/...).
+//        Replaces three divergent per-page implementations, two of which
+//        hardcoded http://localhost:3000.
+// Why:   A hardcoded localhost base breaks every avatar when the app is
+//        opened through the ngrok tunnel or a LAN IP (e.g. phone preview) —
+//        and EditProfile persisted that broken absolute URL into storage.
+//        Deriving from API_BASE_URL keeps assets on the same host that
+//        resolveApiBaseURL() already picked for API calls. Store raw paths;
+//        resolve only at render time.
+// ---------------------------------------------------------------------------
+export const ASSET_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '');
+
+export function resolveAvatarUrl(avatar) {
+  if (!avatar) return null;
+  if (avatar.startsWith('blob:') || avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
+  return avatar.startsWith('/') ? `${ASSET_BASE_URL}${avatar}` : `${ASSET_BASE_URL}/storage/${avatar}`;
+}
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
