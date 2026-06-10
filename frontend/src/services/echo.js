@@ -1,6 +1,6 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import { STORAGE_KEYS } from './api.js';
+import { STORAGE_KEYS, API_BASE_URL } from './api.js';
 // CHANGE 1 — Added: import STORAGE_KEYS from api.js
 // What:  Imports the centralised storage-key constants.
 // Why:   getEcho() was reading localStorage['token'] / sessionStorage['token']
@@ -66,7 +66,7 @@ const _buildEchoInstance = (token) => {
     cluster:           process.env.REACT_APP_PUSHER_APP_CLUSTER,
     wsPath:            '/ws',
     httpPath:          '/ws',
-    authEndpoint:      `${process.env.REACT_APP_API_URL}/broadcasting/auth`,
+    authEndpoint:      `${API_BASE_URL}/broadcasting/auth`,
     auth: {
       headers: {
         Authorization:                `Bearer ${token}`,
