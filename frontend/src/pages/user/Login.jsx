@@ -120,12 +120,6 @@ function UserLogin() {
       const storage = rememberMe ? localStorage : sessionStorage;
       const user = { ...approvedUser };
 
-      if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
-          user.avatar.startsWith('/') ? '' : '/storage/'
-        }${user.avatar}`;
-      }
-
       storage.setItem(STORAGE_KEYS.USER_TOKEN, token);
       storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
 
@@ -300,12 +294,6 @@ function UserLogin() {
 
       const storage = formData.rememberMe ? localStorage : sessionStorage;
       const user    = response.data.user;
-
-      if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
-          user.avatar.startsWith('/') ? '' : '/storage/'
-        }${user.avatar}`;
-      }
 
       storage.setItem(STORAGE_KEYS.USER_TOKEN, response.data.token);
       storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));
