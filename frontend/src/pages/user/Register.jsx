@@ -214,6 +214,28 @@ function UserRegister() {
         </svg>
       </div>
 
+      {/*
+       * MOBILE PARITY — static wave background (≤768px only).
+       * Mirrors mobile/RegisterScreen.js <WaveBackground/> exactly: same
+       * viewBox (400×800), same 8 pink / 8 cyan / 5 purple curve sets, same
+       * stroke colors and opacities. Hidden on desktop via .bgCanvasMobile;
+       * the animated desktop canvas (.bgCanvas) is hidden at ≤768px instead.
+       * Identical to the pattern already shipped in Login.jsx.
+       */}
+      <div className={styles.bgCanvasMobile} aria-hidden="true">
+        <svg style={{ width: '100%', height: '100%' }} viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          {[...Array(8)].map((_, i) => (
+            <path key={`m-pink-${i}`} d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`} fill="none" stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`} strokeWidth="1.2" />
+          ))}
+          {[...Array(8)].map((_, i) => (
+            <path key={`m-cyan-${i}`} d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`} fill="none" stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`} strokeWidth="1.2" />
+          ))}
+          {[...Array(5)].map((_, i) => (
+            <path key={`m-purple-${i}`} d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`} fill="none" stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`} strokeWidth="1" />
+          ))}
+        </svg>
+      </div>
+
       <div className={styles.topBar}>
         <Link to="/" className={styles.topBarLogo}>
           <span className={styles.topBarBrand}>CogniVia</span>
@@ -269,7 +291,15 @@ function UserRegister() {
               )}
 
               {/* PROFILE NAME */}
-              <div className={styles.formGroup}>
+              {/*
+               * MOBILE PARITY — formGroupUsername/Email/Password/ConfirmPassword
+               * modifier classes added to all four field groups. The ≤768px
+               * styles hide the inline SVG icons and re-draw them as
+               * .inputContainer::before data-URIs (same approach as Login).
+               * Stable modifier classes are DOM-position-immune — the pattern
+               * login.module.css already documents as correct (CSS-ICON-ADD-1).
+               */}
+              <div className={`${styles.formGroup} ${styles.formGroupUsername}`}>
                 <label htmlFor="username" className={styles.label}>Profile Name</label>
                 <div className={`${styles.inputContainer} ${shakingFields.username ? styles.inputShake : ''}`}>
                   {/*
@@ -319,7 +349,7 @@ function UserRegister() {
               </div>
 
               {/* EMAIL */}
-              <div className={styles.formGroup}>
+              <div className={`${styles.formGroup} ${styles.formGroupEmail}`}>
                 <label htmlFor="email" className={styles.label}>Email address</label>
                 <div className={`${styles.inputContainer} ${shakingFields.email ? styles.inputShake : ''}`}>
                   {/*
@@ -369,7 +399,7 @@ function UserRegister() {
 
                 {/* PASSWORD */}
                 <div className={styles.strengthMeterAnchor}>
-                  <div className={styles.formGroup}>
+                  <div className={`${styles.formGroup} ${styles.formGroupPassword}`}>
                     <label htmlFor="password" className={styles.label}>Password</label>
                     <div className={`${styles.inputContainer} ${shakingFields.password ? styles.inputShake : ''}`}>
                       {/*
@@ -457,9 +487,16 @@ function UserRegister() {
                 </div>
 
                 {/* CONFIRM PASSWORD */}
-                <div className={styles.formGroup}>
+                <div className={`${styles.formGroup} ${styles.formGroupConfirmPassword}`}>
+                  {/*
+                   * MOBILE PARITY — label text swap. The mobile app labels this
+                   * field "Confirm" (RegisterScreen.js) because the full text
+                   * does not fit a half-width floating label. Desktop keeps
+                   * "Confirm password"; ≤768px shows "Confirm" via CSS.
+                   */}
                   <label htmlFor="password_confirmation" className={styles.label}>
-                    Confirm password
+                    <span className={styles.labelFull}>Confirm password</span>
+                    <span className={styles.labelShort}>Confirm</span>
                   </label>
                   <div className={`${styles.inputContainer} ${shakingFields.password_confirmation ? styles.inputShake : ''}`}>
                     {/*
