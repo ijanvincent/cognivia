@@ -231,7 +231,7 @@ function AdminLogin() {
                     value={email}
                     onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(p => ({ ...p, email: null })); }}
                     className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
-                    placeholder="Admin Email"
+                    placeholder="admin@example.com"
                     disabled={loading || locked}
                     autoComplete="email"
                     autoFocus
@@ -258,7 +258,7 @@ function AdminLogin() {
                     value={password}
                     onChange={e => { setPassword(e.target.value); if (errors.password) setErrors(p => ({ ...p, password: null })); }}
                     className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
-                    placeholder="Admin Password"
+                    placeholder="Password"
                     disabled={loading || locked}
                     autoComplete="current-password"
                     aria-invalid={!!errors.password}
