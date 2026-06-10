@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api, { STORAGE_KEYS } from '../../services/api.js';
+import api, { STORAGE_KEYS, API_BASE_URL } from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
-import styles from './login.module.css';
+import styles from './styles/login.module.css';
 
 import eyeIcon   from './../../assets/eye.png';
 import hideIcon  from './../../assets/hide.png';
@@ -121,7 +121,7 @@ function UserLogin() {
       const user = { ...approvedUser };
 
       if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
+        user.avatar = `${API_BASE_URL.replace('/api', '')}${
           user.avatar.startsWith('/') ? '' : '/storage/'
         }${user.avatar}`;
       }
@@ -302,7 +302,7 @@ function UserLogin() {
       const user    = response.data.user;
 
       if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
+        user.avatar = `${API_BASE_URL.replace('/api', '')}${
           user.avatar.startsWith('/') ? '' : '/storage/'
         }${user.avatar}`;
       }
@@ -317,16 +317,7 @@ function UserLogin() {
       const message = error.response?.data?.message;
 
       if (status === 401) {
-        switch (code) {
-          case 'EMAIL_NOT_FOUND':
-            setErrors({ email: message || 'No account found with this email address.' });
-            break;
-          case 'WRONG_PASSWORD':
-            setErrors({ password: message || 'The password you entered is incorrect.' });
-            break;
-          default:
-            setErrors({ email: 'Please check your email address.', password: 'Please check your password.' });
-        }
+        setErrors({ general: message || 'Invalid email or password.' });
       } else if (status === 422) {
         if (code === 'PLATFORM_CONFLICT') {
           // What: store conflict data and subscribe to approval channel.

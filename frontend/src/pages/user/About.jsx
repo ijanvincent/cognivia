@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from './about.module.css';
+import styles from './styles/about.module.css';
 
 
 function useCounter(target, duration = 1800, start = false) {

@@ -693,16 +693,7 @@ const LoginScreen = () => {
 
             } else if (status === 401) {
                 const message = error.response?.data?.message;
-                switch (code) {
-                    case 'EMAIL_NOT_FOUND':
-                        setErrors({ email: message || 'No account found with this email.' });
-                        break;
-                    case 'WRONG_PASSWORD':
-                        setErrors({ password: message || 'The password you entered is incorrect.' });
-                        break;
-                    default:
-                        setErrors({ general: 'Invalid email or password.' });
-                }
+                setErrors({ general: message || 'Invalid email or password.' });
             } else if (status === 429) {
                 const retryAfter = error.response?.data?.retry_after;
                 setErrors({

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from './contact.module.css';
+import styles from './styles/contact.module.css';
 
 
 function useInView(threshold = 0.12) {

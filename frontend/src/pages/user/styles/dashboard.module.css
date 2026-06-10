@@ -39,6 +39,8 @@
   flex-wrap: wrap;
   gap: 16px;
   animation: fadeDown 0.45s var(--ease) both;
+  position: relative;
+  z-index: 10;
 }
 
 @keyframes fadeDown {

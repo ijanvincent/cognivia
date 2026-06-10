@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from './howitworks.module.css';
+import styles from './styles/howitworks.module.css';
 
 
 function useInView(threshold = 0.12) {
