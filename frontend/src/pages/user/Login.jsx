@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api, { STORAGE_KEYS, API_BASE_URL } from '../../services/api.js';
+import api, { STORAGE_KEYS } from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
 import styles from './styles/login.module.css';
 
@@ -119,12 +119,6 @@ function UserLogin() {
       const { rememberMe } = formDataRef.current;
       const storage = rememberMe ? localStorage : sessionStorage;
       const user = { ...approvedUser };
-
-      if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${API_BASE_URL.replace('/api', '')}${
-          user.avatar.startsWith('/') ? '' : '/storage/'
-        }${user.avatar}`;
-      }
 
       storage.setItem(STORAGE_KEYS.USER_TOKEN, token);
       storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
@@ -300,12 +294,6 @@ function UserLogin() {
 
       const storage = formData.rememberMe ? localStorage : sessionStorage;
       const user    = response.data.user;
-
-      if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${API_BASE_URL.replace('/api', '')}${
-          user.avatar.startsWith('/') ? '' : '/storage/'
-        }${user.avatar}`;
-      }
 
       storage.setItem(STORAGE_KEYS.USER_TOKEN, response.data.token);
       storage.setItem(STORAGE_KEYS.USER_DATA,  JSON.stringify(user));

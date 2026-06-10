@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles/dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
-import api, { STORAGE_KEYS } from '../../services/api.js';
+import api, { STORAGE_KEYS, resolveAvatarUrl } from '../../services/api.js';
 import { getEcho, disconnectEcho } from '../../services/echo.js';
 
 /*
@@ -23,13 +23,6 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
 
 const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
 const APPROVAL_TTL_SECONDS = 60;
-
-function resolveAvatarUrl(avatar) {
-  if (!avatar) return null;
-  if (avatar.startsWith('blob:') || avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
-  const base = 'http://localhost:3000';
-  return avatar.startsWith('/') ? `${base}${avatar}` : `${base}/storage/${avatar}`;
-}
 
 const IconUser = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
