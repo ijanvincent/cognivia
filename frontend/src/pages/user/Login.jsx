@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api, { STORAGE_KEYS } from '../../services/api.js';
+import api, { STORAGE_KEYS, API_BASE_URL } from '../../services/api.js';
 import { getEchoWithToken, disconnectEcho } from '../../services/echo.js';
 import styles from './styles/login.module.css';
 
@@ -121,7 +121,7 @@ function UserLogin() {
       const user = { ...approvedUser };
 
       if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
+        user.avatar = `${API_BASE_URL.replace('/api', '')}${
           user.avatar.startsWith('/') ? '' : '/storage/'
         }${user.avatar}`;
       }
@@ -302,7 +302,7 @@ function UserLogin() {
       const user    = response.data.user;
 
       if (user.avatar && ! user.avatar.startsWith('http')) {
-        user.avatar = `${process.env.REACT_APP_API_URL.replace('/api', '')}${
+        user.avatar = `${API_BASE_URL.replace('/api', '')}${
           user.avatar.startsWith('/') ? '' : '/storage/'
         }${user.avatar}`;
       }
