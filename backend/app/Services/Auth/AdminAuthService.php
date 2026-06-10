@@ -4,8 +4,10 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Repositories\Auth\AuthRepository;
-use Illuminate\Support\Facades\Hash;
+use App\Services\JwtService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AdminAuthService
@@ -16,16 +18,13 @@ class AdminAuthService
 
     public function login(array $data): array
     {
-        \Illuminate\Support\Facades\Log::debug('Admin login attempt', [
-            'email' => $data['email'],
-            'ip'    => request()->ip()
-        ]);
+        Log::debug('Admin login attempt', ['ip' => request()->ip()]);
 
-        $key = 'admin_attempts_' . request()->ip();
+        $key = 'admin_attempts_'.request()->ip();
         $attempts = Cache::get($key, 0);
 
         if ($attempts >= 3) {
-            \Illuminate\Support\Facades\Log::warning('Admin login blocked: too many attempts', ['email' => $data['email']]);
+            Log::warning('Admin login blocked: too many attempts', ['ip' => request()->ip()]);
             throw ValidationException::withMessages([
                 'email' => ['Too many failed attempts. Please try again in 5 minutes.'],
             ]);
@@ -33,8 +32,8 @@ class AdminAuthService
 
         $admin = $this->authRepository->findAdminByEmail($data['email']);
 
-        if (!$admin) {
-            \Illuminate\Support\Facades\Log::warning('Admin login failed: user not found', ['email' => $data['email']]);
+        if (! $admin) {
+            Log::warning('Admin login failed: invalid credentials', ['ip' => request()->ip()]);
             Cache::put($key, $attempts + 1, now()->addMinutes(5));
             $remaining = 3 - ($attempts + 1);
             throw ValidationException::withMessages([
@@ -44,8 +43,8 @@ class AdminAuthService
             ]);
         }
 
-        if (!Hash::check($data['password'], $admin->password)) {
-            \Illuminate\Support\Facades\Log::warning('Admin login failed: password mismatch', ['email' => $data['email']]);
+        if (! Hash::check($data['password'], $admin->password)) {
+            Log::warning('Admin login failed: invalid credentials', ['ip' => request()->ip()]);
             Cache::put($key, $attempts + 1, now()->addMinutes(5));
             $remaining = 3 - ($attempts + 1);
             throw ValidationException::withMessages([
@@ -55,14 +54,22 @@ class AdminAuthService
             ]);
         }
 
-        \Illuminate\Support\Facades\Log::info('Admin login successful', ['email' => $data['email']]);
+        Log::info('Admin login successful', ['ip' => request()->ip()]);
         Cache::forget($key);
         $admin->tokens()->delete();
-        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        $expiresAt = now()->addHours(8);
+        $sanctumToken = $admin->createToken('admin_token', ['*'], $expiresAt);
+        $jwt = app(JwtService::class)->sign(
+            tokenId: $sanctumToken->accessToken->id,
+            userId: $admin->id,
+            platform: null,
+            expiresAt: $expiresAt,
+        );
 
         return [
-            'user'  => $admin,
-            'token' => $token,
+            'user' => $admin,
+            'token' => $jwt,
         ];
     }
 

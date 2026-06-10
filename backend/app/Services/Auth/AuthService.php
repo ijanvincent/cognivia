@@ -43,7 +43,12 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = $user->createToken('user_token')->plainTextToken;
+        $token = $this->authRepository->createPlatformToken(
+            $user,
+            'user_token',
+            $data['platform'],
+            now()->addHours(24),
+        );
 
         return [
             'user' => $user,

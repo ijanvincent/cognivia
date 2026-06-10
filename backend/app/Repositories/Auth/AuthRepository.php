@@ -3,6 +3,7 @@
 namespace App\Repositories\Auth;
 
 use App\Models\User;
+use App\Services\JwtService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -25,19 +26,22 @@ class AuthRepository
 
     public function createUser(array $data): User
     {
-        return User::create([
+        $user = User::create([
             'username' => $data['username'],
-            'email'    => $data['email'],
+            'email' => $data['email'],
             'password' => $data['password'],
-            'role'     => 'user',
         ]);
+        $user->role = 'user';
+        $user->save();
+
+        return $user;
     }
 
     public function findAdminByEmail(string $email): ?User
     {
         return User::where('email', $email)
-                   ->where('role', 'admin')
-                   ->first();
+            ->where('role', 'admin')
+            ->first();
     }
 
     public function findResetToken(string $email): ?object
@@ -52,7 +56,7 @@ class AuthRepository
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $email],
             [
-                'token'      => Hash::make($token),
+                'token' => Hash::make($token),
                 'created_at' => now(),
             ]
         );
@@ -69,14 +73,15 @@ class AuthRepository
     {
         $user = $this->findById($id);
         $user->update($data);
+
         return $user->fresh();
     }
 
     public function revokeTokensByPlatform(User $user, string $platform): void
     {
         $user->tokens()
-             ->where('platform', $platform)
-             ->delete();
+            ->where('platform', $platform)
+            ->delete();
     }
 
     public function createPlatformToken(
@@ -85,8 +90,16 @@ class AuthRepository
         string $platform,
         ?\DateTimeInterface $expiresAt = null
     ): string {
-        $token = $user->createToken($tokenName, ['*'], $expiresAt);
-        $token->accessToken->forceFill(['platform' => $platform])->save();
-        return $token->plainTextToken;
+        $expiresAt = $expiresAt ?? now()->addHours(24);
+
+        $sanctumToken = $user->createToken($tokenName, ['*'], $expiresAt);
+        $sanctumToken->accessToken->forceFill(['platform' => $platform])->save();
+
+        return app(JwtService::class)->sign(
+            tokenId: $sanctumToken->accessToken->id,
+            userId: $user->id,
+            platform: $platform,
+            expiresAt: $expiresAt,
+        );
     }
 }

@@ -24,8 +24,43 @@ function currentRole() {
   return window.location.pathname.startsWith('/admin') ? 'admin' : 'user';
 }
 
+// ---------------------------------------------------------------------------
+// API base URL resolution.
+// What:  Falls back to the page's own host when the configured URL points at
+//        localhost but the page itself was NOT served from localhost.
+// Why:   REACT_APP_API_URL=http://localhost:3000/api only works when the
+//        browser runs on the dev machine. When the app is opened through the
+//        ngrok tunnel (or a LAN IP), "localhost" is the visitor's machine —
+//        the request never reaches the backend and every sign-in fails.
+//        nginx already exposes the API on the same host: same-origin /api
+//        through the tunnel, port 3000 when the dev server (:3001) is hit
+//        directly.
+// ---------------------------------------------------------------------------
+function resolveApiBaseURL() {
+  const configured = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+  let configuredHost;
+  try {
+    configuredHost = new URL(configured).hostname;
+  } catch {
+    return configured; // relative URL — already same-origin
+  }
+
+  const { protocol, hostname, port, origin } = window.location;
+  const isLocalTarget = configuredHost === 'localhost' || configuredHost === '127.0.0.1';
+  const isLocalPage   = hostname === 'localhost' || hostname === '127.0.0.1';
+
+  if (isLocalTarget && !isLocalPage) {
+    return port === '3001' ? `${protocol}//${hostname}:3000/api` : `${origin}/api`;
+  }
+
+  return configured;
+}
+
+export const API_BASE_URL = resolveApiBaseURL();
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Accept':                     'application/json',
     'Content-Type':               'application/json',

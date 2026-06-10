@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
-import styles from './login.module.css';
+import styles from './styles/login.module.css';
 /*
  * CHANGE B — Removed: import lockIcon from './../../assets/lock.png'
  * (carried forward from previous session — rationale unchanged)

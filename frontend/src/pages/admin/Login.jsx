@@ -10,7 +10,7 @@ import { unwrapResourceData } from './../../services/storage.js';
 
 import eyeIcon  from './../../assets/eye.png';
 import hideIcon from './../../assets/hide.png';
-import styles from './login.module.css';
+import styles from './styles/login.module.css';
 
 function AdminLogin() {
   const context = useContext(AppSettings);

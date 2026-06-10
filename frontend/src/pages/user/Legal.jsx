@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import styles from './legal.module.css';
+import styles from './styles/legal.module.css';
 
 
 function useInView(threshold = 0.08) {
