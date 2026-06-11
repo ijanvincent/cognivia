@@ -40,6 +40,9 @@ const PUSHER_HOST    = process.env.EXPO_PUBLIC_PUSHER_HOST        || '';
 const PUSHER_PORT    = parseInt(process.env.EXPO_PUBLIC_PUSHER_PORT || '443', 10);
 const PUSHER_CLUSTER = process.env.EXPO_PUBLIC_PUSHER_APP_CLUSTER || 'mt1';
 const API_URL        = process.env.EXPO_PUBLIC_API_URL            || '';
+// 'https' (default) forces wss — required by ngrok. 'http' allows plain ws
+// for direct/USB connections to local nginx, which has no TLS.
+const PUSHER_USE_TLS = (process.env.EXPO_PUBLIC_PUSHER_SCHEME || 'https') !== 'http';
 
 let echoInstance = null;
 
@@ -92,13 +95,14 @@ const _buildEchoInstance = (token) => {
 
     const pusherClient = new Pusher(PUSHER_KEY, {
         wsHost:            PUSHER_HOST,
+        wsPort:            PUSHER_PORT,
         wssPort:           PUSHER_PORT,
         wsPath:            '/ws',
         httpPath:          '/ws',
-        forceTLS:          true,
-        encrypted:         true,
+        forceTLS:          PUSHER_USE_TLS,
+        encrypted:         PUSHER_USE_TLS,
         disableStats:      true,
-        enabledTransports: ['wss'],
+        enabledTransports: PUSHER_USE_TLS ? ['wss'] : ['ws'],
         cluster:           PUSHER_CLUSTER,
         channelAuthorization: {
             customHandler: async ({ socketId, channelName }, callback) => {

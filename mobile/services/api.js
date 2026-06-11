@@ -1,7 +1,9 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://intercity-nonbibulously-brylee.ngrok-free.dev/api';
+// Env var is the single source of truth — no hardcoded fallback, so a missing
+// var fails loudly in the log below instead of hitting a stale tunnel URL.
+const API_URL = process.env.EXPO_PUBLIC_API_URL || '';
 console.log('📡 API URL being used:', API_URL);
 
 const api = axios.create({
