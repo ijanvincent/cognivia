@@ -81,13 +81,11 @@
                 <tr>
                   <td style="vertical-align:middle;padding-right:11px;">
                     {{--
-                      embedData() over embed() — prevents Gmail phantom attachment.
-                      embed() names the MIME part after the filename, surfacing it
-                      as a visible attachment. embedData() passes raw binary with
-                      no filename → treated as a hidden inline CID part.
+                      Use a hosted URL instead of embedData() to prevent the logo
+                      from appearing as an attachment in email clients.
                     --}}
                     <img
-                      src="{{ $message->embedData(file_get_contents(public_path('gmail-logo.png')), 'image/png') }}"
+                      src="{{ config('app.url') . '/gmail-logo.png' }}"
                       alt="CogniVia"
                       width="38"
                       height="38"
