@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity,
-    Switch, Alert, Platform, Image,
-    TextInput, ActivityIndicator, ScrollView, StatusBar,
+    View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Image,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '../contexts/ThemeContext';
 import { useDecks } from '../contexts/DeckContext';
 import api from '../services/api';
+import {
+    Screen, ScreenHeader, Card, Button, TextField, Pill,
+} from '../components';
+import { spacing, radius, typography } from '../theme/theme';
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
@@ -22,13 +23,10 @@ const ProfileScreen = () => {
     const [profileImage, setProfileImage] = useState(null);
     const [inputLink, setInputLink]       = useState('');
     const [isImporting, setIsImporting]   = useState(false);
-    const [userData, setUserData]         = useState({
-        name: 'Loading...',
-        email: 'Loading...',
-    });
+    const [userData, setUserData]         = useState({ name: '', email: '' });
     const userInitial = (userData.name || 'U').charAt(0).toUpperCase();
 
-    const loadUser = React.useCallback(async () => {
+    const loadUser = useCallback(async () => {
         try {
             const userStr = await SecureStore.getItemAsync('user');
             if (userStr) {
@@ -46,12 +44,14 @@ const ProfileScreen = () => {
 
     useEffect(() => { loadUser(); }, [loadUser]);
 
-    useFocusEffect(loadUser);
+    // useFocusEffect must not receive an async callback: it would return a
+    // Promise where React Navigation expects a cleanup function.
+    useFocusEffect(useCallback(() => { loadUser(); }, [loadUser]));
 
     const handleEditProfile = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'We need camera roll permissions to change your profile picture.');
+            Alert.alert('Permission Needed', 'Photo library access is required to change your profile picture.');
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -75,24 +75,24 @@ const ProfileScreen = () => {
                     user.avatar = response.data.user.avatar;
                     await SecureStore.setItemAsync('user', JSON.stringify(user));
                 }
-                Alert.alert('Success', 'Profile picture updated!');
+                Alert.alert('Profile Updated', 'Your profile picture has been updated.');
             } catch (error) {
                 console.error('Error updating avatar:', error);
-                Alert.alert('Error', 'Could not update profile picture.');
+                Alert.alert('Update Failed', 'Could not update your profile picture. Please try again.');
             }
         }
     };
 
     const handleInputLink = async () => {
         if (!inputLink.trim()) {
-            Alert.alert('Empty Code', 'Please enter a deck code to import.');
+            Alert.alert('Code Required', 'Enter a deck code to import.');
             return;
         }
         const shareCodeMatch = inputLink.trim().match(/FC-([A-Z0-9]{8})/i);
         if (shareCodeMatch) {
             await importDeckFromCode(inputLink.trim());
         } else {
-            Alert.alert('Invalid Code', 'Please enter a valid deck code (format: FC-XXXXXXXX)');
+            Alert.alert('Invalid Code', 'Enter a valid deck code in the format FC-XXXXXXXX.');
         }
     };
 
@@ -101,12 +101,12 @@ const ProfileScreen = () => {
         try {
             const response = await api.post('/decks/import', { shareCode });
 
-            // ✅ Refresh decks in context so home screen updates instantly
+            // Refresh decks in context so the home screen updates instantly.
             await refreshDecks();
 
             Alert.alert(
-                'Success! 🎉',
-                `"${response.data.deck.title}" has been imported with ${response.data.deck.card_count} cards!`,
+                'Deck Imported',
+                `"${response.data.deck.title}" was added with ${response.data.deck.card_count} cards.`,
                 [{ text: 'OK', onPress: () => {
                     setInputLink('');
                     navigation.navigate('HomeTabs', { screen: 'Home' });
@@ -124,220 +124,204 @@ const ProfileScreen = () => {
         }
     };
 
-    const handleToggleAppTheme = () => {
-        toggleTheme();
-    };
-
     const handleAboutUs = () => navigation.navigate('About');
 
     const handleLogout = () => {
         Alert.alert(
-            'Logout',
+            'Log Out',
             'Are you sure you want to log out?',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
-                    text: 'Logout',
+                    text: 'Log Out',
+                    style: 'destructive',
                     onPress: async () => {
                         try {
                             await api.post('/auth/logout');
-                        } catch (e) { /* ignore */ } finally {
+                        } catch (e) { /* token may already be invalid */ } finally {
                             await SecureStore.deleteItemAsync('token');
                             await SecureStore.deleteItemAsync('user');
                             navigation.replace('Login');
                         }
-                    }
-                }
+                    },
+                },
             ]
         );
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <Screen>
+            <ScreenHeader eyebrow="Account" title="Profile" />
 
-            <ScrollView
-                style={styles.scroll}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-            >
-                <View style={styles.header}>
-                    <View>
-                        <Text style={[styles.headerEyebrow, { color: colors.subtext }]}>Account</Text>
-                        <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
-                    </View>
-                </View>
-
-                <LinearGradient
-                    colors={isDarkMode ? ['#171923', '#0f172a'] : ['#ffffff', '#eef6ff']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.profileCard, { borderColor: colors.border }]}
-                >
-                    <View style={styles.profileTopRow}>
-                        <View style={styles.avatarWrapper}>
-                            {profileImage ? (
-                                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                            ) : (
-                                <View style={[styles.avatarPlaceholder, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : '#e0f2fe' }]}>
-                                    <Text style={[styles.avatarInitial, { color: colors.text }]}>{userInitial}</Text>
-                                </View>
-                            )}
-                            <TouchableOpacity
-                                onPress={handleEditProfile}
-                                style={styles.editBadge}
-                                activeOpacity={0.85}
-                            >
-                                <MaterialCommunityIcons name="camera-outline" size={15} color="#07111f" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.profileCopy}>
-                            <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>{userData.name}</Text>
-                            <Text style={[styles.userEmail, { color: isDarkMode ? '#cbd5e1' : '#64748b' }]} numberOfLines={1}>{userData.email}</Text>
-                            <View style={styles.memberPill}>
-                                <MaterialCommunityIcons name="shield-account-outline" size={13} color="#38bdf8" />
-                                <Text style={styles.memberPillText}>Learner account</Text>
-                            </View>
-                        </View>
-                    </View>
-                </LinearGradient>
-
-                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <View style={styles.cardHeader}>
-                        <View style={[styles.cardIcon, { backgroundColor: 'rgba(56,189,248,0.14)' }]}>
-                            <MaterialCommunityIcons name="download-outline" size={19} color="#38bdf8" />
-                        </View>
-                        <View style={styles.cardHeaderCopy}>
-                            <Text style={[styles.cardLabel, { color: colors.text }]}>Import Deck</Text>
-                            <Text style={[styles.cardSubLabel, { color: colors.subtext }]}>Paste a shared deck code</Text>
-                        </View>
-                    </View>
-
-                    <View style={[styles.importRow, { borderColor: colors.border, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#f8fafc' }]}>
-                        <MaterialCommunityIcons name="key-variant" size={18} color={colors.subtext} />
-                        <TextInput
-                            style={[styles.linkInput, { color: colors.text }]}
-                            placeholder="FC-XXXXXXXX"
-                            placeholderTextColor={colors.subtext}
-                            value={inputLink}
-                            onChangeText={(value) => setInputLink(value.toUpperCase())}
-                            autoCapitalize="characters"
-                            autoCorrect={false}
-                            editable={!isImporting}
-                        />
-                    </View>
-
-                    <TouchableOpacity
-                        onPress={handleInputLink}
-                        style={[styles.importBtn, isImporting && styles.disabled]}
-                        disabled={isImporting}
-                        activeOpacity={0.86}
-                    >
-                        {isImporting ? (
-                            <ActivityIndicator size="small" color="#07111f" />
+            <Card>
+                <View style={styles.profileRow}>
+                    <View style={styles.avatarWrapper}>
+                        {profileImage ? (
+                            <Image source={{ uri: profileImage }} style={styles.avatar} />
                         ) : (
-                            <>
-                                <MaterialCommunityIcons name="tray-arrow-down" size={18} color="#07111f" />
-                                <Text style={styles.importBtnText}>Import Deck</Text>
-                            </>
+                            <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.primarySoft }]}>
+                                <Text style={[styles.avatarInitial, { color: colors.primary }]}>{userInitial}</Text>
+                            </View>
                         )}
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity
+                            onPress={handleEditProfile}
+                            style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.card }]}
+                            activeOpacity={0.85}
+                            accessibilityRole="button"
+                            accessibilityLabel="Change profile picture"
+                        >
+                            <MaterialCommunityIcons name="camera-outline" size={14} color={colors.onPrimary} />
+                        </TouchableOpacity>
+                    </View>
 
-                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
-
-                    <TouchableOpacity
-                        onPress={handleAboutUs}
-                        style={[styles.settingRow, { borderBottomColor: colors.border }]}
-                        activeOpacity={0.82}
-                    >
-                        <View style={[styles.iconCircle, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#f8fafc' }]}>
-                            <MaterialCommunityIcons name="information-outline" size={20} color={colors.subtext} />
-                        </View>
-                        <View style={styles.settingCopy}>
-                            <Text style={[styles.settingText, { color: colors.text }]}>About CogniVia</Text>
-                            <Text style={[styles.settingSubText, { color: colors.subtext }]}>App information and support</Text>
-                        </View>
-                        <MaterialCommunityIcons name="chevron-right" size={22} color={colors.subtext} />
-                    </TouchableOpacity>
-
-                    <View style={styles.settingRow}>
-                        <View style={[styles.iconCircle, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#f8fafc' }]}>
-                            <MaterialCommunityIcons name="theme-light-dark" size={20} color={colors.subtext} />
-                        </View>
-                        <View style={styles.settingCopy}>
-                            <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
-                            <Text style={[styles.settingSubText, { color: colors.subtext }]}>Use system-friendly contrast</Text>
-                        </View>
-                        <Switch
-                            trackColor={{ false: colors.border, true: '#38bdf8' }}
-                            thumbColor={isDarkMode ? '#ffffff' : '#f8fafc'}
-                            onValueChange={handleToggleAppTheme}
-                            value={isDarkMode}
-                        />
+                    <View style={styles.profileCopy}>
+                        <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
+                            {userData.name || 'Loading…'}
+                        </Text>
+                        <Text style={[styles.userEmail, { color: colors.subtext }]} numberOfLines={1}>
+                            {userData.email}
+                        </Text>
+                        <Pill icon="shield-account-outline" label="Learner account" tone="primary" />
                     </View>
                 </View>
+            </Card>
+
+            <Card>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Import a Deck</Text>
+                <Text style={[styles.cardSubtitle, { color: colors.subtext }]}>
+                    Paste a code shared from another device to add the deck to your library.
+                </Text>
+                <TextField
+                    icon="key-variant"
+                    placeholder="FC-XXXXXXXX"
+                    value={inputLink}
+                    onChangeText={(value) => setInputLink(value.toUpperCase())}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    editable={!isImporting}
+                />
+                <Button
+                    label="Import Deck"
+                    icon="tray-arrow-down"
+                    onPress={handleInputLink}
+                    loading={isImporting}
+                />
+            </Card>
+
+            <Card padded={false}>
+                <Text style={[styles.cardTitle, styles.preferencesTitle, { color: colors.text }]}>Preferences</Text>
 
                 <TouchableOpacity
-                    onPress={handleLogout}
-                    style={styles.logoutButton}
-                    activeOpacity={0.86}
+                    onPress={handleAboutUs}
+                    style={[styles.settingRow, { borderTopColor: colors.border }]}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel="About CogniVia"
                 >
-                    <MaterialCommunityIcons name="logout" size={20} color="#ffffff" />
-                    <Text style={styles.logoutText}>Log Out</Text>
+                    <View style={[styles.settingIcon, { backgroundColor: colors.surfaceSubtle }]}>
+                        <MaterialCommunityIcons name="information-outline" size={19} color={colors.subtext} />
+                    </View>
+                    <View style={styles.settingCopy}>
+                        <Text style={[styles.settingText, { color: colors.text }]}>About CogniVia</Text>
+                        <Text style={[styles.settingSubText, { color: colors.subtext }]}>App information and support</Text>
+                    </View>
+                    <MaterialCommunityIcons name="chevron-right" size={22} color={colors.subtext} />
                 </TouchableOpacity>
-            </ScrollView>
-        </View>
+
+                <View style={[styles.settingRow, { borderTopColor: colors.border }]}>
+                    <View style={[styles.settingIcon, { backgroundColor: colors.surfaceSubtle }]}>
+                        <MaterialCommunityIcons name="theme-light-dark" size={19} color={colors.subtext} />
+                    </View>
+                    <View style={styles.settingCopy}>
+                        <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
+                        <Text style={[styles.settingSubText, { color: colors.subtext }]}>Switch between light and dark themes</Text>
+                    </View>
+                    <Switch
+                        trackColor={{ false: colors.border, true: colors.primary }}
+                        thumbColor={colors.onPrimary}
+                        onValueChange={toggleTheme}
+                        value={isDarkMode}
+                    />
+                </View>
+            </Card>
+
+            <Button
+                label="Log Out"
+                icon="logout"
+                variant="destructive"
+                onPress={handleLogout}
+            />
+        </Screen>
     );
 };
 
 const styles = StyleSheet.create({
-    container:          { flex: 1 },
-    scroll:             { flex: 1 },
-    scrollContent:      { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 58 : 42, paddingBottom: 78 },
+    profileRow:        { flexDirection: 'row', alignItems: 'center' },
+    avatarWrapper:     { position: 'relative', marginRight: spacing.lg },
+    avatar:            { width: 76, height: 76, borderRadius: 38 },
+    avatarPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+    avatarInitial:     { fontSize: 28, fontWeight: typography.weight.bold },
+    editBadge:         {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        borderWidth: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    profileCopy: { flex: 1, alignItems: 'flex-start' },
+    userName:    {
+        fontSize: typography.size.title,
+        fontWeight: typography.weight.bold,
+        marginBottom: 2,
+    },
+    userEmail: {
+        fontSize: typography.size.caption,
+        marginBottom: spacing.sm,
+    },
 
-    header:             { marginBottom: 18 },
-    headerEyebrow:      { fontSize: 13, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 4 },
-    headerTitle:        { fontSize: 30, fontWeight: '900' },
+    cardTitle: {
+        fontSize: typography.size.heading,
+        fontWeight: typography.weight.bold,
+        marginBottom: spacing.xs,
+    },
+    cardSubtitle: {
+        fontSize: typography.size.caption,
+        lineHeight: 19,
+        marginBottom: spacing.lg,
+    },
 
-    profileCard:        { borderWidth: 1, borderRadius: 20, padding: 18, marginBottom: 14, overflow: 'hidden' },
-    profileTopRow:      { flexDirection: 'row', alignItems: 'center' },
-    avatarWrapper:      { position: 'relative', marginRight: 16 },
-    profileImage:       { width: 86, height: 86, borderRadius: 43 },
-    avatarPlaceholder:  { width: 86, height: 86, borderRadius: 43, alignItems: 'center', justifyContent: 'center' },
-    avatarInitial:      { fontSize: 32, fontWeight: '900' },
-    editBadge:          { position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: '#38bdf8', alignItems: 'center', justifyContent: 'center', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 4 },
-    profileCopy:        { flex: 1 },
-    userName:           { fontSize: 22, fontWeight: '900', marginBottom: 4 },
-    userEmail:          { fontSize: 13, fontWeight: '600', marginBottom: 10 },
-    memberPill:         { alignSelf: 'flex-start', height: 28, borderRadius: 14, paddingHorizontal: 10, backgroundColor: 'rgba(56,189,248,0.14)', flexDirection: 'row', alignItems: 'center', gap: 5 },
-    memberPillText:     { color: '#38bdf8', fontSize: 11, fontWeight: '800' },
-
-    card:               { borderWidth: 1, borderRadius: 18, marginBottom: 14, padding: 16 },
-    cardHeader:         { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-    cardIcon:           { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-    cardHeaderCopy:     { flex: 1 },
-    cardLabel:          { fontSize: 17, fontWeight: '900' },
-    cardSubLabel:       { fontSize: 12, fontWeight: '600', marginTop: 2 },
-
-    importRow:          { height: 50, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 15, paddingHorizontal: 13, marginBottom: 12, gap: 8 },
-    linkInput:          { flex: 1, fontSize: 15, fontWeight: '800', paddingVertical: 8, letterSpacing: 1.2 },
-    importBtn:          { height: 46, borderRadius: 23, backgroundColor: '#38bdf8', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7 },
-    importBtnText:      { fontSize: 15, fontWeight: '900', color: '#07111f' },
-
-    sectionTitle:       { fontSize: 17, fontWeight: '900', marginBottom: 8 },
-    settingRow:         { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1 },
-    iconCircle:         { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    settingCopy:        { flex: 1, paddingRight: 12 },
-    settingText:        { fontSize: 15, fontWeight: '800', marginBottom: 2 },
-    settingSubText:     { fontSize: 12, fontWeight: '600' },
-
-    logoutButton:       { height: 50, borderRadius: 25, backgroundColor: '#ef4444', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 2 },
-    logoutText:         { fontSize: 16, fontWeight: '900', color: '#ffffff' },
-    disabled:           { opacity: 0.58 },
+    preferencesTitle: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.lg,
+        paddingBottom: spacing.sm,
+        marginBottom: 0,
+    },
+    settingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
+        borderTopWidth: 1,
+        gap: spacing.md,
+    },
+    settingIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: radius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    settingCopy:    { flex: 1, paddingRight: spacing.sm },
+    settingText:    {
+        fontSize: typography.size.body,
+        fontWeight: typography.weight.semibold,
+        marginBottom: 1,
+    },
+    settingSubText: { fontSize: typography.size.micro + 1 },
 });
 
 export default ProfileScreen;
