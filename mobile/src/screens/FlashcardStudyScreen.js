@@ -5,8 +5,10 @@ import {
     Platform, ScrollView, StatusBar, Vibration,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { checkAnswer } from '../services/flashcardService';
+import { radius, spacing, typography } from '../theme/theme';
 import api from '../services/api';
 
 // ---------------------------------------------------------------------------
@@ -58,7 +60,7 @@ const CardTypeBadge = ({ type, colors }) => {
     const meta = META[type] || META[CARD_TYPES.IDENTIFICATION];
 
     return (
-        <View style={[styles.badge, { backgroundColor: colors.primary + '22', borderColor: colors.primary + '55' }]}>
+        <View style={[styles.badge, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}>
             <MaterialCommunityIcons name={meta.icon} size={12} color={colors.primary} />
             <Text style={[styles.badgeText, { color: colors.primary }]}>{meta.label}</Text>
         </View>
@@ -70,10 +72,11 @@ const TimerPill = ({ seconds, limit, colors }) => {
 
     const isUrgent = seconds <= 3;
     const isWarning = seconds <= TIMER_WARNING_SECONDS;
-    const accent = isUrgent ? '#f87171' : isWarning ? '#f59e0b' : '#38bdf8';
+    const accent = isUrgent ? colors.danger : isWarning ? colors.warning : colors.primary;
+    const accentSoft = isUrgent ? colors.dangerSoft : isWarning ? colors.warningSoft : colors.primarySoft;
 
     return (
-        <View style={[styles.timerPill, { backgroundColor: `${accent}18`, borderColor: `${accent}44` }]}>
+        <View style={[styles.timerPill, { backgroundColor: accentSoft, borderColor: accent }]}>
             <MaterialCommunityIcons name={isWarning ? 'timer-alert-outline' : 'timer-outline'} size={14} color={accent} />
             <Text style={[styles.timerText, { color: accent }]}>{seconds}s</Text>
         </View>
@@ -85,16 +88,16 @@ const TimerPill = ({ seconds, limit, colors }) => {
  */
 const ResultBox = ({ isCorrect, feedback, colors }) => (
     <View style={[styles.resultBox, {
-        backgroundColor: isCorrect ? 'rgba(52,211,153,0.10)' : 'rgba(248,113,113,0.10)',
-        borderColor:     isCorrect ? '#34d399' : '#f87171',
+        backgroundColor: isCorrect ? colors.successSoft : colors.dangerSoft,
+        borderColor:     isCorrect ? colors.success : colors.danger,
     }]}>
         <View style={styles.resultHeader}>
             <MaterialCommunityIcons
                 name={isCorrect ? 'check-circle' : 'close-circle'}
-                size={30}
-                color={isCorrect ? '#34d399' : '#f87171'}
+                size={26}
+                color={isCorrect ? colors.success : colors.danger}
             />
-            <Text style={[styles.resultTitle, { color: isCorrect ? '#34d399' : '#f87171' }]}>
+            <Text style={[styles.resultTitle, { color: isCorrect ? colors.success : colors.danger }]}>
                 {isCorrect ? 'Answer Recorded' : 'Needs Review'}
             </Text>
         </View>
@@ -129,7 +132,8 @@ const shuffleCards = (cards) => {
     return shuffled;
 };
 
-const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoBack, colors }) => {
+const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoBack, colors, theme }) => {
+    const insets = useSafeAreaInsets();
     const correctCount = responses.filter(response => response.isCorrect).length;
     const missedResponses = responses.filter(response => !response.isCorrect);
     const weakestTypes = Object.values(
@@ -151,8 +155,8 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
         : 'You completed this round without missed cards. Keep the momentum by reviewing again later.';
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} />
+        <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + spacing.sm }]}>
+            <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
             <View style={styles.reviewHeader}>
                 <View style={styles.reviewTitleWrap}>
                     <Text style={[styles.reviewEyebrow, { color: colors.primary }]}>SESSION REVIEW</Text>
@@ -173,8 +177,8 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                 showsVerticalScrollIndicator={false}
             >
                 <View style={[styles.reviewSummaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <View style={styles.reviewSummaryIcon}>
-                        <MaterialCommunityIcons name="clipboard-check-outline" size={28} color="#07111f" />
+                    <View style={[styles.reviewSummaryIcon, { backgroundColor: colors.primarySoft }]}>
+                        <MaterialCommunityIcons name="clipboard-check-outline" size={28} color={colors.primary} />
                     </View>
                     <Text style={[styles.reviewSummaryTitle, { color: colors.text }]}>Study Complete</Text>
                     <Text style={[styles.reviewSummaryText, { color: colors.subtext }]}>
@@ -183,7 +187,7 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
 
                     <View style={styles.reviewStatsRow}>
                         <View style={[styles.reviewStat, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                            <Text style={[styles.reviewStatValue, { color: '#34d399' }]}>{correctCount}</Text>
+                            <Text style={[styles.reviewStatValue, { color: colors.success }]}>{correctCount}</Text>
                             <Text style={[styles.reviewStatLabel, { color: colors.subtext }]}>Correct</Text>
                         </View>
                         <View style={[styles.reviewStat, { backgroundColor: colors.background, borderColor: colors.border }]}>
@@ -199,11 +203,11 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
 
                 <View style={[styles.focusCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={styles.focusHeader}>
-                        <View style={[styles.focusIcon, { backgroundColor: missedResponses.length ? 'rgba(248,113,113,0.14)' : 'rgba(52,211,153,0.14)' }]}>
+                        <View style={[styles.focusIcon, { backgroundColor: missedResponses.length ? colors.dangerSoft : colors.successSoft }]}>
                             <MaterialCommunityIcons
                                 name={missedResponses.length ? 'lightbulb-on-outline' : 'trophy-outline'}
                                 size={20}
-                                color={missedResponses.length ? '#f87171' : '#34d399'}
+                                color={missedResponses.length ? colors.danger : colors.success}
                             />
                         </View>
                         <View style={styles.focusTitleWrap}>
@@ -220,10 +224,10 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                         <>
                             <View style={[styles.coachingRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
                                 <View style={styles.coachingMetric}>
-                                    <Text style={styles.coachingMetricValue}>{missedCount}</Text>
+                                    <Text style={[styles.coachingMetricValue, { color: colors.danger }]}>{missedCount}</Text>
                                     <Text style={[styles.coachingMetricLabel, { color: colors.subtext }]}>to revisit</Text>
                                 </View>
-                                <View style={styles.coachingDivider} />
+                                <View style={[styles.coachingDivider, { backgroundColor: colors.border }]} />
                                 <View style={styles.coachingCopy}>
                                     <Text style={[styles.coachingCopyTitle, { color: colors.text }]}>Recommended plan</Text>
                                     <Text style={[styles.coachingCopyText, { color: colors.subtext }]}>
@@ -245,8 +249,8 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                                                 {item.count} {item.count === 1 ? 'missed answer' : 'missed answers'}
                                             </Text>
                                         </View>
-                                        <View style={[styles.weaknessSeverity, { backgroundColor: item.count > 1 ? 'rgba(248,113,113,0.14)' : 'rgba(251,191,36,0.16)' }]}>
-                                            <Text style={[styles.weaknessSeverityText, { color: item.count > 1 ? '#f87171' : '#f59e0b' }]}>
+                                        <View style={[styles.weaknessSeverity, { backgroundColor: item.count > 1 ? colors.dangerSoft : colors.warningSoft }]}>
+                                            <Text style={[styles.weaknessSeverityText, { color: item.count > 1 ? colors.danger : colors.warning }]}>
                                                 {item.count > 1 ? 'High focus' : 'Review'}
                                             </Text>
                                         </View>
@@ -266,7 +270,9 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                                         <Text style={[styles.focusItemLabel, { color: colors.subtext }]}>
                                             Missed question {index + 1} of {missedCount}
                                         </Text>
-                                        <Text style={styles.focusItemBadge}>{CARD_TYPE_LABELS[response.card?.type] || 'Card'}</Text>
+                                        <Text style={[styles.focusItemBadge, { backgroundColor: colors.primarySoft, color: colors.primary }]}>
+                                            {CARD_TYPE_LABELS[response.card?.type] || 'Card'}
+                                        </Text>
                                     </View>
                                     <Text style={[styles.focusItemText, { color: colors.text }]} numberOfLines={2}>
                                         {response.card.question}
@@ -277,10 +283,10 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                     ) : (
                         <View style={[styles.coachingRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
                             <View style={styles.coachingMetric}>
-                                <Text style={[styles.coachingMetricValue, { color: '#34d399' }]}>100%</Text>
+                                <Text style={[styles.coachingMetricValue, { color: colors.success }]}>100%</Text>
                                 <Text style={[styles.coachingMetricLabel, { color: colors.subtext }]}>accuracy</Text>
                             </View>
-                            <View style={styles.coachingDivider} />
+                            <View style={[styles.coachingDivider, { backgroundColor: colors.border }]} />
                             <View style={styles.coachingCopy}>
                                 <Text style={[styles.coachingCopyTitle, { color: colors.text }]}>Keep it fresh</Text>
                                 <Text style={[styles.coachingCopyText, { color: colors.subtext }]}>
@@ -300,14 +306,14 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                             <Text style={[styles.reviewCardNumber, { color: colors.subtext }]}>Question {index + 1}</Text>
                             <View style={[
                                 styles.reviewStatusPill,
-                                { backgroundColor: response.isCorrect ? 'rgba(52,211,153,0.14)' : 'rgba(248,113,113,0.14)' },
+                                { backgroundColor: response.isCorrect ? colors.successSoft : colors.dangerSoft },
                             ]}>
                                 <MaterialCommunityIcons
                                     name={response.isCorrect ? 'check-circle-outline' : 'alert-circle-outline'}
                                     size={14}
-                                    color={response.isCorrect ? '#34d399' : '#f87171'}
+                                    color={response.isCorrect ? colors.success : colors.danger}
                                 />
-                                <Text style={[styles.reviewStatusText, { color: response.isCorrect ? '#34d399' : '#f87171' }]}>
+                                <Text style={[styles.reviewStatusText, { color: response.isCorrect ? colors.success : colors.danger }]}>
                                     {response.isCorrect ? 'Correct' : 'Review'}
                                 </Text>
                             </View>
@@ -361,8 +367,8 @@ const SessionReview = ({ deck, responses, masteryPercentage, onStudyAgain, onGoB
                     onPress={onGoBack}
                     activeOpacity={0.88}
                 >
-                    <Text style={styles.primaryButtonText}>Done</Text>
-                    <MaterialCommunityIcons name="check" size={18} color="#000000" />
+                    <Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>Done</Text>
+                    <MaterialCommunityIcons name="check" size={18} color={colors.onPrimary} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -404,11 +410,11 @@ const TextAnswerMode = ({
                 disabled={isChecking}
             >
                 {isChecking ? (
-                    <ActivityIndicator color="#000000" />
+                    <ActivityIndicator color={colors.onPrimary} />
                 ) : (
                     <>
-                        <MaterialCommunityIcons name="check-circle" size={20} color="#000000" />
-                        <Text style={styles.checkButtonText}>Check Answer</Text>
+                        <MaterialCommunityIcons name="check-circle" size={20} color={colors.onPrimary} />
+                        <Text style={[styles.checkButtonText, { color: colors.onPrimary }]}>Check Answer</Text>
                     </>
                 )}
             </TouchableOpacity>
@@ -449,18 +455,25 @@ const MultipleChoiceMode = ({
 
                 if (showResult && isSelected) {
                     if (isAnswer) {
-                        bgColor     = 'rgba(52,211,153,0.15)';
-                        borderColor = '#34d399';
-                        textColor   = '#34d399';
+                        bgColor     = colors.successSoft;
+                        borderColor = colors.success;
+                        textColor   = colors.success;
                     } else {
-                        bgColor     = 'rgba(248,113,113,0.15)';
-                        borderColor = '#f87171';
-                        textColor   = '#f87171';
+                        bgColor     = colors.dangerSoft;
+                        borderColor = colors.danger;
+                        textColor   = colors.danger;
                     }
                 } else if (isSelected) {
-                    bgColor     = colors.primary + '22';
+                    bgColor     = colors.primarySoft;
                     borderColor = colors.primary;
                 }
+
+                const keyIsAccented = isSelected;
+                const keyBackground = showResult && isSelected
+                    ? (isAnswer ? colors.success : colors.danger)
+                    : isSelected
+                        ? colors.primary
+                        : colors.surfaceSubtle;
 
                 return (
                     <TouchableOpacity
@@ -470,25 +483,19 @@ const MultipleChoiceMode = ({
                         disabled={showResult}
                         activeOpacity={0.75}
                     >
-                        <View style={[styles.mcqOptionKey, {
-                            backgroundColor: showResult && isSelected && isAnswer
-                                ? '#34d399'
-                                : showResult && isSelected && !isAnswer
-                                    ? '#f87171'
-                                    : isSelected
-                                        ? colors.primary
-                                        : colors.border,
-                        }]}>
-                            <Text style={styles.mcqOptionKeyText}>{key}</Text>
+                        <View style={[styles.mcqOptionKey, { backgroundColor: keyBackground }]}>
+                            <Text style={[styles.mcqOptionKeyText, { color: keyIsAccented ? colors.onPrimary : colors.subtext }]}>
+                                {key}
+                            </Text>
                         </View>
                         <Text style={[styles.mcqOptionText, { color: textColor, flex: 1 }]}>
                             {options[key]}
                         </Text>
                         {showResult && isSelected && isAnswer && (
-                            <MaterialCommunityIcons name="check-circle" size={20} color="#34d399" />
+                            <MaterialCommunityIcons name="check-circle" size={20} color={colors.success} />
                         )}
                         {showResult && isSelected && !isAnswer && (
-                            <MaterialCommunityIcons name="close-circle" size={20} color="#f87171" />
+                            <MaterialCommunityIcons name="close-circle" size={20} color={colors.danger} />
                         )}
                     </TouchableOpacity>
                 );
@@ -527,18 +534,18 @@ const TrueFalseMode = ({
 
         if (showResult && isSelected) {
             if (isAnswer) {
-                bgColor     = 'rgba(52,211,153,0.15)';
-                borderColor = '#34d399';
-                iconColor   = '#34d399';
-                textColor   = '#34d399';
+                bgColor     = colors.successSoft;
+                borderColor = colors.success;
+                iconColor   = colors.success;
+                textColor   = colors.success;
             } else {
-                bgColor     = 'rgba(248,113,113,0.15)';
-                borderColor = '#f87171';
-                iconColor   = '#f87171';
-                textColor   = '#f87171';
+                bgColor     = colors.dangerSoft;
+                borderColor = colors.danger;
+                iconColor   = colors.danger;
+                textColor   = colors.danger;
             }
         } else if (isSelected) {
-            bgColor     = colors.primary + '22';
+            bgColor     = colors.primarySoft;
             borderColor = colors.primary;
             iconColor   = colors.primary;
             textColor   = colors.primary;
@@ -587,7 +594,8 @@ const TrueFalseMode = ({
 
 const FlashcardStudyScreen = ({ route, navigation }) => {
     const { deck }   = route.params;
-    const { colors } = useTheme();
+    const { colors, theme } = useTheme();
+    const insets = useSafeAreaInsets();
 
     const [flashcards,      setFlashcards]      = useState([]);
     const [currentIndex,    setCurrentIndex]    = useState(0);
@@ -866,17 +874,18 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
                 onStudyAgain={handleStudyAgain}
                 onGoBack={() => navigation.goBack()}
                 colors={colors}
+                theme={theme}
             />
         );
     }
 
     if (loading) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + spacing.sm }]}>
                 <Header />
                 <View style={styles.centeredContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={[styles.loadingText, { color: colors.text }]}>Loading flashcards...</Text>
+                    <Text style={[styles.loadingText, { color: colors.text }]}>Loading flashcards…</Text>
                 </View>
             </View>
         );
@@ -884,10 +893,10 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
 
     if (flashcards.length === 0) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + spacing.sm }]}>
                 <Header />
                 <View style={styles.centeredContainer}>
-                    <MaterialCommunityIcons name="cards-outline" size={80} color={colors.subtext} />
+                    <MaterialCommunityIcons name="cards-outline" size={72} color={colors.subtext} />
                     <Text style={[styles.emptyText, { color: colors.text }]}>No flashcards in this deck</Text>
                 </View>
             </View>
@@ -905,10 +914,10 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
 
     return (
         <KeyboardAvoidingView
-            style={[styles.container, { backgroundColor: colors.background }]}
+            style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + spacing.sm }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} />
+            <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
             <Header />
 
             {/* Progress row */}
@@ -918,11 +927,11 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
                         Card {currentIndex + 1} of {flashcards.length}
                     </Text>
                     <View style={[styles.sessionProgressTrack, { backgroundColor: colors.border }]}>
-                        <View style={[styles.sessionProgressFill, { width: `${progressPercent}%` }]} />
+                        <View style={[styles.sessionProgressFill, { width: `${progressPercent}%`, backgroundColor: colors.primary }]} />
                     </View>
                 </View>
                 <View style={styles.scoreContainer}>
-                    <MaterialCommunityIcons name="check-circle" size={16} color="#4CAF50" />
+                    <MaterialCommunityIcons name="check-circle" size={16} color={colors.success} />
                     <Text style={[styles.scoreText, { color: colors.text }]}>
                         {masteredCards.size} correct
                     </Text>
@@ -935,7 +944,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
                 keyboardShouldPersistTaps="handled"
             >
                 {/* Question card */}
-                <View style={[styles.questionCard, { backgroundColor: colors.card }]}>
+                <View style={[styles.questionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={styles.questionCardTop}>
                         <Text style={[styles.cardLabel, { color: colors.primary }]}>QUESTION</Text>
                         <View style={styles.questionMeta}>
@@ -1002,11 +1011,12 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
                     <TouchableOpacity
                         style={[styles.nextButton, { backgroundColor: colors.primary }]}
                         onPress={handleNext}
+                        accessibilityRole="button"
                     >
-                        <Text style={styles.nextButtonText}>
+                        <Text style={[styles.nextButtonText, { color: colors.onPrimary }]}>
                             {currentIndex === flashcards.length - 1 ? 'Finish' : 'Next Card'}
                         </Text>
-                        <MaterialCommunityIcons name="chevron-right" size={24} color="#000000" />
+                        <MaterialCommunityIcons name="chevron-right" size={24} color={colors.onPrimary} />
                     </TouchableOpacity>
                 </View>
             )}
@@ -1019,139 +1029,131 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-    container:          { flex: 1, paddingTop: 50 },
-    header:             { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14 },
-    headerTitle:        { fontSize: 19, fontWeight: '900', flex: 1, textAlign: 'center', marginHorizontal: 10 },
+    container:          { flex: 1 },
+    header:             { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
+    headerTitle:        { fontSize: typography.size.heading, fontWeight: typography.weight.bold, flex: 1, textAlign: 'center', marginHorizontal: spacing.sm },
     centeredContainer:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    loadingText:        { marginTop: 10, fontSize: 16 },
-    emptyText:          { fontSize: 18, marginTop: 20 },
+    loadingText:        { marginTop: spacing.sm, fontSize: typography.size.body },
+    emptyText:          { fontSize: typography.size.heading, marginTop: spacing.xl },
 
-    progressContainer:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14 },
-    progressLeft:       { flex: 1, paddingRight: 14 },
-    progressText:       { fontSize: 14, fontWeight: '800', marginBottom: 7 },
-    sessionProgressTrack:{ height: 6, borderRadius: 999, overflow: 'hidden' },
-    sessionProgressFill: { height: '100%', borderRadius: 999, backgroundColor: '#38bdf8' },
-    scoreContainer:     { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    scoreText:          { fontSize: 13, fontWeight: '800' },
+    progressContainer:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.md },
+    progressLeft:       { flex: 1, paddingRight: spacing.md },
+    progressText:       { fontSize: typography.size.caption, fontWeight: typography.weight.semibold, marginBottom: spacing.xs + 2 },
+    sessionProgressTrack:{ height: 6, borderRadius: radius.pill, overflow: 'hidden' },
+    sessionProgressFill: { height: '100%', borderRadius: radius.pill },
+    scoreContainer:     { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    scoreText:          { fontSize: typography.size.caption, fontWeight: typography.weight.semibold },
 
     scrollView:         { flex: 1 },
-    scrollContent:      { paddingHorizontal: 20, paddingBottom: 30 },
+    scrollContent:      { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxxl },
 
     // Question card
-    questionCard:       { padding: 22, borderRadius: 18, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 },
-    questionCardTop:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    questionMeta:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    cardLabel:          { fontSize: 12, fontWeight: '900', letterSpacing: 2 },
-    questionText:       { fontSize: 20, fontWeight: '800', lineHeight: 29 },
+    questionCard:       { padding: spacing.xl, borderRadius: radius.lg, borderWidth: 1, marginBottom: spacing.xl },
+    questionCardTop:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+    questionMeta:       { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    cardLabel:          { fontSize: typography.size.micro, fontWeight: typography.weight.bold, letterSpacing: 1.5 },
+    questionText:       { fontSize: typography.size.title - 2, fontWeight: typography.weight.semibold, lineHeight: 28 },
 
     // Badge
-    badge:              { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
-    badgeText:          { fontSize: 11, fontWeight: '800' },
-    timerPill:          { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
-    timerText:          { fontSize: 11, fontWeight: '900' },
+    badge:              { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.pill, borderWidth: 1 },
+    badgeText:          { fontSize: typography.size.micro, fontWeight: typography.weight.semibold },
+    timerPill:          { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.pill, borderWidth: 1 },
+    timerText:          { fontSize: typography.size.micro, fontWeight: typography.weight.bold },
 
     // Answer section
-    answerSection:      { marginBottom: 20 },
-    sectionLabel:       { fontSize: 16, fontWeight: '900', marginBottom: 12 },
-    answerInput:        { borderWidth: 1, borderRadius: 16, padding: 15, fontSize: 16, minHeight: 112, textAlignVertical: 'top', marginBottom: 15 },
+    answerSection:      { marginBottom: spacing.xl },
+    sectionLabel:       { fontSize: typography.size.body, fontWeight: typography.weight.bold, marginBottom: spacing.md },
+    answerInput:        { borderWidth: 1, borderRadius: radius.md, padding: spacing.lg, fontSize: typography.size.body, minHeight: 112, textAlignVertical: 'top', marginBottom: spacing.lg },
 
     // Check button
-    checkButton:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 8, marginBottom: 10 },
-    checkButtonText:    { color: '#000000', fontSize: 16, fontWeight: '900' },
+    checkButton:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: radius.md, gap: spacing.sm, marginBottom: spacing.sm },
+    checkButtonText:    { fontSize: typography.size.body, fontWeight: typography.weight.semibold },
     disabled:           { opacity: 0.7 },
 
     // Result box
-    resultBox:          { padding: 18, borderRadius: 18, borderWidth: 1.5, marginTop: 15 },
-    resultHeader:       { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 },
-    resultTitle:        { fontSize: 23, fontWeight: '900' },
-    feedbackText:       { fontSize: 16, lineHeight: 24 },
-    correctAnswerBox:   { padding: 15, borderRadius: 12, borderWidth: 1, marginTop: 10 },
-    correctAnswerLabel: { fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
-    correctAnswerText:  { fontSize: 16, lineHeight: 22 },
+    resultBox:          { padding: spacing.lg, borderRadius: radius.lg, borderWidth: 1, marginTop: spacing.lg },
+    resultHeader:       { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+    resultTitle:        { fontSize: typography.size.heading, fontWeight: typography.weight.bold },
+    feedbackText:       { fontSize: typography.size.body, lineHeight: 23 },
 
     // MCQ
-    mcqOption:          { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 16, padding: 14, marginBottom: 10, gap: 12 },
+    mcqOption:          { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, gap: spacing.md },
     mcqOptionKey:       { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-    mcqOptionKeyText:   { color: '#fff', fontWeight: '700', fontSize: 14 },
-    mcqOptionText:      { fontSize: 15, lineHeight: 22 },
-
-    // Explanation box (MCQ)
-    explanationBox:     { marginTop: 15, padding: 15, borderRadius: 16, borderWidth: 1 },
-    explanationLabel:   { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 6 },
-    explanationText:    { fontSize: 15, lineHeight: 22 },
+    mcqOptionKeyText:   { fontWeight: typography.weight.semibold, fontSize: typography.size.caption + 1 },
+    mcqOptionText:      { fontSize: typography.size.body, lineHeight: 22 },
 
     // True/False
-    tfRow:              { flexDirection: 'row', gap: 12, marginBottom: 10 },
-    tfButton:           { flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderRadius: 16, paddingVertical: 22, gap: 8 },
-    tfButtonText:       { fontSize: 16, fontWeight: '900' },
+    tfRow:              { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.sm },
+    tfButton:           { flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: radius.md, paddingVertical: spacing.xl, gap: spacing.sm },
+    tfButtonText:       { fontSize: typography.size.body, fontWeight: typography.weight.bold },
 
     // Review
-    reviewHeader:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14 },
-    reviewTitleWrap:    { flex: 1, paddingRight: 12 },
-    reviewEyebrow:      { fontSize: 11, fontWeight: '900', letterSpacing: 1.4, marginBottom: 3 },
-    reviewTitle:        { fontSize: 21, fontWeight: '900' },
+    reviewHeader:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
+    reviewTitleWrap:    { flex: 1, paddingRight: spacing.md },
+    reviewEyebrow:      { fontSize: typography.size.micro, fontWeight: typography.weight.semibold, letterSpacing: 1.2, marginBottom: 3 },
+    reviewTitle:        { fontSize: typography.size.title, fontWeight: typography.weight.bold },
     closeButton:        { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    reviewContent:      { paddingHorizontal: 20, paddingBottom: 120 },
-    reviewSummaryCard:  { borderRadius: 18, borderWidth: 1, padding: 18, alignItems: 'center', marginBottom: 16 },
-    reviewSummaryIcon:  { width: 56, height: 56, borderRadius: 18, backgroundColor: '#38bdf8', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-    reviewSummaryTitle: { fontSize: 22, fontWeight: '900', marginBottom: 6 },
-    reviewSummaryText:  { fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 16 },
-    reviewStatsRow:     { flexDirection: 'row', gap: 8, width: '100%' },
-    reviewStat:         { flex: 1, borderRadius: 14, borderWidth: 1, paddingVertical: 12, alignItems: 'center' },
-    reviewStatValue:    { fontSize: 20, fontWeight: '900', marginBottom: 2 },
-    reviewStatLabel:    { fontSize: 11, fontWeight: '800' },
-    focusCard:          { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 12 },
-    focusHeader:        { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-    focusIcon:          { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+    reviewContent:      { paddingHorizontal: spacing.xl, paddingBottom: 120 },
+    reviewSummaryCard:  { borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg, alignItems: 'center', marginBottom: spacing.lg },
+    reviewSummaryIcon:  { width: 56, height: 56, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+    reviewSummaryTitle: { fontSize: typography.size.title, fontWeight: typography.weight.bold, marginBottom: spacing.xs },
+    reviewSummaryText:  { fontSize: typography.size.caption + 1, lineHeight: 20, textAlign: 'center', marginBottom: spacing.lg },
+    reviewStatsRow:     { flexDirection: 'row', gap: spacing.sm, width: '100%' },
+    reviewStat:         { flex: 1, borderRadius: radius.md, borderWidth: 1, paddingVertical: spacing.md, alignItems: 'center' },
+    reviewStatValue:    { fontSize: typography.size.title - 2, fontWeight: typography.weight.bold, marginBottom: 2 },
+    reviewStatLabel:    { fontSize: typography.size.micro, fontWeight: typography.weight.semibold },
+    focusCard:          { borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg, marginBottom: spacing.md },
+    focusHeader:        { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+    focusIcon:          { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
     focusTitleWrap:     { flex: 1 },
-    focusEyebrow:       { fontSize: 11, fontWeight: '900', letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: 2 },
-    focusTitle:         { fontSize: 18, fontWeight: '900' },
-    focusInsight:       { fontSize: 14, lineHeight: 21, fontWeight: '700', marginBottom: 12 },
-    coachingRow:        { flexDirection: 'row', borderWidth: 1, borderRadius: 15, padding: 12, marginBottom: 14 },
+    focusEyebrow:       { fontSize: typography.size.micro, fontWeight: typography.weight.semibold, letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: 2 },
+    focusTitle:         { fontSize: typography.size.heading, fontWeight: typography.weight.bold },
+    focusInsight:       { fontSize: typography.size.caption + 1, lineHeight: 21, marginBottom: spacing.md },
+    coachingRow:        { flexDirection: 'row', borderWidth: 1, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
     coachingMetric:     { width: 72, alignItems: 'center', justifyContent: 'center' },
-    coachingMetricValue:{ color: '#f87171', fontSize: 22, fontWeight: '900', marginBottom: 2 },
-    coachingMetricLabel:{ fontSize: 11, fontWeight: '800' },
-    coachingDivider:    { width: 1, backgroundColor: 'rgba(148,163,184,0.25)', marginHorizontal: 12 },
+    coachingMetricValue:{ fontSize: typography.size.title, fontWeight: typography.weight.bold, marginBottom: 2 },
+    coachingMetricLabel:{ fontSize: typography.size.micro, fontWeight: typography.weight.semibold },
+    coachingDivider:    { width: 1, marginHorizontal: spacing.md },
     coachingCopy:       { flex: 1, justifyContent: 'center' },
-    coachingCopyTitle:  { fontSize: 14, fontWeight: '900', marginBottom: 4 },
-    coachingCopyText:   { fontSize: 13, lineHeight: 18 },
-    focusSectionLabel:  { fontSize: 11, fontWeight: '900', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8, marginTop: 2 },
-    focusSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 2, marginBottom: 8 },
-    focusSectionCount:  { fontSize: 11, fontWeight: '800' },
-    weaknessList:       { gap: 8, marginBottom: 12 },
-    weaknessRow:        { minHeight: 64, borderWidth: 1, borderRadius: 14, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+    coachingCopyTitle:  { fontSize: typography.size.caption + 1, fontWeight: typography.weight.bold, marginBottom: spacing.xs },
+    coachingCopyText:   { fontSize: typography.size.caption, lineHeight: 18 },
+    focusSectionLabel:  { fontSize: typography.size.micro, fontWeight: typography.weight.semibold, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: 2 },
+    focusSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginTop: 2, marginBottom: spacing.sm },
+    focusSectionCount:  { fontSize: typography.size.micro, fontWeight: typography.weight.semibold },
+    weaknessList:       { gap: spacing.sm, marginBottom: spacing.md },
+    weaknessRow:        { minHeight: 64, borderWidth: 1, borderRadius: radius.md, padding: spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
     weaknessRowLeft:    { flex: 1 },
-    weaknessRowTitle:   { fontSize: 14, fontWeight: '900', marginBottom: 3 },
-    weaknessRowMeta:    { fontSize: 12, fontWeight: '700' },
-    weaknessSeverity:   { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
-    weaknessSeverityText:{ fontSize: 11, fontWeight: '900' },
-    focusItem:          { borderTopWidth: 1, paddingTop: 10, marginTop: 10 },
-    focusItemTop:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 },
-    focusItemLabel:     { fontSize: 11, fontWeight: '900', letterSpacing: 0.7, textTransform: 'uppercase' },
-    focusItemBadge:     { backgroundColor: 'rgba(56,189,248,0.14)', color: '#38bdf8', fontSize: 11, fontWeight: '900', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20, overflow: 'hidden' },
-    focusItemText:      { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-    reviewCard:         { borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 12 },
-    reviewCardTop:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-    reviewCardNumber:   { fontSize: 12, fontWeight: '800' },
-    reviewStatusPill:   { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 20 },
-    reviewStatusText:   { fontSize: 11, fontWeight: '900' },
-    reviewQuestion:     { fontSize: 16, fontWeight: '800', lineHeight: 23, marginBottom: 12 },
-    answerCompareGrid:  { gap: 8 },
-    answerCompareBox:   { borderRadius: 13, borderWidth: 1, padding: 12 },
-    answerCompareLabel: { fontSize: 11, fontWeight: '900', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 },
-    answerCompareText:  { fontSize: 15, lineHeight: 21, fontWeight: '700' },
-    reviewFeedback:     { borderRadius: 13, borderWidth: 1, padding: 12, marginTop: 8 },
-    reviewFeedbackText: { fontSize: 14, lineHeight: 21 },
-    reviewActions:      { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 30, borderTopWidth: 1 },
-    secondaryButton:    { flex: 1, height: 50, borderRadius: 15, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-    secondaryButtonText:{ fontSize: 15, fontWeight: '900' },
-    primaryButton:      { flex: 1, height: 50, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-    primaryButtonText:  { color: '#000000', fontSize: 15, fontWeight: '900' },
+    weaknessRowTitle:   { fontSize: typography.size.caption + 1, fontWeight: typography.weight.bold, marginBottom: 3 },
+    weaknessRowMeta:    { fontSize: typography.size.micro + 1, fontWeight: typography.weight.medium },
+    weaknessSeverity:   { borderRadius: radius.pill, paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2 },
+    weaknessSeverityText:{ fontSize: typography.size.micro, fontWeight: typography.weight.bold },
+    focusItem:          { borderTopWidth: 1, paddingTop: spacing.sm + 2, marginTop: spacing.sm + 2 },
+    focusItemTop:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginBottom: spacing.xs },
+    focusItemLabel:     { fontSize: typography.size.micro, fontWeight: typography.weight.semibold, letterSpacing: 0.7, textTransform: 'uppercase' },
+    focusItemBadge:     { fontSize: typography.size.micro, fontWeight: typography.weight.semibold, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.pill, overflow: 'hidden' },
+    focusItemText:      { fontSize: typography.size.caption + 1, lineHeight: 20, fontWeight: typography.weight.medium },
+    reviewCard:         { borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg, marginBottom: spacing.md },
+    reviewCardTop:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+    reviewCardNumber:   { fontSize: typography.size.micro + 1, fontWeight: typography.weight.semibold },
+    reviewStatusPill:   { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm + 1, paddingVertical: spacing.xs + 1, borderRadius: radius.pill },
+    reviewStatusText:   { fontSize: typography.size.micro, fontWeight: typography.weight.bold },
+    reviewQuestion:     { fontSize: typography.size.body, fontWeight: typography.weight.semibold, lineHeight: 23, marginBottom: spacing.md },
+    answerCompareGrid:  { gap: spacing.sm },
+    answerCompareBox:   { borderRadius: radius.md, borderWidth: 1, padding: spacing.md },
+    answerCompareLabel: { fontSize: typography.size.micro, fontWeight: typography.weight.semibold, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.xs + 2 },
+    answerCompareText:  { fontSize: typography.size.body, lineHeight: 21, fontWeight: typography.weight.medium },
+    reviewFeedback:     { borderRadius: radius.md, borderWidth: 1, padding: spacing.md, marginTop: spacing.sm },
+    reviewFeedbackText: { fontSize: typography.size.caption + 1, lineHeight: 21 },
+    reviewActions:      { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: spacing.sm + 2, paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxxl - 2, borderTopWidth: 1 },
+    secondaryButton:    { flex: 1, height: 48, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+    secondaryButtonText:{ fontSize: typography.size.body, fontWeight: typography.weight.semibold },
+    primaryButton:      { flex: 1, height: 48, borderRadius: radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+    primaryButtonText:  { fontSize: typography.size.body, fontWeight: typography.weight.semibold },
 
     // Bottom nav
-    bottomButtons:      { paddingHorizontal: 20, paddingVertical: 15, paddingBottom: 30 },
-    nextButton:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 8 },
-    nextButtonText:     { color: '#000000', fontSize: 16, fontWeight: '900' },
+    bottomButtons:      { paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, paddingBottom: spacing.xxxl - 2 },
+    nextButton:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 52, borderRadius: radius.md, gap: spacing.sm },
+    nextButtonText:     { fontSize: typography.size.body, fontWeight: typography.weight.semibold },
 });
 
 export default FlashcardStudyScreen;
