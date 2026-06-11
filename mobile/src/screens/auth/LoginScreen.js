@@ -10,9 +10,9 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import Svg, { Path } from 'react-native-svg';
-import { COLORS } from './components/AuthInput';
-import api from './services/api';
-import { getEchoWithToken, disconnectEcho } from './services/echoService';
+import { COLORS } from '../../theme/theme';
+import api from '../../services/api';
+import { getEchoWithToken, disconnectEcho } from '../../services/echoService';
 
 const { height: H } = Dimensions.get('window');
 

@@ -1,19 +1,15 @@
 /**
- * geminiService.js
+ * flashcardService.js
  *
- * All AI calls are proxied through the Laravel backend via OpenRouter.
- * The Gemini/OpenRouter API key is NOT present here or anywhere in the
- * mobile bundle — it lives exclusively in backend/.env.
- *
- * Public function signatures are intentionally unchanged so GenerateScreen.js
- * and FlashcardStudyScreen.js require zero import modifications.
+ * AI flashcard generation and answer checking, proxied through the Laravel
+ * backend. The AI provider key is NOT present here or anywhere in the mobile
+ * bundle — it lives exclusively in backend/.env.
  */
 
 import api from './api';
 
 // =============================================================================
 // Card type constants
-// Kept here so GenerateScreen.js still imports from this file unchanged.
 // =============================================================================
 
 export const CARD_TYPES = {
@@ -52,23 +48,16 @@ export const CARD_TYPE_META = {
     },
 };
 
-// =============================================================================
-// generateFlashcardsWithGemini
-//
-// Previously: called Gemini SDK directly using EXPO_PUBLIC_GEMINI_API_KEY.
-// Now:         calls POST /api/flashcards/generate on the Laravel backend.
-//              The backend owns the key, quota, and model selection.
-// =============================================================================
-
 /**
- * Generate flashcards from document text via the backend proxy.
+ * Generate flashcards from document text via POST /api/flashcards/generate.
+ * The backend owns the AI provider key, quota, and model selection.
  *
  * @param {string}   documentText   Raw extracted text from the uploaded document.
  * @param {number}   numberOfCards  How many cards to generate (1–60).
  * @param {string[]} cardTypes      Array of CARD_TYPES values.
  * @returns {Promise<Array>}        Normalised flashcard objects.
  */
-export const generateFlashcardsWithGemini = async (
+export const generateFlashcards = async (
     documentText,
     numberOfCards = 20,
     cardTypes     = [CARD_TYPES.MIXED],
@@ -103,22 +92,15 @@ export const generateFlashcardsWithGemini = async (
     }
 };
 
-// =============================================================================
-// checkAnswerWithGemini
-//
-// Previously: called Gemini SDK directly.
-// Now:         calls POST /api/flashcards/check-answer on the Laravel backend.
-// =============================================================================
-
 /**
- * Evaluate a student's answer against the correct answer via the backend.
+ * Evaluate a student's answer via POST /api/flashcards/check-answer.
  *
  * @param {string} question       The original flashcard question.
  * @param {string} correctAnswer  The expected correct answer.
  * @param {string} studentAnswer  The student's submitted answer.
  * @returns {Promise<{ correct: boolean, feedback: string }>}
  */
-export const checkAnswerWithGemini = async (question, correctAnswer, studentAnswer) => {
+export const checkAnswer = async (question, correctAnswer, studentAnswer) => {
     if (!question || !correctAnswer || !studentAnswer?.trim()) {
         throw new Error('All fields are required to check an answer.');
     }

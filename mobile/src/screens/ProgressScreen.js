@@ -6,8 +6,8 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-chart-kit';
-import { useDecks } from '../DeckContext';
-import { useTheme } from '../ThemeContext';
+import { useDecks } from '../contexts/DeckContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width;
 

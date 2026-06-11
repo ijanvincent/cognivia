@@ -6,13 +6,13 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useDecks } from '../DeckContext';
-import { useTheme } from '../ThemeContext';
+import { useDecks } from '../contexts/DeckContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
-    generateFlashcardsWithGemini,
+    generateFlashcards,
     CARD_TYPES,
     CARD_TYPE_META,
-} from '../services/geminiService';
+} from '../services/flashcardService';
 import { pickDocument, parseDocument } from '../services/documentParser';
 import api from '../services/api';
 
@@ -204,7 +204,7 @@ const GenerateScreen = () => {
         try {
             setLoadingMessage('AI is analyzing your document...');
 
-            const flashcards = await generateFlashcardsWithGemini(
+            const flashcards = await generateFlashcards(
                 fileContent,
                 numberOfCards,
                 selectedTypes,
