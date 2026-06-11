@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, StatusBar, Easing } from 'react-native';
+import { StyleSheet, Animated, StatusBar, Easing } from 'react-native';
+import { COLORS } from '../theme/theme';
 
 export default function Splash({ navigation }) {
     const opacity    = useRef(new Animated.Value(0)).current;
@@ -36,7 +37,7 @@ export default function Splash({ navigation }) {
 
     return (
         <Animated.View style={[styles.container, { opacity: exitOpacity }]}>
-            <StatusBar barStyle="light-content" backgroundColor="#07080f" />
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
             <Animated.Image
                 source={require('../../assets/icon.png')}
                 style={[styles.logo, { opacity, transform: [{ scale }] }]}
@@ -47,6 +48,6 @@ export default function Splash({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#07080f', alignItems: 'center', justifyContent: 'center' },
+    container: { flex: 1, backgroundColor: COLORS.bg, alignItems: 'center', justifyContent: 'center' },
     logo:      { width: 160, height: 160 },
 });
