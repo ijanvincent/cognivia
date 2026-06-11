@@ -8,8 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
-import { useDecks } from '../DeckContext';
-import { useTheme } from '../ThemeContext';
+import { useDecks } from '../contexts/DeckContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { getEcho, disconnectEcho } from '../services/echoService';
 
 const ProgressBar = ({ progress, color, themeColors }) => (

@@ -9,8 +9,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
-import { useTheme } from '../ThemeContext';
-import { useDecks } from '../DeckContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useDecks } from '../contexts/DeckContext';
 import api from '../services/api';
 
 const ProfileScreen = () => {

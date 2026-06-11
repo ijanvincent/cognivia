@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';     
-import api from './services/api';
+import api from '../services/api';
 
 export const DeckContext = createContext({
     decks: [],

@@ -38,7 +38,7 @@ export default function Splash({ navigation }) {
         <Animated.View style={[styles.container, { opacity: exitOpacity }]}>
             <StatusBar barStyle="light-content" backgroundColor="#07080f" />
             <Animated.Image
-                source={require('../assets/icon.png')}
+                source={require('../../assets/icon.png')}
                 style={[styles.logo, { opacity, transform: [{ scale }] }]}
                 resizeMode="contain"
             />

@@ -11,13 +11,13 @@ import {
     View,
 } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { useTheme } from './ThemeContext';
-import DashboardScreen from './screens/DashboardScreen';
-import GenerateScreen from './screens/GenerateScreen';
-import ProgressScreen from './screens/ProgressScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import api from './services/api';
-import { getEcho } from './services/echoService';
+import { useTheme } from '../contexts/ThemeContext';
+import DashboardScreen from '../screens/DashboardScreen';
+import GenerateScreen from '../screens/GenerateScreen';
+import ProgressScreen from '../screens/ProgressScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import api from '../services/api';
+import { getEcho } from '../services/echoService';
 
 const Tab = createBottomTabNavigator();
 const APPROVAL_TTL_SECONDS = 60;

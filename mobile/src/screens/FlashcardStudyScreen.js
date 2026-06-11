@@ -5,8 +5,8 @@ import {
     Platform, ScrollView, StatusBar, Vibration,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '../ThemeContext';
-import { checkAnswerWithGemini } from '../services/geminiService';
+import { useTheme } from '../contexts/ThemeContext';
+import { checkAnswer } from '../services/flashcardService';
 import api from '../services/api';
 
 // ---------------------------------------------------------------------------
@@ -659,7 +659,7 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
         setIsChecking(true);
         try {
             const card       = flashcards[currentIndex];
-            const evaluation = await checkAnswerWithGemini(
+            const evaluation = await checkAnswer(
                 card.question,
                 card.answer,
                 userAnswer,

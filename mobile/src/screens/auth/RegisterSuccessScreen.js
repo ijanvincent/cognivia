@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
-import { COLORS } from '../components/AuthInput';
+import { COLORS } from '../../theme/theme';
 
 const { height: H } = Dimensions.get('window');
 
