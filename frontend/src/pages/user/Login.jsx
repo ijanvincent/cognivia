@@ -422,9 +422,15 @@ function UserLogin() {
             </p>
             <p className={styles.toastBody}>{errors.general}</p>
             <div className={styles.toastDivider}></div>
-            <span className={styles.toastHint}>
-              {autoDismissGeneralError ? 'You can try again when ready' : 'Please review the message and try again'}
-            </span>
+            {!errors.general.toLowerCase().includes('too many') && (
+              <button
+                onClick={() => setErrors({})}
+                className={styles.toastHintLink}
+                style={{ background: 'none', border: 'none', color: 'var(--cyan)', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
+              >
+                Try again
+              </button>
+            )}
           </div>
         </div>
       )}
