@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '../contexts/ThemeContext';
+import { radius, spacing, typography } from '../theme/theme';
 import DashboardScreen from '../screens/DashboardScreen';
 import GenerateScreen from '../screens/GenerateScreen';
 import ProgressScreen from '../screens/ProgressScreen';
@@ -143,54 +144,66 @@ function TabNavigator() {
             >
                 <View style={styles.scrim}>
                     <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <View style={[styles.iconCircle, { borderColor: colors.primary, backgroundColor: `${colors.primary}1A` }]}>
+                        <View style={[styles.iconCircle, { borderColor: colors.primary, backgroundColor: colors.primarySoft }]}>
                             <MaterialCommunityIcons name="shield-account-outline" size={28} color={colors.primary} />
                         </View>
 
                         <Text style={[styles.modalTitle, { color: colors.text }]}>New Sign-In Request</Text>
                         <Text style={[styles.modalBody, { color: colors.subtext }]}>
                             Someone is trying to sign in to your account from a{' '}
-                            <Text style={{ color: colors.text, fontWeight: '700' }}>
+                            <Text style={{ color: colors.text, fontWeight: typography.weight.bold }}>
                                 {incomingRequest?.requestingPlatform === 'web' ? 'web browser' : 'mobile device'}
                             </Text>
                             . Is this you?
                         </Text>
 
                         {!!actionError && (
-                            <Text style={styles.errorText}>{actionError}</Text>
+                            <Text style={[styles.errorText, { color: colors.danger }]}>{actionError}</Text>
                         )}
 
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
                         <View style={styles.actions}>
                             <TouchableOpacity
-                                style={[styles.denyButton, isActioning && styles.disabledButton]}
+                                style={[
+                                    styles.actionButton,
+                                    { borderColor: colors.danger, backgroundColor: colors.dangerSoft },
+                                    isActioning && styles.disabledButton,
+                                ]}
                                 onPress={() => respondToLoginRequest('deny')}
                                 disabled={isActioning}
                                 activeOpacity={0.82}
+                                accessibilityRole="button"
+                                accessibilityLabel="Deny sign-in request"
                             >
                                 {isActioning ? (
-                                    <ActivityIndicator size="small" color="#f87171" />
+                                    <ActivityIndicator size="small" color={colors.danger} />
                                 ) : (
                                     <>
-                                        <MaterialCommunityIcons name="close" size={16} color="#f87171" />
-                                        <Text style={styles.denyText}>Deny</Text>
+                                        <MaterialCommunityIcons name="close" size={16} color={colors.danger} />
+                                        <Text style={[styles.actionText, { color: colors.danger }]}>Deny</Text>
                                     </>
                                 )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={[styles.allowButton, isActioning && styles.disabledButton]}
+                                style={[
+                                    styles.actionButton,
+                                    { borderColor: colors.primary, backgroundColor: colors.primary },
+                                    isActioning && styles.disabledButton,
+                                ]}
                                 onPress={() => respondToLoginRequest('approve')}
                                 disabled={isActioning}
                                 activeOpacity={0.88}
+                                accessibilityRole="button"
+                                accessibilityLabel="Allow sign-in request"
                             >
                                 {isActioning ? (
-                                    <ActivityIndicator size="small" color="#07080f" />
+                                    <ActivityIndicator size="small" color={colors.onPrimary} />
                                 ) : (
                                     <>
-                                        <MaterialCommunityIcons name="check" size={16} color="#07080f" />
-                                        <Text style={styles.allowText}>Allow</Text>
+                                        <MaterialCommunityIcons name="check" size={16} color={colors.onPrimary} />
+                                        <Text style={[styles.actionText, { color: colors.onPrimary }]}>Allow</Text>
                                     </>
                                 )}
                             </TouchableOpacity>
@@ -257,14 +270,14 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 28,
-        backgroundColor: 'rgba(7,8,15,0.84)',
+        paddingHorizontal: spacing.xxl,
+        backgroundColor: 'rgba(11,17,32,0.84)',
     },
     modalCard: {
         width: '100%',
         borderWidth: 1,
-        borderRadius: 20,
-        padding: 24,
+        borderRadius: radius.xl,
+        padding: spacing.xxl,
         alignItems: 'center',
     },
     iconCircle: {
@@ -274,67 +287,48 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 16,
+        marginBottom: spacing.lg,
     },
     modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        marginBottom: 10,
+        fontSize: typography.size.heading,
+        fontWeight: typography.weight.bold,
+        marginBottom: spacing.sm,
         textAlign: 'center',
     },
     modalBody: {
-        fontSize: 14,
+        fontSize: typography.size.body - 1,
         lineHeight: 22,
         textAlign: 'center',
     },
     errorText: {
-        color: '#f87171',
-        fontSize: 13,
+        fontSize: typography.size.caption,
         lineHeight: 19,
-        marginTop: 12,
+        marginTop: spacing.md,
         textAlign: 'center',
     },
     divider: {
         width: '100%',
         height: 1,
-        marginVertical: 20,
+        marginVertical: spacing.xl,
     },
     actions: {
         flexDirection: 'row',
-        gap: 12,
+        gap: spacing.md,
         width: '100%',
     },
-    denyButton: {
+    actionButton: {
         flex: 1,
         height: 48,
-        borderRadius: 12,
+        borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: 'rgba(248,113,113,0.4)',
-        backgroundColor: 'rgba(248,113,113,0.08)',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
+        gap: spacing.xs,
     },
-    allowButton: {
-        flex: 1,
-        height: 48,
-        borderRadius: 12,
-        backgroundColor: '#ffffff',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-    },
-    denyText: {
-        color: '#f87171',
-        fontSize: 15,
-        fontWeight: '700',
-    },
-    allowText: {
-        color: '#07080f',
-        fontSize: 15,
-        fontWeight: '700',
+    actionText: {
+        fontSize: typography.size.body,
+        fontWeight: typography.weight.semibold,
     },
     disabledButton: {
         opacity: 0.65,
