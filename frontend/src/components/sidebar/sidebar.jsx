@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { AppSettings } from './../../config/app-settings.js';
@@ -7,8 +7,6 @@ import { slideToggle } from './../../composables/slideToggle.js';
 import SidebarNav from './sidebar-nav.jsx';
 
 function Sidebar() {
-	const context = useContext(AppSettings);
-	
 	useEffect(() => {
 		var handleSidebarMenuToggle = function(menus, expandTime) {
 			menus.map(function(menu) {

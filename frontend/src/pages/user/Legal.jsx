@@ -316,14 +316,14 @@ export default function Legal() {
         <span className={styles.footerBrand}>CogniVia</span>
         <span className={styles.footerCopy}>© {new Date().getFullYear()} CogniVia. All rights reserved.</span>
         <div className={styles.footerLinks}>
-          <a href="#" className={`${styles.footerLink} ${activeTab === 'privacy' ? styles.footerLinkActive : ''}`}
-            onClick={e => { e.preventDefault(); setActiveTab('privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+          <button type="button" className={`${styles.footerLink} ${activeTab === 'privacy' ? styles.footerLinkActive : ''}`}
+            onClick={() => { setActiveTab('privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             Privacy
-          </a>
-          <a href="#" className={`${styles.footerLink} ${activeTab === 'terms' ? styles.footerLinkActive : ''}`}
-            onClick={e => { e.preventDefault(); setActiveTab('terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+          </button>
+          <button type="button" className={`${styles.footerLink} ${activeTab === 'terms' ? styles.footerLinkActive : ''}`}
+            onClick={() => { setActiveTab('terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             Terms
-          </a>
+          </button>
           <Link to="/faq" className={styles.footerLink}>Contact</Link>
         </div>
       </footer>

@@ -43,15 +43,6 @@ function UserLogin() {
 
   useEffect(() => { formDataRef.current = formData; }, [formData]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      cleanupEcho();
-      clearInterval(countdownRef.current);
-      clearTimeout(generalErrorDismissRef.current);
-    };
-  }, []);
-
   const cleanupEcho = useCallback(() => {
     if (echoInstanceRef.current) {
       try {
@@ -62,12 +53,26 @@ function UserLogin() {
     disconnectEcho();
   }, []);
 
+  // Cleanup on unmount (cleanupEcho is a stable useCallback, so this still
+  // runs exactly once)
+  useEffect(() => {
+    return () => {
+      cleanupEcho();
+      clearInterval(countdownRef.current);
+      clearTimeout(generalErrorDismissRef.current);
+    };
+  }, [cleanupEcho]);
+
   // ── Countdown timer ────────────────────────────────────────────────────────
   // What: counts down secondsLeft in conflictState every second.
   // Why: shows the user how long they have to wait for a response, and
   //      auto-cancels when the window expires so the UI doesn't hang.
+  // Keyed on the conflict's userId (not the whole object) so the interval
+  // restarts only when a new approval gate opens — not on every 1s tick,
+  // which also mutates conflictState.
+  const conflictUserId = conflictState?.userId ?? null;
   useEffect(() => {
-    if (! conflictState) {
+    if (conflictUserId === null) {
       clearInterval(countdownRef.current);
       return;
     }
@@ -86,7 +91,7 @@ function UserLogin() {
     }, 1000);
 
     return () => clearInterval(countdownRef.current);
-  }, [conflictState?.userId, cleanupEcho]);
+  }, [conflictUserId, cleanupEcho]);
 
   // ── WebSocket subscription ─────────────────────────────────────────────────
   /**

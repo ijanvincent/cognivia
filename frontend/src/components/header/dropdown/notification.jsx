@@ -10,41 +10,46 @@ function DropdownNotification() {
     const seenIdsRef = useRef(null);
 
     useEffect(() => {
+        const fetchNotifications = async (isInitial) => {
+            try {
+                const response = await api.get('/admin/users');
+                const users = response.data.users || [];
+                if (isInitial) {
+                    seenIdsRef.current = new Set(users.map(u => u.id));
+                    setNotifications(users.slice(0, 5).map(u => ({
+                        id: u.id, username: u.username,
+                        email: u.email, created_at: u.created_at, isNew: false
+                    })));
+                } else {
+                    const newUsers = users.filter(u => !seenIdsRef.current.has(u.id));
+                    if (newUsers.length > 0) {
+                        newUsers.forEach(u => seenIdsRef.current.add(u.id));
+                        // Functional update: the interval closure never sees
+                        // fresh state, so deriving from the previous value is
+                        // the only way the running total stays correct.
+                        setUnreadCount(prev => {
+                            const next = prev + newUsers.length;
+                            localStorage.setItem('notif_unread', String(next));
+                            return next;
+                        });
+                        setNotifications(prev => [
+                            ...newUsers.map(u => ({
+                                id: u.id, username: u.username,
+                                email: u.email, created_at: u.created_at, isNew: true
+                            })),
+                            ...prev
+                        ].slice(0, 10));
+                    }
+                }
+            } catch (error) {
+                console.error('Notification error:', error);
+            }
+        };
+
         fetchNotifications(true);
         const interval = setInterval(() => fetchNotifications(false), 5000);
         return () => clearInterval(interval);
     }, []);
-
-    const fetchNotifications = async (isInitial) => {
-        try {
-            const response = await api.get('/admin/users');
-            const users = response.data.users || [];
-            if (isInitial) {
-                seenIdsRef.current = new Set(users.map(u => u.id));
-                setNotifications(users.slice(0, 5).map(u => ({
-                    id: u.id, username: u.username,
-                    email: u.email, created_at: u.created_at, isNew: false
-                })));
-            } else {
-                const newUsers = users.filter(u => !seenIdsRef.current.has(u.id));
-                if (newUsers.length > 0) {
-                    newUsers.forEach(u => seenIdsRef.current.add(u.id));
-                    const newCount = unreadCount + newUsers.length;
-                    setUnreadCount(newCount);
-                    localStorage.setItem('notif_unread', String(newCount));
-                    setNotifications(prev => [
-                        ...newUsers.map(u => ({
-                            id: u.id, username: u.username,
-                            email: u.email, created_at: u.created_at, isNew: true
-                        })),
-                        ...prev
-                    ].slice(0, 10));    
-                }
-            }
-        } catch (error) {
-            console.error('Notification error:', error);
-        }
-    };
 
     const getTimeAgo = (dateString) => {
         const diff = Math.floor((new Date() - new Date(dateString)) / 1000);

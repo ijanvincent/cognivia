@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import DropdownNotification from './dropdown/notification.jsx';
@@ -6,7 +6,6 @@ import DropdownProfile from './dropdown/profile.jsx';
 
 function Header() {
     const [searchOpen, setSearchOpen] = useState(false);
-    const context = useContext(AppSettings);
 
     return (
         <AppSettings.Consumer>

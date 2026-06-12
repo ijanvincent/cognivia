@@ -20,7 +20,6 @@ function AdminLogin() {
   const [errors, setErrors]               = useState({});
   const [loading, setLoading]             = useState(false);
   const [showPassword, setShowPassword]   = useState(false);
-  const [attempts, setAttempts]           = useState(0);
   const [locked, setLocked]               = useState(false);
   const [shakingFields, setShakingFields] = useState({});
 
@@ -36,6 +35,10 @@ function AdminLogin() {
       context.handleSetAppHeaderNone(false);
       context.handleSetAppContentClass('');
     };
+    // Mount/unmount layout chrome only. The AppSettings provider recreates
+    // its handlers every render, so depending on `context` would re-run
+    // this (and flicker the sidebar) on every unrelated settings change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const validateForm = () => {
@@ -89,13 +92,11 @@ function AdminLogin() {
       localStorage.setItem(STORAGE_KEYS.ADMIN_DATA,  JSON.stringify(adminUser));
 
       attemptsRef.current = 0;
-      setAttempts(0);
       setRedirect(true);
 
     } catch (err) {
       attemptsRef.current += 1;
       const currentAttempts = attemptsRef.current;
-      setAttempts(currentAttempts);
 
       if (err.response?.status === 429 || currentAttempts >= MAX_ATTEMPTS) {
         setLocked(true);
