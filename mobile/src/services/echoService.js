@@ -33,7 +33,7 @@
 
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js/react-native';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from './secureStorage';
 
 const PUSHER_KEY     = process.env.EXPO_PUBLIC_PUSHER_APP_KEY     || '';
 const PUSHER_HOST    = process.env.EXPO_PUBLIC_PUSHER_HOST        || '';

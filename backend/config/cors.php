@@ -5,6 +5,7 @@ return [
     'allowed_methods'          => ['*'],
     'allowed_origins'          => [
         'http://localhost:3001',
+        'http://localhost:8081', // Expo web preview of the mobile app
         'https://intercity-nonbibulously-brylee.ngrok-free.dev',
     ],
     'allowed_origins_patterns' => [

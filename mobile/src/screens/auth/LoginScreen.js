@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../../services/secureStorage';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '../../theme/theme';
 import api from '../../services/api';
@@ -757,7 +757,9 @@ const LoginScreen = () => {
                                         color={COLORS.error}
                                     />
                                 </View>
-                                <Text style={styles.errorAlertText}>{errors.general}</Text>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.errorAlertText}>{errors.general}</Text>
+                                </View>
                             </View>
                         )}
 

@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../services/secureStorage';
 import { useTheme } from '../contexts/ThemeContext';
 import { radius, spacing, typography } from '../theme/theme';
 import DashboardScreen from '../screens/DashboardScreen';
