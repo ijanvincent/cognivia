@@ -14,10 +14,10 @@ import api from '../../services/api';
 
 const { height: H } = Dimensions.get('window');
 
-const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://cognivia.com';
+const WEB_ORIGIN = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/api\/?$/, '');
 
 const openLegal = async (page) => {
-    const url = `${WEB_URL}/${page}`;
+    const url = `${WEB_ORIGIN}/${page}`;
     const supported = await Linking.canOpenURL(url);
     if (supported) {
         await Linking.openURL(url);
