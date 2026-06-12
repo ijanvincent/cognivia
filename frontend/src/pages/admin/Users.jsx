@@ -1,32 +1,17 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { Panel, PanelBody } from './../../components/panel/panel.jsx';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
-
-const AVATAR_PALETTE = [
-    '#4361ee','#7209b7','#f72585','#4cc9f0',
-    '#06d6a0','#fb8500','#ef476f','#3a0ca3',
-];
-
-function avatarColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
-}
-
-function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const days = Math.floor(diff / 86400000);
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 30) return `${days}d ago`;
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
+import {
+    PageHeader, Avatar, UserCell, PresenceDot, EmptyState, TableSkeleton,
+    timeAgo, fmtDate,
+} from './components/admin-ui.jsx';
 
 const MODAL_CONFIG = {
     delete: {
         title:        'Move to Trash',
-        iconClass:    'fa-trash',
+        iconClass:    'fa-trash-can',
         iconBg:       'bg-danger bg-opacity-10',
         iconColor:    'text-danger',
         body:         'This user will be soft-deleted and can be restored later.',
@@ -38,7 +23,7 @@ const MODAL_CONFIG = {
     },
     restore: {
         title:        'Restore User',
-        iconClass:    'fa-undo',
+        iconClass:    'fa-rotate-left',
         iconBg:       'bg-success bg-opacity-10',
         iconColor:    'text-success',
         body:         'This user will be restored and regain access to their account.',
@@ -50,7 +35,7 @@ const MODAL_CONFIG = {
     },
     force: {
         title:        'Permanently Delete',
-        iconClass:    'fa-exclamation-triangle',
+        iconClass:    'fa-triangle-exclamation',
         iconBg:       'bg-danger bg-opacity-10',
         iconColor:    'text-danger',
         body:         'This user will be permanently removed from the system.',
@@ -63,29 +48,6 @@ const MODAL_CONFIG = {
 };
 
 const USERS_PER_PAGE = 10;
-
-function SkeletonRows({ count = 8 }) {
-    return (
-        <div className="p-4">
-            {[...Array(count)].map((_, i) => (
-                <div key={i} className="d-flex align-items-center gap-3 mb-3">
-                    <div className="rounded-circle bg-secondary opacity-25 flex-shrink-0"
-                        style={{ width: '36px', height: '36px' }} />
-                    <div className="flex-grow-1">
-                        <div className="bg-secondary opacity-25 rounded mb-1"
-                            style={{ height: '11px', width: `${100 + i * 12}px` }} />
-                        <div className="bg-secondary opacity-10 rounded"
-                            style={{ height: '9px', width: `${160 + i * 8}px` }} />
-                    </div>
-                    <div className="bg-secondary opacity-10 rounded"
-                        style={{ height: '11px', width: '80px' }} />
-                    <div className="bg-secondary opacity-10 rounded"
-                        style={{ height: '30px', width: '100px' }} />
-                </div>
-            ))}
-        </div>
-    );
-}
 
 function AdminUsers() {
     const context = useContext(AppSettings);
@@ -111,6 +73,7 @@ function AdminUsers() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
+        // eslint-disable-next-line
     }, []);
 
     const fetchAll = async () => {
@@ -199,13 +162,13 @@ function AdminUsers() {
             setSortDir(d => d === 'asc' ? 'desc' : 'asc');
         } else {
             setSortField(field);
-            setSortDir('asc');
+            setSortDir(field === 'created_at' || field === 'last_active_at' ? 'desc' : 'asc');
         }
     };
 
     const sortIcon = (field) => {
-        if (sortField !== field) return <i className="fa fa-sort ms-1 opacity-25" />;
-        return <i className={`fa fa-sort-${sortDir === 'asc' ? 'up' : 'down'} ms-1 text-primary`} />;
+        if (sortField !== field) return <i className="fa-solid fa-sort ms-1 opacity-25" />;
+        return <i className={`fa-solid fa-sort-${sortDir === 'asc' ? 'up' : 'down'} ms-1 text-theme`} />;
     };
 
     const switchTab = (tab) => {
@@ -216,8 +179,8 @@ function AdminUsers() {
         setSortDir('desc');
     };
 
-    const sourceList  = activeTab === 'active' ? activeUsers : trashedUsers;
-    const dateField   = activeTab === 'active' ? 'created_at' : 'deleted_at';
+    const sourceList = activeTab === 'active' ? activeUsers : trashedUsers;
+    const dateField  = activeTab === 'active' ? 'created_at' : 'deleted_at';
 
     const filtered = sourceList
         .filter(u =>
@@ -226,10 +189,17 @@ function AdminUsers() {
         )
         .sort((a, b) => {
             const field = sortField === 'created_at' ? dateField : sortField;
-            let va = a[field] || '';
-            let vb = b[field] || '';
-            if (field === dateField) { va = new Date(va); vb = new Date(vb); }
-            else { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+            let va = a[field];
+            let vb = b[field];
+            if (field === dateField || field === 'last_active_at') {
+                va = va ? new Date(va).getTime() : 0;
+                vb = vb ? new Date(vb).getTime() : 0;
+            } else if (typeof va === 'string') {
+                va = va.toLowerCase(); vb = (vb || '').toLowerCase();
+            } else {
+                va = va || 0; vb = vb || 0;
+            }
+            if (va === vb) return 0;
             return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
         });
 
@@ -242,14 +212,17 @@ function AdminUsers() {
     const modal = confirmModal ? MODAL_CONFIG[confirmModal.action] : null;
 
     const exportCSV = () => {
-        const rows = [['#', 'Username', 'Email', activeTab === 'active' ? 'Registered' : 'Deleted']];
+        const rows = [['#', 'Username', 'Email', 'Decks', 'Cards', 'Last Active', activeTab === 'active' ? 'Registered' : 'Deleted']];
         filtered.forEach((u, i) => {
             const dateVal = activeTab === 'active' ? u.created_at : u.deleted_at;
             rows.push([
                 i + 1,
                 u.username,
                 u.email,
-                new Date(dateVal).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+                u.decks_count ?? 0,
+                u.flashcards_count ?? 0,
+                u.last_active_at ? fmtDate(u.last_active_at) : 'Never',
+                fmtDate(dateVal),
             ]);
         });
         const csv = rows.map(r => r.join(',')).join('\n');
@@ -264,34 +237,26 @@ function AdminUsers() {
 
     return (
         <div>
-            {/* ── Toast ── */}
+            {/* Toast */}
             {toast && (
-                <div style={{
-                    position: 'fixed', top: '72px', right: '20px',
-                    zIndex: 9999, minWidth: '320px',
-                }}>
-                    <div className={`alert mb-0 d-flex align-items-center border-0 shadow-lg ${toast.type === 'success' ? 'alert-success' : 'alert-danger'}`}
-                        style={{
-                            borderRadius: '12px',
-                            borderLeft: `4px solid ${toast.type === 'success' ? '#00d96f' : '#ff4757'}`,
-                        }}>
-                        <i className={`fa ${toast.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2 fa-lg`}></i>
+                <div style={{ position: 'fixed', top: 72, right: 20, zIndex: 9999, minWidth: 320 }}>
+                    <div className={`alert mb-0 d-flex align-items-center shadow ${toast.type === 'success' ? 'alert-success' : 'alert-danger'}`}>
+                        <i className={`fa-solid ${toast.type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2`}></i>
                         <span className="fw-semibold">{toast.message}</span>
                     </div>
                 </div>
             )}
 
-            {/* ── Confirm Modal ── */}
+            {/* Confirm modal */}
             {confirmModal && modal && (
-                <div className="modal fade show d-block"
-                    style={{ background: 'rgba(0,0,0,0.5)', zIndex: 9998, backdropFilter: 'blur(3px)' }}>
+                <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 9998 }}>
                     <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+                        <div className="modal-content">
                             <div className="modal-header border-0 pb-0 pt-4 px-4">
                                 <div className="d-flex align-items-center gap-3">
                                     <div className={`rounded-3 ${modal.iconBg} d-flex align-items-center justify-content-center`}
-                                        style={{ width: '48px', height: '48px' }}>
-                                        <i className={`fa ${modal.iconClass} ${modal.iconColor} fa-lg`}></i>
+                                        style={{ width: 44, height: 44 }}>
+                                        <i className={`fa-solid ${modal.iconClass} ${modal.iconColor}`}></i>
                                     </div>
                                     <div>
                                         <h5 className="modal-title fw-bold mb-0">{modal.title}</h5>
@@ -301,33 +266,24 @@ function AdminUsers() {
                             </div>
                             <div className="modal-body px-4">
                                 <p className="text-muted mb-3">{modal.body}</p>
-                                <div className="d-flex align-items-center p-3 rounded-3 border"
-                                    style={{ background: '#f8f9fa' }}>
-                                    <div className="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold me-3"
-                                        style={{
-                                            width: '44px', height: '44px', minWidth: '44px',
-                                            background: activeTab === 'trashed' ? '#9e9e9e' : avatarColor(confirmModal.username),
-                                            fontSize: '17px',
-                                        }}>
-                                        {confirmModal.username.charAt(0).toUpperCase()}
-                                    </div>
+                                <div className="d-flex align-items-center gap-3 p-3 rounded-3 border bg-light">
+                                    <Avatar name={confirmModal.username} size={40} muted={activeTab === 'trashed'} />
                                     <div>
                                         <div className="fw-semibold">{confirmModal.username}</div>
                                         <small className="text-muted">{confirmModal.email}</small>
                                     </div>
                                 </div>
                                 <div className={`d-flex align-items-center gap-2 mt-3 p-2 rounded-2 border ${modal.warningClass}`}>
-                                    <i className={`fa fa-info-circle ${modal.warningIcon} flex-shrink-0`}></i>
+                                    <i className={`fa-solid fa-circle-info ${modal.warningIcon} flex-shrink-0`}></i>
                                     <small className={`${modal.warningIcon} fw-semibold`}>{modal.warningText}</small>
                                 </div>
                             </div>
                             <div className="modal-footer border-0 pt-0 px-4 pb-4 gap-2">
-                                <button className="btn btn-outline-secondary rounded-3 px-4"
-                                    onClick={() => setConfirmModal(null)}>
+                                <button className="btn btn-default" onClick={() => setConfirmModal(null)}>
                                     Cancel
                                 </button>
-                                <button className={`btn ${modal.confirmClass} rounded-3 px-4`} onClick={handleConfirm}>
-                                    <i className={`fa ${modal.iconClass} me-2`}></i>
+                                <button className={`btn ${modal.confirmClass}`} onClick={handleConfirm}>
+                                    <i className={`fa-solid ${modal.iconClass} me-2`}></i>
                                     {modal.confirmText}
                                 </button>
                             </div>
@@ -336,224 +292,188 @@ function AdminUsers() {
                 </div>
             )}
 
-            {/* ── Page Header ── */}
-            <div className="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
-                <div>
-                    <ol className="breadcrumb mb-1 small">
-                        <li className="breadcrumb-item"><Link to="/admin/dashboard">Home</Link></li>
-                        <li className="breadcrumb-item active">User Management</li>
-                    </ol>
-                    <h1 className="page-header mb-0">User Management</h1>
-                    <p className="text-muted mb-0 small">
+            <PageHeader
+                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Users' }]}
+                title="Users"
+                subtitle={
+                    <>
                         <span className="me-3">
-                            <i className="fa fa-users me-1 text-primary"></i>
-                            <strong>{activeUsers.length}</strong> active
+                            <strong className="text-body">{activeUsers.length}</strong> active
                         </span>
                         {trashedUsers.length > 0 && (
-                            <span>
-                                <i className="fa fa-trash me-1 text-danger"></i>
-                                <strong>{trashedUsers.length}</strong> in trash
-                            </span>
+                            <span><strong className="text-body">{trashedUsers.length}</strong> in trash</span>
                         )}
-                    </p>
-                </div>
-                <Link to="/admin/users/analytics" className="btn btn-outline-primary btn-sm rounded-3 px-3">
-                    <i className="fa fa-chart-bar me-2"></i>User Analytics
+                    </>
+                }
+            >
+                <Link to="/admin/activity" className="btn btn-default btn-sm">
+                    <i className="fa-solid fa-wave-square me-2"></i>Activity
                 </Link>
-            </div>
+                <Link to="/admin/users/analytics" className="btn btn-default btn-sm">
+                    <i className="fa-solid fa-chart-line me-2"></i>Analytics
+                </Link>
+            </PageHeader>
 
-            {/* ── Main Panel ── */}
-            <div className="panel panel-inverse">
-                {/* Panel Header — Tabs + Controls */}
-                <div className="panel-heading">
-                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                        {/* Tabs */}
-                        <div className="d-flex align-items-center gap-2">
-                            <button
-                                className={`btn btn-sm rounded-3 px-3 ${activeTab === 'active' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                                onClick={() => switchTab('active')}
-                            >
-                                <i className="fa fa-users me-2"></i>
-                                All Users
-                                <span className={`badge ms-2 rounded-pill ${activeTab === 'active' ? 'bg-white text-primary' : 'bg-secondary'}`}>
-                                    {activeUsers.length}
-                                </span>
+            <Panel className="mb-0">
+                <PanelBody className="p-0">
+                    {/* Tabs + controls */}
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom">
+                        <div className="d-flex align-items-center gap-1">
+                            <button type="button"
+                                className={`btn btn-sm ${activeTab === 'active' ? 'btn-theme' : 'btn-default'}`}
+                                onClick={() => switchTab('active')}>
+                                All users
+                                <span className="badge bg-dark bg-opacity-25 ms-2">{activeUsers.length}</span>
                             </button>
-                            <button
-                                className={`btn btn-sm rounded-3 px-3 ${activeTab === 'trashed' ? 'btn-danger' : 'btn-outline-danger'}`}
-                                onClick={() => switchTab('trashed')}
-                            >
-                                <i className="fa fa-trash me-2"></i>
+                            <button type="button"
+                                className={`btn btn-sm ${activeTab === 'trashed' ? 'btn-danger' : 'btn-default'}`}
+                                onClick={() => switchTab('trashed')}>
                                 Trash
                                 {trashedUsers.length > 0 && (
-                                    <span className={`badge ms-2 rounded-pill ${activeTab === 'trashed' ? 'bg-white text-danger' : 'bg-danger'}`}>
-                                        {trashedUsers.length}
-                                    </span>
+                                    <span className="badge bg-dark bg-opacity-25 ms-2">{trashedUsers.length}</span>
                                 )}
                             </button>
                         </div>
 
-                        {/* Search + Export */}
                         <div className="d-flex align-items-center gap-2">
-                            <div className="input-group input-group-sm" style={{ width: '260px' }}>
-                                <span className="input-group-text bg-transparent">
-                                    <i className="fa fa-search text-muted"></i>
+                            <div className="input-group input-group-sm" style={{ width: 260 }}>
+                                <span className="input-group-text">
+                                    <i className="fa-solid fa-magnifying-glass text-muted"></i>
                                 </span>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Search username or email..."
+                                <input type="text" className="form-control"
+                                    placeholder="Search username or email…"
                                     value={search}
-                                    onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                                />
+                                    onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
                                 {search && (
-                                    <button className="btn btn-outline-secondary" type="button"
+                                    <button className="btn btn-default" type="button"
                                         onClick={() => { setSearch(''); setCurrentPage(1); }}>
-                                        <i className="fa fa-times"></i>
+                                        <i className="fa-solid fa-xmark"></i>
                                     </button>
                                 )}
                             </div>
                             {!loading && filtered.length > 0 && (
-                                <button className="btn btn-outline-secondary btn-sm rounded-3 px-3"
-                                    onClick={exportCSV} title="Export to CSV">
-                                    <i className="fa fa-download me-1"></i>CSV
+                                <button className="btn btn-default btn-sm" onClick={exportCSV} title="Export to CSV">
+                                    <i className="fa-solid fa-download me-1"></i>CSV
                                 </button>
                             )}
                         </div>
                     </div>
-                </div>
 
-                {/* Panel Body */}
-                <div className="panel-body p-0">
-                    {loading ? (
-                        <SkeletonRows count={8} />
-                    ) : filtered.length === 0 ? (
-                        <div className="text-center py-5 text-muted">
-                            <div className="mb-3 opacity-25" style={{ fontSize: '52px' }}>
-                                <i className={`fa ${activeTab === 'trashed' ? 'fa-trash' : 'fa-users'}`}></i>
-                            </div>
-                            <div className="fw-semibold fs-6">
-                                {search
-                                    ? `No results for "${search}"`
-                                    : activeTab === 'trashed'
-                                        ? 'Trash is empty'
-                                        : 'No users registered yet'
-                                }
-                            </div>
+                    {/* Table */}
+                    {!loading && filtered.length === 0 ? (
+                        <EmptyState
+                            icon={activeTab === 'trashed' ? 'fa-trash-can' : 'fa-users'}
+                            title={search ? `No results for “${search}”`
+                                : activeTab === 'trashed' ? 'Trash is empty' : 'No users registered yet'}
+                        >
                             {search && (
-                                <button className="btn btn-sm btn-outline-secondary mt-2 rounded-3"
+                                <button className="btn btn-sm btn-default"
                                     onClick={() => { setSearch(''); setCurrentPage(1); }}>
                                     Clear search
                                 </button>
                             )}
-                        </div>
+                        </EmptyState>
                     ) : (
                         <>
                             <div className="table-responsive">
                                 <table className="table table-hover mb-0 align-middle">
-                                    <thead className="border-bottom" style={{ background: 'rgba(0,0,0,0.025)' }}>
+                                    <thead>
                                         <tr>
-                                            <th className="ps-4 py-3 fw-semibold text-muted small border-0" width="50">#</th>
-                                            <th className="py-3 fw-semibold text-muted small border-0"
-                                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                                            <th className="ps-4 small text-muted fw-semibold" style={{ width: 44 }}>#</th>
+                                            <th className="small text-muted fw-semibold" style={{ cursor: 'pointer', userSelect: 'none' }}
                                                 onClick={() => handleSort('username')}>
                                                 User {sortIcon('username')}
                                             </th>
-                                            <th className="py-3 fw-semibold text-muted small border-0"
-                                                style={{ cursor: 'pointer', userSelect: 'none' }}
-                                                onClick={() => handleSort('email')}>
-                                                Email {sortIcon('email')}
+                                            <th className="small text-muted fw-semibold" style={{ cursor: 'pointer', userSelect: 'none' }}
+                                                onClick={() => handleSort('decks_count')}>
+                                                Decks {sortIcon('decks_count')}
                                             </th>
-                                            <th className="py-3 fw-semibold text-muted small border-0"
-                                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                                            <th className="small text-muted fw-semibold" style={{ cursor: 'pointer', userSelect: 'none' }}
+                                                onClick={() => handleSort('flashcards_count')}>
+                                                Cards {sortIcon('flashcards_count')}
+                                            </th>
+                                            {activeTab === 'active' && (
+                                                <th className="small text-muted fw-semibold" style={{ cursor: 'pointer', userSelect: 'none' }}
+                                                    onClick={() => handleSort('last_active_at')}>
+                                                    Last active {sortIcon('last_active_at')}
+                                                </th>
+                                            )}
+                                            <th className="small text-muted fw-semibold" style={{ cursor: 'pointer', userSelect: 'none' }}
                                                 onClick={() => handleSort('created_at')}>
                                                 {activeTab === 'trashed' ? 'Deleted' : 'Joined'} {sortIcon('created_at')}
                                             </th>
-                                            <th className="py-3 fw-semibold text-muted small border-0 text-end pe-4" width="180">
+                                            <th className="small text-muted fw-semibold text-end pe-4" style={{ width: 190 }}>
                                                 Actions
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {paginated.map((user, index) => (
-                                            <tr key={user.id} style={{
-                                                opacity: actionId === user.id ? 0.4 : 1,
-                                                transition: 'opacity 0.3s ease',
-                                            }}>
-                                                <td className="ps-4 text-muted small">
-                                                    {(currentPage - 1) * USERS_PER_PAGE + index + 1}
-                                                </td>
-                                                <td>
-                                                    <div className="d-flex align-items-center gap-2">
-                                                        <div className="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                                                            style={{
-                                                                width: '36px', height: '36px',
-                                                                background: activeTab === 'trashed' ? '#9e9e9e' : avatarColor(user.username),
-                                                                fontSize: '14px',
-                                                            }}>
-                                                            {user.username.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <span className={`fw-semibold ${activeTab === 'trashed' ? 'text-muted' : ''}`}>
-                                                            {user.username}
-                                                        </span>
-                                                        {activeTab === 'trashed' && (
-                                                            <span className="badge bg-danger bg-opacity-10 text-danger rounded-pill small">
-                                                                deleted
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="text-muted small">{user.email}</td>
-                                                <td>
-                                                    <span className="text-muted small d-block">
-                                                        {timeAgo(activeTab === 'trashed' ? user.deleted_at : user.created_at)}
-                                                    </span>
-                                                    <span className="text-muted" style={{ fontSize: '11px', opacity: 0.6 }}>
-                                                        {new Date(activeTab === 'trashed' ? user.deleted_at : user.created_at)
-                                                            .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </span>
-                                                </td>
-                                                <td className="text-end pe-4">
-                                                    {actionId === user.id ? (
-                                                        <button className="btn btn-secondary btn-sm rounded-3 px-3" disabled>
-                                                            <span className="spinner-border spinner-border-sm me-1" />
-                                                            Processing
-                                                        </button>
-                                                    ) : activeTab === 'active' ? (
-                                                        <button
-                                                            className="btn btn-outline-danger btn-sm rounded-3 px-3"
-                                                            onClick={() => confirmDelete(user)}
-                                                            title="Move to trash"
-                                                        >
-                                                            <i className="fa fa-trash me-1"></i>Delete
-                                                        </button>
-                                                    ) : (
-                                                        <div className="d-flex justify-content-end gap-1">
-                                                            <button
-                                                                className="btn btn-outline-success btn-sm rounded-3 px-3"
-                                                                onClick={() => confirmRestore(user)}
-                                                                title="Restore user"
-                                                            >
-                                                                <i className="fa fa-undo me-1"></i>Restore
-                                                            </button>
-                                                            <button
-                                                                className="btn btn-outline-danger btn-sm rounded-2"
-                                                                onClick={() => confirmForceDelete(user)}
-                                                                title="Permanently delete"
-                                                            >
-                                                                <i className="fa fa-times"></i>
-                                                            </button>
-                                                        </div>
+                                    {loading ? (
+                                        <TableSkeleton rows={8} cols={activeTab === 'active' ? 7 : 6} />
+                                    ) : (
+                                        <tbody>
+                                            {paginated.map((user, index) => (
+                                                <tr key={user.id} style={{
+                                                    opacity: actionId === user.id ? 0.4 : 1,
+                                                    transition: 'opacity 0.3s ease',
+                                                }}>
+                                                    <td className="ps-4 text-muted small">
+                                                        {(currentPage - 1) * USERS_PER_PAGE + index + 1}
+                                                    </td>
+                                                    <td>
+                                                        <UserCell user={user} deleted={activeTab === 'trashed'} link={activeTab === 'active'} />
+                                                    </td>
+                                                    <td style={{ fontSize: '13px' }}>{user.decks_count ?? 0}</td>
+                                                    <td style={{ fontSize: '13px' }}>{user.flashcards_count ?? 0}</td>
+                                                    {activeTab === 'active' && (
+                                                        <td><PresenceDot lastActive={user.last_active_at} /></td>
                                                     )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
+                                                    <td>
+                                                        <span className="d-block" style={{ fontSize: '12px' }}>
+                                                            {timeAgo(activeTab === 'trashed' ? user.deleted_at : user.created_at)}
+                                                        </span>
+                                                        <span className="text-muted" style={{ fontSize: '11px' }}>
+                                                            {fmtDate(activeTab === 'trashed' ? user.deleted_at : user.created_at)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="text-end pe-4">
+                                                        {actionId === user.id ? (
+                                                            <button className="btn btn-default btn-sm" disabled>
+                                                                <span className="spinner-border spinner-border-sm me-1" />
+                                                                Processing
+                                                            </button>
+                                                        ) : activeTab === 'active' ? (
+                                                            <div className="d-inline-flex gap-1">
+                                                                <Link to={`/admin/users/${user.id}`}
+                                                                    className="btn btn-default btn-sm" title="View profile & activity">
+                                                                    <i className="fa-solid fa-eye me-1"></i>View
+                                                                </Link>
+                                                                <button className="btn btn-default btn-sm text-danger"
+                                                                    onClick={() => confirmDelete(user)} title="Move to trash">
+                                                                    <i className="fa-solid fa-trash-can"></i>
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="d-inline-flex gap-1">
+                                                                <button className="btn btn-default btn-sm"
+                                                                    onClick={() => confirmRestore(user)} title="Restore user">
+                                                                    <i className="fa-solid fa-rotate-left me-1"></i>Restore
+                                                                </button>
+                                                                <button className="btn btn-default btn-sm text-danger"
+                                                                    onClick={() => confirmForceDelete(user)} title="Permanently delete">
+                                                                    <i className="fa-solid fa-xmark"></i>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    )}
                                 </table>
                             </div>
 
-                            {/* Footer — Pagination */}
-                            {(totalPages > 1 || filtered.length > 0) && (
+                            {/* Pagination */}
+                            {!loading && (totalPages > 1 || filtered.length > 0) && (
                                 <div className="d-flex align-items-center justify-content-between px-4 py-3 border-top">
                                     <small className="text-muted">
                                         Showing{' '}
@@ -564,9 +484,8 @@ function AdminUsers() {
                                     {totalPages > 1 && (
                                         <ul className="pagination pagination-sm mb-0">
                                             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                                <button className="page-link rounded-start-2"
-                                                    onClick={() => setCurrentPage(p => p - 1)}>
-                                                    <i className="fa fa-chevron-left"></i>
+                                                <button className="page-link" onClick={() => setCurrentPage(p => p - 1)}>
+                                                    <i className="fa-solid fa-chevron-left"></i>
                                                 </button>
                                             </li>
                                             {[...Array(totalPages)].map((_, i) => {
@@ -585,17 +504,15 @@ function AdminUsers() {
                                                 }
                                                 return (
                                                     <li key={i} className={`page-item ${currentPage === page ? 'active' : ''}`}>
-                                                        <button className="page-link"
-                                                            onClick={() => setCurrentPage(page)}>
+                                                        <button className="page-link" onClick={() => setCurrentPage(page)}>
                                                             {page}
                                                         </button>
                                                     </li>
                                                 );
                                             })}
                                             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                                <button className="page-link rounded-end-2"
-                                                    onClick={() => setCurrentPage(p => p + 1)}>
-                                                    <i className="fa fa-chevron-right"></i>
+                                                <button className="page-link" onClick={() => setCurrentPage(p => p + 1)}>
+                                                    <i className="fa-solid fa-chevron-right"></i>
                                                 </button>
                                             </li>
                                         </ul>
@@ -604,8 +521,8 @@ function AdminUsers() {
                             )}
                         </>
                     )}
-                </div>
-            </div>
+                </PanelBody>
+            </Panel>
         </div>
     );
 }

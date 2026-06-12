@@ -7,7 +7,9 @@ import PrivateRoute from './private-route.jsx';
 import AdminPrivateRoute from './private-route-admin.jsx';
 
 import AdminDashboard from './../pages/admin/Dashboard.jsx';
+import AdminActivity from './../pages/admin/Activity.jsx';
 import AdminUsers from './../pages/admin/Users.jsx';
+import AdminUserDetail from './../pages/admin/UserDetail.jsx';
 import AdminUsersAnalytics from './../pages/admin/UsersAnalytics.jsx';
 import AdminLogin from './../pages/admin/Login.jsx';
 import AdminDecks from './../pages/admin/decks.js';
@@ -127,8 +129,10 @@ const AppRoute = [
       { path: 'admin',                 element: <Navigate to='/admin/login' replace /> },
       { path: 'admin/login',           element: <AdminLogin /> },
       { path: 'admin/dashboard',        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute> },
+      { path: 'admin/activity',         element: <AdminPrivateRoute><AdminActivity /></AdminPrivateRoute> },
       { path: 'admin/users',            element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute> },
       { path: 'admin/users/analytics',  element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute> },
+      { path: 'admin/users/:id',        element: <AdminPrivateRoute><AdminUserDetail /></AdminPrivateRoute> },
       { path: 'admin/decks',            element: <AdminPrivateRoute><AdminDecks /></AdminPrivateRoute> },
       { path: 'admin/login-approvals',  element: <AdminPrivateRoute><AdminLoginApprovals /></AdminPrivateRoute> },
       { path: 'email/*', element: <Outlet />, children: [

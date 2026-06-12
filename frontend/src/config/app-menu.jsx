@@ -1,37 +1,34 @@
-import React from 'react';
-
 const Menu = [
-    // ── APP INTERFACE ──────────────────────────────────────────────────────
-    { is_header: true, title: 'App Interface' },
+    // ── OVERVIEW ───────────────────────────────────────────────────────────
+    { is_header: true, title: 'Overview' },
     {
         path: '/admin/dashboard',
-        icon: 'fa fa-home',
+        icon: 'fa fa-gauge-high',
         title: 'Dashboard',
     },
     {
+        path: '/admin/activity',
+        icon: 'fa fa-wave-square',
+        title: 'Activity',
+    },
+    {
         path: '/admin/users/analytics',
-        icon: 'fa fa-chart-bar',
+        icon: 'fa fa-chart-line',
         title: 'Analytics',
     },
 
-    // ── USER MANAGEMENT ────────────────────────────────────────────────────
-    { is_header: true, title: 'User Management' },
+    // ── MANAGEMENT ─────────────────────────────────────────────────────────
+    { is_header: true, title: 'Management' },
     {
+        path: '/admin/users',
         icon: 'fa fa-users',
         title: 'Users',
-        children: [
-            { path: '/admin/users',           title: 'All Users' },
-            { path: '/admin/users/trashed',   title: 'Trashed Users' },
-        ],
     },
     {
         path: '/admin/login-approvals',
-        icon: 'fa fa-shield-alt',
+        icon: 'fa fa-shield-halved',
         title: 'Login Approvals',
     },
-
-    // ── CONTENT MANAGEMENT ─────────────────────────────────────────────────
-    { is_header: true, title: 'Content' },
     {
         path: '/admin/decks',
         icon: 'fa fa-layer-group',

@@ -1,14 +1,65 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Chart from 'react-apexcharts';
+import { Panel, PanelHeader, PanelBody } from './../../components/panel/panel.jsx';
 import { AppSettings } from './../../config/app-settings.js';
 import api from './../../services/api.js';
+import {
+    PageHeader, StatCard, UserCell, EmptyState,
+    themeColor, timeAgo, fmtDate,
+} from './components/admin-ui.jsx';
+
+function cssVar(name, fallback) {
+    return (getComputedStyle(document.body).getPropertyValue(name) || fallback).trim();
+}
+
+const MONTHS_SHOWN = 12;
+
+function monthKey(d) {
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+// First day of each of the last N calendar months, oldest first.
+function lastMonths(n) {
+    return [...Array(n)].map((_, i) => {
+        const d = new Date();
+        d.setDate(1);
+        d.setHours(0, 0, 0, 0);
+        d.setMonth(d.getMonth() - (n - 1 - i));
+        return d;
+    });
+}
+
+function lastDays(n) {
+    return [...Array(n)].map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (n - 1 - i));
+        return d.toISOString().split('T')[0];
+    });
+}
 
 function AdminUsersAnalytics() {
     const context = useContext(AppSettings);
-    const [stats, setStats] = useState({ total_users: 0, new_today: 0, new_this_month: 0 });
-    const [users, setUsers] = useState([]);
+
+    const [stats, setStats]     = useState({ total_users: 0, new_today: 0, new_this_month: 0 });
+    const [users, setUsers]     = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [dashRes, usersRes] = await Promise.all([
+                api.get('/admin/dashboard'),
+                api.get('/admin/users'),
+            ]);
+            setStats(dashRes.data.stats);
+            setUsers(usersRes.data.users || []);
+        } catch (err) {
+            console.error('Analytics error:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         context.handleSetAppSidebarNone(false);
@@ -19,616 +70,306 @@ function AdminUsersAnalytics() {
             context.handleSetAppSidebarNone(true);
             context.handleSetAppHeaderNone(true);
         };
-       
+        // eslint-disable-next-line
     }, []);
 
-    const fetchData = async () => {
-        try {
-            const [dashRes, usersRes] = await Promise.all([
-                api.get('/admin/dashboard'),
-                api.get('/admin/users')
-            ]);
-            setStats(dashRes.data.stats);
-            setUsers(usersRes.data.users);
-        } catch (error) {
-            console.error('Analytics error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const accent  = themeColor();
+    const indigo  = cssVar('--bs-indigo', '#8753de');
+    const gridCol = cssVar('--bs-border-color', '#e4e7ec');
+    const muted   = cssVar('--bs-gray-500', '#adb5bd');
 
-    const totalUsers    = stats.total_users;
-    const newToday      = stats.new_today;
-    const newThisMonth  = stats.new_this_month;
-    const growthRate    = totalUsers > 0 && newThisMonth > 0
-        ? ((newThisMonth / totalUsers) * 100).toFixed(1) : '0';
-
-
-    const usersByMonth = users.reduce((acc, user) => {
-        const month = new Date(user.created_at).toLocaleDateString('en-US', {
-            month: 'short', year: 'numeric'
-        });
-        acc[month] = (acc[month] || 0) + 1;
+    // ---- Derived metrics (all-time buckets keyed by "Jun 2026") ------------
+    const usersByMonth = users.reduce((acc, u) => {
+        const key = monthKey(new Date(u.created_at));
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
     }, {});
 
+    const months      = lastMonths(MONTHS_SHOWN);
+    const monthlyNew  = months.map(m => usersByMonth[monthKey(m)] || 0);
+    const monthLabels = months.map(m => m.toLocaleDateString('en-US', { month: 'short' }));
 
-    const getLast7Months = () => {
-        const months = [];
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setMonth(d.getMonth() - i);
-            months.push(d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-        }
-        return months;
-    };
-    const last7Months  = getLast7Months();
-    const registrationData = last7Months.map(m => usersByMonth[m] || 0);
-    const monthLabels      = last7Months.map(m => m.split(' ')[0]); 
+    let running = users.filter(u => new Date(u.created_at) < months[0]).length;
+    const cumulative = monthlyNew.map(c => (running += c));
 
+    const days14   = lastDays(14);
+    const daily14  = days14.map(day => users.filter(u => (u.created_at || '').startsWith(day)).length);
+    const thisWeek = daily14.slice(7).reduce((a, b) => a + b, 0);
+    const lastWeek = daily14.slice(0, 7).reduce((a, b) => a + b, 0);
+    const weekDelta = lastWeek > 0
+        ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100)
+        : thisWeek > 0 ? 100 : 0;
 
-    const getLast7Days = () => {
-        return Array.from({ length: 7 }, (_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - (6 - i));
-            return d.toISOString().split('T')[0];
-        });
-    };
-    const last7Days = getLast7Days();
-    const dailyCounts = last7Days.map(day =>
-        users.filter(u => u.created_at.startsWith(day)).length
-    );
-    const cumulativeCounts = last7Days.map((day, i) => {
-        const cutoff = new Date(day);
-        cutoff.setHours(23, 59, 59);
-        return users.filter(u => new Date(u.created_at) <= cutoff).length;
-    });
+    const totalUsers  = stats.total_users;
+    const activeMonths = Object.keys(usersByMonth).length;
+    const avgPerMonth  = activeMonths > 0 ? (totalUsers / activeMonths).toFixed(1) : '0';
+    const bestMonth    = Object.entries(usersByMonth).sort((a, b) => b[1] - a[1])[0];
+    const growthRate   = totalUsers > 0 && stats.new_this_month > 0
+        ? ((stats.new_this_month / totalUsers) * 100).toFixed(1) : null;
 
-    const avgPerMonth = Object.keys(usersByMonth).length > 0
-        ? (totalUsers / Object.keys(usersByMonth).length).toFixed(1) : '0';
-    const mostActiveMonth = Object.entries(usersByMonth).sort((a, b) => b[1] - a[1])[0];
+    const recentUsers = [...users]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 8);
 
-
-    const mainChartOptions = {
-        colors: ['#00acac', '#348fe2'],
-        fill: { opacity: 0.75, type: 'solid' },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'right',
-            offsetY: 15,
-            labels: { colors: '#ffffff' }
-        },
+    // ---- Charts -------------------------------------------------------------
+    const growthOptions = {
+        chart: { type: 'line', toolbar: { show: false }, zoom: { enabled: false }, fontFamily: 'inherit' },
+        colors: [accent, indigo],
+        stroke: { width: [0, 2], curve: 'smooth' },
+        plotOptions: { bar: { columnWidth: '45%', borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        grid: { borderColor: gridCol, strokeDashArray: 3, padding: { left: 8, right: 8 } },
+        legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '12px', labels: { colors: muted } },
         xaxis: {
             categories: monthLabels,
-            labels: { style: { colors: '#ffffff' } }
+            labels: { style: { colors: muted, fontSize: '11px' } },
+            axisBorder: { show: false }, axisTicks: { show: false },
         },
-        yaxis: { labels: { style: { colors: '#ffffff' } } },
-        chart: { height: '100%', type: 'area', toolbar: { show: false }, stacked: false },
-        dataLabels: { enabled: false },
-        grid: {
-            show: true, borderColor: 'rgba(255,255,255,.15)',
-            xaxis: { lines: { show: true } },
-            yaxis: { lines: { show: true } },
-            padding: { top: -40, right: 3, bottom: 0, left: 10 }
-        },
-        stroke: { show: true, curve: 'smooth', width: 2 },
-        tooltip: {
-            theme: 'dark',
-            y: { formatter: val => val + ' users' }
-        }
+        yaxis: [
+            {
+                labels: { style: { colors: muted, fontSize: '11px' }, formatter: v => Math.round(v) },
+                min: 0, forceNiceScale: true,
+            },
+            {
+                opposite: true,
+                labels: { style: { colors: muted, fontSize: '11px' }, formatter: v => Math.round(v) },
+                min: 0, forceNiceScale: true,
+            },
+        ],
+        tooltip: { shared: true, intersect: false },
     };
-    const mainChartSeries = [
-        { name: 'New Registrations', data: registrationData },
-        { name: 'Total Users',       data: cumulativeCounts }
+    const growthSeries = [
+        { name: 'New signups', type: 'column', data: monthlyNew },
+        { name: 'Total users', type: 'line',   data: cumulative },
     ];
 
-
-    const sparkNewOptions = {
-        chart: { type: 'line', width: 120, height: 36, sparkline: { enabled: true } },
-        stroke: { curve: 'smooth', width: 3 },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                opacityFrom: 1, opacityTo: 1,
-                colorStops: [
-                    { offset: 0,   color: '#348fe2', opacity: 1 },
-                    { offset: 100, color: '#6610f2', opacity: 1 }
-                ]
-            }
+    const dailyOptions = {
+        chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
+        colors: [accent],
+        plotOptions: { bar: { columnWidth: '55%', borderRadius: 2 } },
+        dataLabels: { enabled: false },
+        grid: { borderColor: gridCol, strokeDashArray: 3, padding: { left: 4, right: 4 } },
+        xaxis: {
+            categories: days14,
+            labels: {
+                style: { colors: muted, fontSize: '10px' },
+                formatter: v => new Date(v).toLocaleDateString('en-US', { day: 'numeric' }),
+            },
+            axisBorder: { show: false }, axisTicks: { show: false },
+        },
+        yaxis: {
+            labels: { style: { colors: muted, fontSize: '11px' }, formatter: v => Math.round(v) },
+            min: 0, forceNiceScale: true,
         },
         tooltip: {
-            theme: 'dark',
-            fixed: { enabled: false },
-            x: { show: false },
-            y: { title: { formatter: () => '' }, formatter: v => v + ' users' },
-            marker: { show: false }
+            x: { formatter: v => fmtDate(v) },
+            y: { formatter: v => `${v} signup${v === 1 ? '' : 's'}` },
         },
-        responsive: [
-            { breakpoint: 3000, options: { chart: { width: 120 } } },
-            { breakpoint: 576,  options: { chart: { width: 80  } } }
-        ]
     };
-    const sparkNewSeries = [{ data: dailyCounts }];
+    const dailySeries = [{ name: 'Signups', data: daily14 }];
 
-    
-    const sparkGrowthOptions = {
-        chart: { type: 'line', width: 120, height: 36, sparkline: { enabled: true } },
-        stroke: { curve: 'smooth', width: 3 },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                opacityFrom: 1, opacityTo: 1,
-                colorStops: [
-                    { offset: 0,   color: '#ff5b57', opacity: 1 },
-                    { offset: 50,  color: '#f59c1a', opacity: 1 },
-                    { offset: 100, color: '#90ca4b', opacity: 1 }
-                ]
-            }
-        },
-        tooltip: {
-            theme: 'dark',
-            fixed: { enabled: false },
-            x: { show: false },
-            y: { title: { formatter: () => '' }, formatter: v => v + ' users' },
-            marker: { show: false }
-        },
-        responsive: [
-            { breakpoint: 3000, options: { chart: { width: 120 } } },
-            { breakpoint: 576,  options: { chart: { width: 80  } } }
-        ]
-    };
-    const sparkGrowthSeries = [{ data: registrationData }];
-
-
-    const sparkTotalOptions = {
-        chart: { type: 'line', width: 120, height: 36, sparkline: { enabled: true } },
-        stroke: { curve: 'smooth', width: 3 },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                opacityFrom: 1, opacityTo: 1,
-                colorStops: [
-                    { offset: 0,   color: '#00acac', opacity: 1 },
-                    { offset: 50,  color: '#348fe2', opacity: 1 },
-                    { offset: 100, color: '#49b6d6', opacity: 1 }
-                ]
-            }
-        },
-        tooltip: {
-            theme: 'dark',
-            fixed: { enabled: false },
-            x: { show: false },
-            y: { title: { formatter: () => '' }, formatter: v => v + ' users' },
-            marker: { show: false }
-        },
-        responsive: [
-            { breakpoint: 3000, options: { chart: { width: 120 } } },
-            { breakpoint: 576,  options: { chart: { width: 80  } } }
-        ]
-    };
-    const sparkTotalSeries = [{ data: cumulativeCounts }];
-
-    
-    const prev7Total  = dailyCounts.reduce((a, b) => a + b, 0);
-    const prior7Total = last7Days.map(day => {
-        const d = new Date(day);
-        d.setDate(d.getDate() - 7);
-        const key = d.toISOString().split('T')[0];
-        return users.filter(u => u.created_at.startsWith(key)).length;
-    }).reduce((a, b) => a + b, 0);
-    const weekChange = prior7Total > 0
-        ? (((prev7Total - prior7Total) / prior7Total) * 100).toFixed(1)
-        : prev7Total > 0 ? '100' : '0';
-    const weekUp = parseFloat(weekChange) >= 0;
+    // Months that actually have data, newest first, for the breakdown table.
+    const monthRows = Object.entries(usersByMonth)
+        .sort((a, b) => new Date(b[0]) - new Date(a[0]));
+    const peakCount = monthRows.reduce((max, [, c]) => Math.max(max, c), 0);
 
     return (
         <div>
-            <ol className="breadcrumb float-xl-end">
-                <li className="breadcrumb-item"><Link to="/admin/dashboard">Home</Link></li>
-                <li className="breadcrumb-item"><Link to="/admin/users">User Management</Link></li>
-                <li className="breadcrumb-item active">User Analytics</li>
-            </ol>
-            <h1 className="page-header">
-                User Analytics <small>registration trends and insights</small>
-            </h1>
+            <PageHeader
+                crumbs={[
+                    { label: 'Admin', to: '/admin/dashboard' },
+                    { label: 'Users', to: '/admin/users' },
+                    { label: 'Analytics' },
+                ]}
+                title="User Analytics"
+                subtitle="Registration trends and growth across the platform"
+            >
+                <Link to="/admin/users" className="btn btn-default btn-sm">
+                    <i className="fa-solid fa-users me-2"></i>All users
+                </Link>
+                <button type="button" className="btn btn-default btn-sm" onClick={fetchData} title="Refresh">
+                    <i className={`fa-solid fa-rotate-right ${loading ? 'fa-spin' : ''}`}></i>
+                </button>
+            </PageHeader>
 
-            {loading ? (
-                <div className="text-center p-4">
-                    <div className="spinner-border text-primary" role="status" />
+            {/* KPI row */}
+            <div className="row g-3 mb-3">
+                <div className="col-xl-3 col-md-6">
+                    <StatCard
+                        label="Total users"
+                        value={totalUsers.toLocaleString()}
+                        icon="fa-users"
+                        loading={loading}
+                        delta={weekDelta !== 0 ? `${Math.abs(weekDelta)}%` : null}
+                        deltaUp={weekDelta >= 0}
+                        sub="vs previous week"
+                    />
                 </div>
-            ) : (
-                <>
-                 
-                    <div className="row">
-                      
-                        <div className="col-xl-8 col-lg-6">
-                            <div className="card border-0 mb-3 overflow-hidden bg-gray-800 text-white">
-                                <div className="card-body">
-                                    <div className="mb-3 text-gray-500">
-                                        <b>WEBSITE ANALYTICS</b>
-                                        <span className="ms-2 text-gray-600 fw-normal">(last 7 months)</span>
-                                    </div>
-                                    <div className="row">
-                                        <div className="col-xl-3 col-4">
-                                            <h3 className="mb-1">{totalUsers}</h3>
-                                            <div>Total Users</div>
-                                            <div className="text-gray-500 small text-truncate">
-                                                <i className={`fa fa-caret-${weekUp ? 'up' : 'down'}`}></i>
-                                                {' '}{Math.abs(weekChange)}% vs last 7 days
-                                            </div>
-                                        </div>
-                                        <div className="col-xl-3 col-4">
-                                            <h3 className="mb-1">{newThisMonth}</h3>
-                                            <div>This Month</div>
-                                            <div className="text-gray-500 small text-truncate">
-                                                <i className="fa fa-caret-up"></i> {growthRate}% growth rate
-                                            </div>
-                                        </div>
-                                        <div className="col-xl-3 col-4">
-                                            <h3 className="mb-1">{prev7Total}</h3>
-                                            <div>Last 7 Days</div>
-                                            <div className="text-gray-500 small text-truncate">
-                                                <i className="fa fa-caret-up"></i> new registrations
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="card-body p-0">
-                                    <div style={{ height: '269px' }}>
-                                        <div className="widget-chart-full-width pe-4" data-bs-theme="dark" style={{ height: '254px' }}>
-                                            <Chart
-                                                type="area"
-                                                height="254"
-                                                width="100%"
-                                                options={mainChartOptions}
-                                                series={mainChartSeries}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="col-xl-3 col-md-6">
+                    <StatCard
+                        label="New today"
+                        value={stats.new_today.toLocaleString()}
+                        icon="fa-user-plus"
+                        accent={stats.new_today > 0}
+                        loading={loading}
+                        sub={`${thisWeek} in the last 7 days`}
+                    />
+                </div>
+                <div className="col-xl-3 col-md-6">
+                    <StatCard
+                        label="This month"
+                        value={stats.new_this_month.toLocaleString()}
+                        icon="fa-calendar"
+                        loading={loading}
+                        sub={growthRate ? `${growthRate}% of all users` : 'no signups yet'}
+                    />
+                </div>
+                <div className="col-xl-3 col-md-6">
+                    <StatCard
+                        label="Average / month"
+                        value={avgPerMonth}
+                        icon="fa-chart-line"
+                        loading={loading}
+                        sub={bestMonth ? `best: ${bestMonth[0]} (${bestMonth[1]})` : 'no data yet'}
+                    />
+                </div>
+            </div>
 
-                     
-                        <div className="col-xl-4 col-lg-6">
-                            <div className="row">
-                             
-                                <div className="col-sm-6 col-xl-12">
-                                    <div className="card border-0 text-truncate mb-3 bg-gray-800 text-white">
-                                        <div className="card-body">
-                                            <div className="mb-3 text-gray-500">
-                                                <b>NEW REGISTRATIONS</b>
-                                            </div>
-                                            <div className="d-flex align-items-center mb-1">
-                                                <h2 className="text-white mb-0">{prev7Total}</h2>
-                                                <div className="ms-auto">
-                                                    <Chart
-                                                        type="line"
-                                                        height="36px"
-                                                        options={sparkNewOptions}
-                                                        series={sparkNewSeries}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="mb-4 text-gray-500">
-                                                <i className={`fa fa-caret-${weekUp ? 'up' : 'down'}`}></i>
-                                                {' '}{Math.abs(weekChange)}% compare to last week
-                                            </div>
-                                            <div className="d-flex mb-2">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="fa fa-circle text-blue fs-8px me-2"></i>
-                                                    Today
-                                                </div>
-                                                <div className="d-flex align-items-center ms-auto">
-                                                    <div className="w-50px text-end ps-2 fw-bold">{newToday}</div>
-                                                </div>
-                                            </div>
-                                            <div className="d-flex mb-2">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="fa fa-circle text-indigo fs-8px me-2"></i>
-                                                    This Month
-                                                </div>
-                                                <div className="d-flex align-items-center ms-auto">
-                                                    <div className="w-50px text-end ps-2 fw-bold">{newThisMonth}</div>
-                                                </div>
-                                            </div>
-                                            <div className="d-flex">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="fa fa-circle text-teal fs-8px me-2"></i>
-                                                    All Time
-                                                </div>
-                                                <div className="d-flex align-items-center ms-auto">
-                                                    <div className="w-50px text-end ps-2 fw-bold">{totalUsers}</div>
-                                                </div>
-                                            </div>
-                                        </div>
+            {/* Growth chart + daily signups */}
+            <div className="row g-3 mb-3">
+                <div className="col-xl-8 d-flex">
+                    <Panel className="mb-0 flex-grow-1">
+                        <PanelHeader>Growth — last {MONTHS_SHOWN} months</PanelHeader>
+                        <PanelBody>
+                            {loading ? (
+                                <div className="py-5 text-center text-muted small">Loading…</div>
+                            ) : users.length === 0 ? (
+                                <EmptyState icon="fa-chart-column" title="No registration data yet"
+                                    hint="Monthly signups and cumulative growth will appear here." />
+                            ) : (
+                                <Chart type="line" height={285} options={growthOptions} series={growthSeries} />
+                            )}
+                        </PanelBody>
+                    </Panel>
+                </div>
+
+                <div className="col-xl-4 d-flex">
+                    <Panel className="mb-0 flex-grow-1">
+                        <PanelHeader>Daily signups — last 14 days</PanelHeader>
+                        <PanelBody>
+                            {loading ? (
+                                <div className="py-5 text-center text-muted small">Loading…</div>
+                            ) : (
+                                <>
+                                    <Chart type="bar" height={210} options={dailyOptions} series={dailySeries} />
+                                    <div className="d-flex align-items-center justify-content-between border-top pt-2 mt-1"
+                                        style={{ fontSize: '12px' }}>
+                                        <span className="text-muted">
+                                            This week <strong className="text-body">{thisWeek}</strong>
+                                            <span className="mx-2 opacity-50">·</span>
+                                            Last week <strong className="text-body">{lastWeek}</strong>
+                                        </span>
+                                        <span className={`fw-semibold ${weekDelta >= 0 ? 'text-success' : 'text-danger'}`}>
+                                            <i className={`fa-solid fa-arrow-${weekDelta >= 0 ? 'up' : 'down'} me-1`}
+                                                style={{ fontSize: '10px' }}></i>
+                                            {Math.abs(weekDelta)}%
+                                        </span>
                                     </div>
-                                </div>
+                                </>
+                            )}
+                        </PanelBody>
+                    </Panel>
+                </div>
+            </div>
 
-                               
-                                <div className="col-sm-6 col-xl-12">
-                                    <div className="card border-0 text-truncate mb-3 bg-gray-800 text-white">
-                                        <div className="card-body">
-                                            <div className="mb-3 text-gray-500">
-                                                <b>GROWTH TREND</b>
-                                            </div>
-                                            <div className="d-flex align-items-center mb-1">
-                                                <h2 className="text-white mb-0">{growthRate}%</h2>
-                                                <div className="ms-auto">
-                                                    <Chart
-                                                        type="line"
-                                                        height="36px"
-                                                        options={sparkGrowthOptions}
-                                                        series={sparkGrowthSeries}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="mb-4 text-gray-500">
-                                                <i className="fa fa-caret-up"></i> monthly growth rate
-                                            </div>
-                                            <div className="d-flex mb-2">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="fa fa-circle text-red fs-8px me-2"></i>
-                                                    Avg / Month
-                                                </div>
-                                                <div className="d-flex align-items-center ms-auto">
-                                                    <div className="w-50px text-end ps-2 fw-bold">{avgPerMonth}</div>
-                                                </div>
-                                            </div>
-                                            <div className="d-flex mb-2">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="fa fa-circle text-warning fs-8px me-2"></i>
-                                                    Best Month
-                                                </div>
-                                                <div className="d-flex align-items-center ms-auto">
-                                                    <div className="text-end ps-2 fw-bold" style={{ fontSize: '11px' }}>
-                                                        {mostActiveMonth ? mostActiveMonth[0] : 'N/A'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="d-flex">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="fa fa-circle text-lime fs-8px me-2"></i>
-                                                    Peak Registrations
-                                                </div>
-                                                <div className="d-flex align-items-center ms-auto">
-                                                    <div className="w-50px text-end ps-2 fw-bold">
-                                                        {mostActiveMonth ? mostActiveMonth[1] : 0}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-        
-                    <div className="row">
-                        <div className="col-xl-12">
-                            <div className="card border-0 mb-3 bg-gray-800 text-white">
-                                <div className="card-body">
-                                    <div className="mb-3 text-gray-500">
-                                        <b>ANALYTICS DETAILS</b>
-                                        <span className="ms-2 text-gray-600 fw-normal">(last 7 days)</span>
-                                    </div>
-                                    <div className="row">
-                                       
-                                        <div className="col-xl-3 col-md-6 mb-3">
-                                            <div className="d-flex align-items-center mb-1">
-                                                <div>
-                                                    <div className="text-gray-500 fs-12px mb-1">TOTAL USERS</div>
-                                                    <h3 className="mb-0 text-white">{totalUsers}</h3>
-                                                </div>
-                                                <div className="ms-auto">
-                                                    <Chart
-                                                        type="line"
-                                                        height="36px"
-                                                        options={sparkTotalOptions}
-                                                        series={sparkTotalSeries}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="text-gray-500 small">
-                                                <i className={`fa fa-caret-${weekUp ? 'up' : 'down'} me-1`}></i>
-                                                {Math.abs(weekChange)}% vs last week
-                                            </div>
-                                            <div className="progress mt-2" style={{ height: '4px' }}>
-                                                <div className="progress-bar bg-teal" style={{ width: '100%' }} />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-xl-3 col-md-6 mb-3">
-                                            <div className="d-flex align-items-center mb-1">
-                                                <div>
-                                                    <div className="text-gray-500 fs-12px mb-1">NEW TODAY</div>
-                                                    <h3 className="mb-0 text-white">{newToday}</h3>
-                                                </div>
-                                                <div className="ms-auto">
-                                                    <Chart
-                                                        type="line"
-                                                        height="36px"
-                                                        options={sparkNewOptions}
-                                                        series={sparkNewSeries}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="text-gray-500 small">
-                                                <i className="fa fa-caret-up me-1"></i>
-                                                registered today
-                                            </div>
-                                            <div className="progress mt-2" style={{ height: '4px' }}>
-                                                <div className="progress-bar bg-blue"
-                                                    style={{ width: `${totalUsers > 0 ? (newToday / totalUsers) * 100 : 0}%` }} />
-                                            </div>
-                                        </div>
-
-                                  
-                                        <div className="col-xl-3 col-md-6 mb-3">
-                                            <div className="d-flex align-items-center mb-1">
-                                                <div>
-                                                    <div className="text-gray-500 fs-12px mb-1">THIS MONTH</div>
-                                                    <h3 className="mb-0 text-white">{newThisMonth}</h3>
-                                                </div>
-                                                <div className="ms-auto">
-                                                    <Chart
-                                                        type="line"
-                                                        height="36px"
-                                                        options={sparkGrowthOptions}
-                                                        series={sparkGrowthSeries}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="text-gray-500 small">
-                                                <i className="fa fa-caret-up me-1"></i>
-                                                {growthRate}% growth rate
-                                            </div>
-                                            <div className="progress mt-2" style={{ height: '4px' }}>
-                                                <div className="progress-bar bg-warning"
-                                                    style={{ width: `${totalUsers > 0 ? (newThisMonth / totalUsers) * 100 : 0}%` }} />
-                                            </div>
-                                        </div>
-
-                                   
-                                        <div className="col-xl-3 col-md-6 mb-3">
-                                            <div className="d-flex align-items-center mb-1">
-                                                <div>
-                                                    <div className="text-gray-500 fs-12px mb-1">AVG / MONTH</div>
-                                                    <h3 className="mb-0 text-white">{avgPerMonth}</h3>
-                                                </div>
-                                                <div className="ms-auto">
-                                                    <Chart
-                                                        type="line"
-                                                        height="36px"
-                                                        options={sparkGrowthOptions}
-                                                        series={sparkGrowthSeries}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="text-gray-500 small">
-                                                <i className="fa fa-caret-up me-1"></i>
-                                                average monthly signups
-                                            </div>
-                                            <div className="progress mt-2" style={{ height: '4px' }}>
-                                                <div className="progress-bar bg-danger"
-                                                    style={{ width: `${Math.min((parseFloat(avgPerMonth) / totalUsers) * 100 * 5, 100)}%` }} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="col-xl-6">
-                            <div className="panel panel-inverse">
-                                <div className="panel-heading">
-                                    <h4 className="panel-title">
-                                        <i className="fa fa-calendar-alt me-2"></i>
-                                        Registrations by Month
-                                    </h4>
-                                </div>
-                                <div className="panel-body">
-                                    <div className="table-responsive">
-                                        <table className="table table-hover table-striped mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Month</th>
-                                                    <th>New Users</th>
-                                                    <th>Share</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {Object.entries(usersByMonth).length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan="3" className="text-center text-muted p-3">No data yet</td>
-                                                    </tr>
-                                                ) : (
-                                                    Object.entries(usersByMonth)
-                                                        .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-                                                        .map(([month, count]) => (
-                                                            <tr key={month}>
-                                                                <td className="fw-bold">{month}</td>
-                                                                <td>
-                                                                    <span className="badge bg-primary">{count}</span>
-                                                                </td>
-                                                                <td style={{ minWidth: '120px' }}>
-                                                                    <div className="progress mb-1" style={{ height: '6px' }}>
-                                                                        <div className="progress-bar bg-primary"
-                                                                            style={{ width: `${totalUsers > 0 ? (count / totalUsers) * 100 : 0}%` }} />
-                                                                    </div>
-                                                                    <small className="text-muted">
-                                                                        {totalUsers > 0 ? ((count / totalUsers) * 100).toFixed(1) : 0}%
-                                                                    </small>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="col-xl-6">
-                            <div className="panel panel-inverse">
-                                <div className="panel-heading">
-                                    <h4 className="panel-title">
-                                        <i className="fa fa-user-clock me-2"></i>
-                                        Recent Registrations
-                                    </h4>
-                                </div>
-                                <div className="panel-body">
-                                    <div className="table-responsive">
-                                        <table className="table table-hover mb-0 align-middle">
-                                            <thead>
-                                                <tr>
-                                                    <th>User</th>
-                                                    <th>Registered</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {users.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan="2" className="text-center text-muted p-3">No users yet</td>
-                                                    </tr>
-                                                ) : (
-                                                    users.slice(0, 8).map(user => (
-                                                        <tr key={user.id}>
-                                                            <td>
-                                                                <div className="d-flex align-items-center">
-                                                                    <div
-                                                                        className="rounded-circle text-white d-flex align-items-center justify-content-center me-2 fw-bold"
-                                                                        style={{ width: '32px', height: '32px', minWidth: '32px', background: '#2196f3', fontSize: '13px' }}
-                                                                    >
-                                                                        {user.username.charAt(0).toUpperCase()}
-                                                                    </div>
-                                                                    <div>
-                                                                        <div className="fw-bold">{user.username}</div>
-                                                                        <small className="text-muted">{user.email}</small>
-                                                                    </div>
+            {/* Monthly breakdown + recent registrations */}
+            <div className="row g-3">
+                <div className="col-xl-6">
+                    <Panel className="mb-0">
+                        <PanelHeader>Registrations by month</PanelHeader>
+                        <PanelBody className="p-0">
+                            {loading ? (
+                                <div className="py-4 text-center text-muted small">Loading…</div>
+                            ) : monthRows.length === 0 ? (
+                                <EmptyState icon="fa-calendar" title="No registrations yet" />
+                            ) : (
+                                <div className="table-responsive">
+                                    <table className="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th className="ps-3 small text-muted fw-semibold border-top-0">Month</th>
+                                                <th className="small text-muted fw-semibold border-top-0" style={{ width: 90 }}>New users</th>
+                                                <th className="small text-muted fw-semibold border-top-0 pe-3" style={{ width: 180 }}>Share</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {monthRows.map(([month, count]) => {
+                                                const pct = totalUsers > 0 ? (count / totalUsers) * 100 : 0;
+                                                return (
+                                                    <tr key={month}>
+                                                        <td className="ps-3 fw-semibold" style={{ fontSize: '13px' }}>
+                                                            {month}
+                                                            {bestMonth && bestMonth[0] === month && monthRows.length > 1 && (
+                                                                <span className="badge bg-theme bg-opacity-10 text-theme fw-semibold ms-2"
+                                                                    style={{ fontSize: '10px' }}>Peak</span>
+                                                            )}
+                                                        </td>
+                                                        <td style={{ fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>
+                                                            {count.toLocaleString()}
+                                                        </td>
+                                                        <td className="pe-3">
+                                                            <div className="d-flex align-items-center gap-2">
+                                                                <div className="progress flex-grow-1" style={{ height: 5 }}>
+                                                                    <div className="progress-bar bg-theme"
+                                                                        style={{ width: `${peakCount > 0 ? (count / peakCount) * 100 : 0}%` }} />
                                                                 </div>
-                                                            </td>
-                                                            <td className="text-muted">
-                                                                {new Date(user.created_at).toLocaleDateString('en-US', {
-                                                                    month: 'short', day: 'numeric', year: 'numeric'
-                                                                })}
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                                <span className="text-muted" style={{ fontSize: '11px', width: 38 }}>
+                                                                    {pct.toFixed(1)}%
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
+                            )}
+                        </PanelBody>
+                    </Panel>
+                </div>
+
+                <div className="col-xl-6">
+                    <Panel className="mb-0">
+                        <PanelHeader>Recent registrations</PanelHeader>
+                        <PanelBody className="py-2">
+                            {loading ? (
+                                <div className="py-4 text-center text-muted small">Loading…</div>
+                            ) : recentUsers.length === 0 ? (
+                                <EmptyState icon="fa-user-plus" title="No users yet" />
+                            ) : (
+                                <>
+                                    {recentUsers.map((user, i) => (
+                                        <div key={user.id}
+                                            className={`d-flex align-items-center justify-content-between py-2 ${i > 0 ? 'border-top' : ''}`}>
+                                            <UserCell user={user} />
+                                            <span className="text-end">
+                                                <span className="d-block" style={{ fontSize: '12px' }}>{timeAgo(user.created_at)}</span>
+                                                <span className="d-block text-muted" style={{ fontSize: '11px' }}>{fmtDate(user.created_at)}</span>
+                                            </span>
+                                        </div>
+                                    ))}
+                                    <div className="text-center border-top py-2 mt-1">
+                                        <Link to="/admin/users" className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
+                                            All users <i className="fa-solid fa-arrow-right ms-1" style={{ fontSize: '10px' }}></i>
+                                        </Link>
+                                    </div>
+                                </>
+                            )}
+                        </PanelBody>
+                    </Panel>
+                </div>
+            </div>
         </div>
     );
 }
