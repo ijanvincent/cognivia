@@ -22,7 +22,7 @@ A full-stack, cross-platform learning system — Laravel 12 API, React web clien
 
 ## Overview
 
-CogniVia is a learning platform that works seamlessly across web and mobile. Users can manage their profiles, access learning content, and stay in sync across devices through real-time events. Admins get a full management dashboard with analytics, user management, and CSV exports.
+CogniVia is an AI-powered flashcard learning platform that works seamlessly across web and mobile. Users upload documents (PDF, DOCX, PPTX), the backend parses them and generates smart flashcards via an LLM (OpenRouter/Gemini), and users study those flashcards on any device. Profiles stay in sync across platforms through real-time WebSocket events. Admins get a full management dashboard with analytics, user management, and CSV exports.
 
 ---
 
@@ -30,7 +30,7 @@ CogniVia is a learning platform that works seamlessly across web and mobile. Use
 
 | Layer | Technology |
 |---|---|
-| Backend | Laravel 12 · PHP 8.2 · Laravel Sanctum · Laravel Echo · Soketi |
+| Backend | Laravel 12 · PHP 8.4 · Laravel Sanctum · Laravel Echo · Soketi |
 | Web | React 18 · React Router · Axios · ApexCharts · FullCalendar |
 | Mobile | Expo SDK 54 · React Native · Expo Secure Store |
 | Database | MySQL 8.0 |
@@ -57,7 +57,7 @@ cognivia/
 
 ## Architecture
 
-The backend is the single source of truth. All clients authenticate against the Laravel API and communicate over HTTPS. Real-time events are broadcast via Soketi (Pusher protocol) and consumed by Laravel Echo on the web and mobile clients.
+The backend is the single source of truth. All clients authenticate against the Laravel API and communicate over HTTPS. Document parsing and AI flashcard generation happen entirely server-side — the OpenRouter/Gemini API key never leaves the backend. Real-time events are broadcast via Soketi (Pusher protocol) and consumed by Laravel Echo on the web and mobile clients.
 
 ```
 ┌─────────────┐     ┌─────────────┐
@@ -88,7 +88,7 @@ The backend is the single source of truth. All clients authenticate against the 
 | Nginx gateway (API + Web) | `http://localhost:3000` |
 | Soketi WebSocket | `ws://localhost:6001` |
 | Soketi metrics | `http://localhost:9601` |
-| MySQL | `localhost:3306` |
+| MySQL | `localhost:3307` |
 
 ---
 
@@ -135,7 +135,7 @@ Relevant files: `PendingLogin`, `LoginApprovalController`, `NewLoginRequest` / `
 ### 1. Clone and configure
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/ijanvincent/cognivia.git
 cd cognivia
 cp backend/.env.example backend/.env
 ```
@@ -189,7 +189,7 @@ Scan the QR code with Expo Go on a physical device.
 | `PUSHER_APP_KEY` | `backend/.env` + `frontend/.env` | Soketi app key |
 | `PUSHER_APP_SECRET` | `backend/.env` | Soketi app secret |
 | `REACT_APP_API_URL` | `frontend/.env` | Web client API base URL |
-| `API_BASE_URL` | `mobile/.env` | Mobile client API base URL |
+| `EXPO_PUBLIC_API_URL` | `mobile/.env` | Mobile client API base URL |
 
 > Never commit real credentials, production tokens, secrets, or tunnel URLs.
 
