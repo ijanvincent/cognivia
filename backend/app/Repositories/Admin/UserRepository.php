@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Admin;
 
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,13 @@ class UserRepository
     public function getAllUsers(): Collection
     {
         return User::where('role', 'user')
+                   ->withCount(['decks', 'flashcards'])
+                   ->addSelect(['last_active_at' => PersonalAccessToken::select('last_used_at')
+                       ->whereColumn('tokenable_id', 'users.id')
+                       ->where('tokenable_type', User::class)
+                       ->whereNotNull('platform')
+                       ->orderByDesc('last_used_at')
+                       ->limit(1)])
                    ->orderBy('created_at', 'desc')
                    ->get();
     }
@@ -65,6 +73,7 @@ class UserRepository
     {
         return User::where('role', 'user')
                    ->onlyTrashed()
+                   ->withCount(['decks', 'flashcards'])
                    ->orderBy('deleted_at', 'desc')
                    ->get();
     }

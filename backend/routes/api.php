@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AdminAuthController;
@@ -97,8 +98,11 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/me', [AdminAuthController::class, 'me']);
 
     Route::get('/dashboard', [UserController::class, 'dashboard']);
+    Route::get('/activity', [ActivityController::class, 'feed']);
+    Route::get('/activity/engagement', [ActivityController::class, 'engagement']);
     Route::get('/users/trashed', [UserController::class, 'trashed']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{id}', [UserController::class, 'show'])->whereNumber('id');
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore']);
     Route::delete('/users/{id}/force', [UserController::class, 'forceDelete']);
