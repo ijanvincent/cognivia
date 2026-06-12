@@ -421,6 +421,40 @@
   object-fit: cover;
 }
 
+/* ── Presence indicator ── */
+.avatarContainer {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.statusDot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #07080f;
+}
+
+.statusDotOnline {
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  animation: presencePulse 2.4s ease-in-out infinite;
+}
+
+.statusDotOffline {
+  background: rgba(241, 245, 249, 0.2);
+}
+
+@keyframes presencePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+}
+
+.statusTextOnline  { color: #10b981 !important; }
+.statusTextOffline { color: rgba(241, 245, 249, 0.28) !important; }
+
 .approvalScrim {
   position: fixed;
   inset: 0;

@@ -84,6 +84,7 @@ function UserDashboard() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser]                 = useState(() => getStoredUser());
   const [avatarError, setAvatarError]   = useState(false);
+  const [isOnline, setIsOnline]         = useState(() => navigator.onLine);
   const [incomingRequest, setIncomingRequest] = useState(null);
   const [approvalBusy, setApprovalBusy]       = useState(false);
   const [approvalError, setApprovalError]     = useState('');
@@ -96,6 +97,34 @@ function UserDashboard() {
     setUser(getStoredUser());
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
+  }, []);
+
+  // Server is the source of truth — pull the canonical profile on load so
+  // changes made on mobile apply here even if the realtime `.profile.updated`
+  // event fired while this tab was closed. On failure the cached copy stands.
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/auth/me')
+      .then(({ data }) => {
+        if (cancelled || !data?.user) return;
+        const merged = { ...getStoredUser(), ...data.user };
+        persistUser(merged);
+        setUser(merged);
+        setAvatarError(false);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const onOnline  = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener('online',  onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online',  onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -291,19 +320,27 @@ function UserDashboard() {
             className={`${styles.avatarChip} ${dropdownOpen ? styles.avatarChipActive : ''}`}
             onClick={() => setDropdownOpen(prev => !prev)}
           >
-            <div className={styles.avatar}>
-              {user.avatar && !avatarError ? (
-                <img
-                  src={resolveAvatarUrl(user.avatar)}
-                  alt={userName}
-                  className={styles.avatarImg}
-                  onError={() => setAvatarError(true)}
-                />
-              ) : userInitial}
+            <div className={styles.avatarContainer}>
+              <div className={styles.avatar}>
+                {user.avatar && !avatarError ? (
+                  <img
+                    src={resolveAvatarUrl(user.avatar)}
+                    alt={userName}
+                    className={styles.avatarImg}
+                    onError={() => setAvatarError(true)}
+                  />
+                ) : userInitial}
+              </div>
+              <span
+                className={`${styles.statusDot} ${isOnline ? styles.statusDotOnline : styles.statusDotOffline}`}
+                aria-label={isOnline ? 'Online' : 'Offline'}
+              />
             </div>
             <div>
               <div className={styles.avatarName}>{userName}</div>
-              <div className={styles.avatarRole}>{user.role || 'Member'}</div>
+              <div className={`${styles.avatarRole} ${isOnline ? styles.statusTextOnline : styles.statusTextOffline}`}>
+                {isOnline ? 'Online' : 'Offline'}
+              </div>
             </div>
             <span className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`}>
               <IconChevron />

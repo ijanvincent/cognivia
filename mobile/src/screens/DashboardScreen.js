@@ -5,7 +5,9 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import NetInfo from '@react-native-community/netinfo';
+import * as SecureStore from '../services/secureStorage';
+import { refreshUserProfile, resolveAvatarUrl } from '../services/api';
 import { useDecks } from '../contexts/DeckContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getEcho, disconnectEcho } from '../services/echoService';
@@ -21,6 +23,7 @@ const DashboardScreen = ({ navigation }) => {
     const [searchText, setSearchText] = useState('');
     const [userName, setUserName]     = useState('User');
     const [userAvatar, setUserAvatar] = useState(null);
+    const [isOnline, setIsOnline]     = useState(true);
 
     const loadUser = async () => {
         try {
@@ -33,9 +36,26 @@ const DashboardScreen = ({ navigation }) => {
         } catch (e) {
             console.error('Error loading user:', e);
         }
+        // Server is the source of truth — pick up profile changes made on web
+        // even if the realtime event was missed. Cache shown above stays if
+        // this fails (e.g. offline).
+        try {
+            const fresh = await refreshUserProfile();
+            if (fresh) {
+                setUserName(fresh.username || fresh.name || 'User');
+                setUserAvatar(fresh.avatar || null);
+            }
+        } catch { /* offline or token expired — keep cached values */ }
     };
 
     useEffect(() => { loadUser(); }, []);
+
+    useEffect(() => {
+        const unsubscribe = NetInfo.addEventListener(state => {
+            setIsOnline(state.isConnected && state.isInternetReachable !== false);
+        });
+        return unsubscribe;
+    }, []);
 
     useFocusEffect(
         React.useCallback(() => { loadUser(); }, [])
@@ -103,7 +123,7 @@ const DashboardScreen = ({ navigation }) => {
     const masteryTone = (mastery) =>
         mastery >= 75 ? colors.success : mastery >= 50 ? colors.warning : colors.danger;
 
-    const DeckCard = ({ deck }) => {
+const DeckCard = ({ deck }) => {
         const mastery   = deck.mastery ?? 0;
         const tone      = masteryTone(mastery);
         const cardCount = deck.card_count || deck.cardCount || 0;
@@ -144,46 +164,49 @@ const DashboardScreen = ({ navigation }) => {
         return (
             <TouchableOpacity
                 onPress={() => navigation.navigate('FlashcardStudy', { deck })}
-                activeOpacity={0.75}
+                activeOpacity={0.85}
+                style={styles.deckCardWrapper}
             >
-                <Card>
-                    <View style={styles.deckHeaderRow}>
-                        <View style={styles.deckTitleWrap}>
-                            <Text style={[styles.deckTitle, { color: colors.text }]} numberOfLines={1}>
-                                {deck.title}
-                            </Text>
-                            <Text style={[styles.deckSource, { color: colors.subtext }]} numberOfLines={1}>
-                                {deck.status === 'Imported' ? 'Imported' : 'Generated'} from {deck.source || 'CogniVia'}
-                            </Text>
+                <Card style={styles.deckCard} padded={false}>
+                    <View style={styles.deckContent}>
+                        <View style={styles.deckHeaderRow}>
+                            <View style={styles.deckTitleWrap}>
+                                <Text style={[styles.deckTitle, { color: colors.text }]} numberOfLines={1}>
+                                    {deck.title}
+                                </Text>
+                                <View style={styles.deckMetaRow}>
+                                    <MaterialCommunityIcons name="layers-outline" size={12} color={colors.subtext} />
+                                    <Text style={[styles.deckSource, { color: colors.subtext }]}>
+                                        {cardCount} cards • {deck.source || 'CogniVia'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <TouchableOpacity
+                                onPress={handleOptions}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                style={[styles.optionBtn, { backgroundColor: colors.surfaceSubtle }]}
+                            >
+                                <MaterialCommunityIcons name="dots-horizontal" size={18} color={colors.subtext} />
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity
-                            onPress={handleOptions}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                            <MaterialCommunityIcons name="dots-horizontal" size={20} color={colors.subtext} />
-                        </TouchableOpacity>
-                    </View>
 
-                    <View style={styles.deckProgressRow}>
-                        <Text style={[styles.deckProgressLabel, { color: colors.subtext }]}>Mastery</Text>
-                        <Text style={[styles.deckProgressValue, { color: tone }]}>{mastery}%</Text>
+                        <View style={styles.deckFooter}>
+                            <View style={styles.masterySection}>
+                                <View style={styles.deckProgressRow}>
+                                    <Text style={[styles.deckProgressLabel, { color: colors.subtext }]}>Mastery</Text>
+                                    <Text style={[styles.deckProgressValue, { color: tone }]}>{mastery}%</Text>
+                                </View>
+                                <ProgressBar value={mastery} color={tone} style={styles.deckProgressBar} />
+                            </View>
+                            
+                            <View style={[styles.statusBadge, { backgroundColor: needsWork ? colors.dangerSoft : colors.successSoft }]}>
+                                <Text style={[styles.statusText, { color: needsWork ? colors.danger : colors.success }]}>
+                                    {needsWork ? 'Review' : 'Ready'}
+                                </Text>
+                            </View>
+                        </View>
                     </View>
-                    <ProgressBar value={mastery} color={tone} style={styles.deckProgressBar} />
-
-                    <View style={styles.deckFooter}>
-                        <Pill icon="cards-outline" label={`${cardCount} cards`} />
-                        <Pill
-                            icon={needsWork ? 'alert-circle-outline' : 'check-circle-outline'}
-                            label={needsWork ? 'Review' : 'Ready'}
-                            tone={needsWork ? 'danger' : 'success'}
-                        />
-                        <MaterialCommunityIcons
-                            name="chevron-right"
-                            size={18}
-                            color={colors.subtext}
-                            style={styles.deckChevron}
-                        />
-                    </View>
+                    <View style={[styles.deckAccent, { backgroundColor: tone }]} />
                 </Card>
             </TouchableOpacity>
         );
@@ -208,21 +231,30 @@ const DashboardScreen = ({ navigation }) => {
                 eyebrow={greeting}
                 title={displayName}
                 right={
-                    <TouchableOpacity
-                        style={[styles.avatarBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-                        onPress={() => navigation.navigate('Profile')}
-                        activeOpacity={0.8}
-                    >
-                        {userAvatar ? (
-                            <Image
-                                source={{ uri: userAvatar }}
-                                style={styles.avatarImg}
-                                onError={() => setUserAvatar(null)}
-                            />
-                        ) : (
-                            <Text style={[styles.avatarInitial, { color: colors.text }]}>{userInitial}</Text>
-                        )}
-                    </TouchableOpacity>
+                    <View style={styles.avatarWrapper}>
+                        <TouchableOpacity
+                            style={[styles.avatarBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                            onPress={() => navigation.navigate('Profile')}
+                            activeOpacity={0.8}
+                        >
+                            {userAvatar ? (
+                                <Image
+                                    source={{ uri: resolveAvatarUrl(userAvatar) }}
+                                    style={styles.avatarImg}
+                                    onError={() => setUserAvatar(null)}
+                                />
+                            ) : (
+                                <Text style={[styles.avatarInitial, { color: colors.text }]}>{userInitial}</Text>
+                            )}
+                        </TouchableOpacity>
+                        <View style={[
+                            styles.statusDot,
+                            {
+                                backgroundColor: isOnline ? colors.success : colors.subtext,
+                                borderColor: colors.background,
+                            },
+                        ]} />
+                    </View>
                 }
             />
 
@@ -284,18 +316,30 @@ const styles = StyleSheet.create({
     loadingContent: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     loadingText:    { marginTop: spacing.md, fontSize: typography.size.body },
 
+    avatarWrapper: {
+        position: 'relative',
+    },
     avatarBtn: {
         width: 44, height: 44, borderRadius: radius.pill, borderWidth: 1,
         alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
     },
     avatarImg:     { width: 44, height: 44, borderRadius: radius.pill },
     avatarInitial: { fontSize: typography.size.heading, fontWeight: typography.weight.bold },
+    statusDot: {
+        position: 'absolute',
+        bottom: 1,
+        right: 1,
+        width: 11,
+        height: 11,
+        borderRadius: radius.pill,
+        borderWidth: 2,
+    },
 
     statsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
 
     searchBar: {
         flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-        borderRadius: radius.md, borderWidth: 1,
+        borderRadius: radius.lg, borderWidth: 1,
         paddingHorizontal: spacing.md, height: 48, marginBottom: spacing.xl,
     },
     searchInput: { flex: 1, fontSize: typography.size.body },
@@ -306,21 +350,83 @@ const styles = StyleSheet.create({
     },
     newDeckText: { fontSize: typography.size.caption, fontWeight: typography.weight.semibold },
 
-    deckHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.md },
-    deckTitleWrap: { flex: 1, paddingRight: spacing.md },
-    deckTitle:     { fontSize: typography.size.heading, fontWeight: typography.weight.bold, marginBottom: 3 },
-    deckSource:    { fontSize: typography.size.micro + 1, lineHeight: 17 },
-
-    deckProgressRow: {
-        flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: spacing.xs + 2,
+    // ── DeckCard Redesign ───────────────────────────────────────────────────
+    deckCardWrapper: { marginBottom: spacing.md },
+    deckCard: {
+        marginBottom: 0,
+        overflow: 'hidden',
+        flexDirection: 'row',
     },
-    deckProgressLabel: { fontSize: typography.size.micro, fontWeight: typography.weight.semibold },
-    deckProgressValue: { fontSize: typography.size.micro, fontWeight: typography.weight.bold },
-    deckProgressBar:   { marginBottom: spacing.md },
-
-    deckFooter:  { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    deckChevron: { marginLeft: 'auto' },
+    deckContent: {
+        flex: 1,
+        padding: spacing.lg,
+    },
+    deckAccent: {
+        width: 6,
+        height: '100%',
+    },
+    deckHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: spacing.lg,
+    },
+    deckTitleWrap: { flex: 1, paddingRight: spacing.sm },
+    deckTitle: {
+        fontSize: typography.size.heading,
+        fontWeight: typography.weight.bold,
+        marginBottom: 4,
+        letterSpacing: -0.3,
+    },
+    deckMetaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    deckSource: {
+        fontSize: typography.size.micro + 1,
+        fontWeight: typography.weight.medium,
+    },
+    optionBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: radius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    deckFooter: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        gap: spacing.lg,
+    },
+    masterySection: { flex: 1 },
+    deckProgressRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    deckProgressLabel: {
+        fontSize: typography.size.micro,
+        fontWeight: typography.weight.bold,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    deckProgressValue: {
+        fontSize: typography.size.micro + 1,
+        fontWeight: typography.weight.bold,
+    },
+    deckProgressBar: { marginBottom: 0 },
+    statusBadge: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: 4,
+        borderRadius: radius.pill,
+    },
+    statusText: {
+        fontSize: typography.size.micro,
+        fontWeight: typography.weight.bold,
+        textTransform: 'uppercase',
+    },
 });
 
 export default DashboardScreen;
