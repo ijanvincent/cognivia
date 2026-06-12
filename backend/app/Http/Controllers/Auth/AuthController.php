@@ -100,15 +100,10 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             RateLimiter::hit($throttleKey, 60);
             $errors = $e->errors();
-            $message = collect($errors)->flatten()->first();
-            $code = 'VALIDATION_ERROR';
-            if (str_contains($message, 'Invalid email or password')) {
-                $code = 'ADMIN_ACCOUNT';
-            }
 
             return response()->json([
-                'message' => $message,
-                'error_code' => $code,
+                'message' => collect($errors)->flatten()->first(),
+                'error_code' => 'VALIDATION_ERROR',
                 'errors' => $errors,
             ], 422);
 

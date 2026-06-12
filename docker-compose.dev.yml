@@ -56,7 +56,7 @@ services:
     container_name: cognivia_soketi
     restart: unless-stopped
     ports:
-      - "6001:6001"
+      - "127.0.0.1:6001:6001"
       - "127.0.0.1:9601:9601"
     environment:
       SOKETI_DEBUG: "0"

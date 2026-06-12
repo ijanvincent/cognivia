@@ -91,9 +91,9 @@ class AuthService
         }
 
         if ($user->isAdmin()) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid email or password'],
-            ]);
+            // Respond identically to a bad credential so the user login
+            // never discloses that an email belongs to an admin account.
+            throw new WrongPasswordException;
         }
 
         $platform = $data['platform'];

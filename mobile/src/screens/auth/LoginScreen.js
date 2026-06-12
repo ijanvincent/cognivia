@@ -701,8 +701,6 @@ const LoginScreen = () => {
                         ? `Too many attempts. Try again in ${retryAfter}s.`
                         : 'Too many login attempts. Please try again later.',
                 });
-            } else if (status === 422 && code === 'ADMIN_ACCOUNT') {
-                setErrors({ email: 'This account is not authorized here.' });
             } else if (error.message === 'Network Error') {
                 setErrors({ general: 'Cannot connect to server. Please check your connection.' });
             } else {

@@ -331,8 +331,6 @@ function UserLogin() {
             subscribeToApprovalChannel(userId, conflictToken, approvalToken);
           }
 
-        } else if (code === 'ADMIN_ACCOUNT') {
-          setErrors({ email: 'This account is not authorized here.' });
         } else {
           const laravelErrors = error.response?.data?.errors || {};
           setErrors({

@@ -21,10 +21,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::prefix('auth')->group(function (): void {
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/login/status', [LoginApprovalController::class, 'status'])->middleware('throttle:30,1');
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:30,1');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 });
 
@@ -108,7 +108,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/users/{id}/restore', [UserController::class, 'restore']);
     Route::delete('/users/{id}/force', [UserController::class, 'forceDelete']);
 
-    Route::get('/content/overview',  [ContentController::class, 'overview']);
-    Route::get('/decks',             [ContentController::class, 'decks']);
-    Route::get('/login-approvals',   [ContentController::class, 'loginApprovals']);
+    Route::get('/content/overview', [ContentController::class, 'overview']);
+    Route::get('/decks', [ContentController::class, 'decks']);
+    Route::get('/login-approvals', [ContentController::class, 'loginApprovals']);
 });
