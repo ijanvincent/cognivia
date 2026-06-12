@@ -8,7 +8,7 @@ import {
     Screen, ScreenHeader, Card, SectionHeader,
     Pill, ProgressBar, EmptyState, MetricCard,
 } from '../components';
-import { spacing, typography } from '../theme/theme';
+import { radius, spacing, typography } from '../theme/theme';
 
 const clampPercent = (value) => Math.min(100, Math.max(0, Number(value) || 0));
 
@@ -87,12 +87,27 @@ const ProgressScreen = () => {
         >
             <ScreenHeader eyebrow="Learning analytics" title="Progress" />
 
-            <Card>
-                <Text style={[styles.overviewLabel, { color: colors.subtext }]}>Overall mastery</Text>
-                <Text style={[styles.overviewValue, { color: colors.text }]}>
-                    {progressStats.overallMastery}%
-                </Text>
+            <Card style={styles.overviewCard}>
+                <View style={styles.overviewHeader}>
+                    <View>
+                        <Text style={[styles.overviewLabel, { color: colors.subtext }]}>Overall mastery</Text>
+                        <Text style={[styles.overviewValue, { color: colors.text }]}>
+                            {progressStats.overallMastery}%
+                        </Text>
+                    </View>
+                    <View style={[styles.overviewIcon, { backgroundColor: colors.primarySoft }]}>
+                        <ActivityIndicator 
+                            size="small" 
+                            color={colors.primary} 
+                            animating={false} 
+                            style={{ position: 'absolute' }}
+                        />
+                        <Pill icon="trophy-outline" label="Pro" tone="primary" />
+                    </View>
+                </View>
+                
                 <ProgressBar value={progressStats.overallMastery} style={styles.overviewBar} />
+                
                 <Text style={[styles.overviewNote, { color: colors.subtext }]}>
                     {progressStats.hasMasteryProgress && progressStats.strongestDeck
                         ? `Strongest deck: ${progressStats.strongestDeck.title || 'Untitled Deck'}`
@@ -124,7 +139,7 @@ const ProgressScreen = () => {
                     const tone = masteryTone(mastery);
 
                     return (
-                        <Card key={deck.id}>
+                        <Card key={deck.id} style={styles.breakdownCard}>
                             <View style={styles.deckHeader}>
                                 <View style={styles.deckTitleWrap}>
                                     <Text style={[styles.deckTitle, { color: colors.text }]} numberOfLines={1}>
@@ -134,7 +149,9 @@ const ProgressScreen = () => {
                                         {mastered} of {cardCount} cards mastered
                                     </Text>
                                 </View>
-                                <Text style={[styles.deckPercent, { color: tone.color }]}>{mastery}%</Text>
+                                <View style={[styles.percentBadge, { backgroundColor: colors.surfaceSubtle }]}>
+                                    <Text style={[styles.deckPercent, { color: tone.color }]}>{mastery}%</Text>
+                                </View>
                             </View>
 
                             <ProgressBar value={mastery} color={tone.color} style={styles.deckBar} />
@@ -163,32 +180,62 @@ const styles = StyleSheet.create({
     loadingContent: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     loadingText:    { marginTop: spacing.md, fontSize: typography.size.body },
 
+    overviewCard: {
+        padding: spacing.xl,
+        borderWidth: 1,
+        borderRadius: radius.xl,
+    },
+    overviewHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: spacing.md,
+    },
     overviewLabel: {
         fontSize: typography.size.micro,
-        fontWeight: typography.weight.semibold,
+        fontWeight: typography.weight.bold,
         textTransform: 'uppercase',
         letterSpacing: 0.8,
     },
     overviewValue: {
-        fontSize: 34,
+        fontSize: 42,
         fontWeight: typography.weight.bold,
         marginTop: 2,
-        marginBottom: spacing.md,
+        letterSpacing: -1,
     },
-    overviewBar:  { marginBottom: spacing.md },
-    overviewNote: { fontSize: typography.size.caption, lineHeight: 19 },
+    overviewIcon: {
+        padding: spacing.xs,
+        borderRadius: radius.md,
+    },
+    overviewBar:  { 
+        height: 10,
+        marginBottom: spacing.lg 
+    },
+    overviewNote: { 
+        fontSize: typography.size.caption, 
+        lineHeight: 20,
+        fontWeight: typography.weight.medium,
+    },
 
     metricRow:     { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
     metricRowLast: { marginBottom: spacing.xl },
 
-    deckHeader:    { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+    breakdownCard: {
+        padding: spacing.lg,
+    },
+    deckHeader:    { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg },
     deckTitleWrap: { flex: 1, paddingRight: spacing.md },
-    deckTitle:     { fontSize: typography.size.heading, fontWeight: typography.weight.bold, marginBottom: 3 },
-    deckSubtitle:  { fontSize: typography.size.micro + 1 },
+    deckTitle:     { fontSize: typography.size.heading, fontWeight: typography.weight.bold, marginBottom: 4 },
+    deckSubtitle:  { fontSize: typography.size.caption, fontWeight: typography.weight.medium },
+    percentBadge: {
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 4,
+        borderRadius: radius.md,
+    },
     deckPercent:   { fontSize: typography.size.body, fontWeight: typography.weight.bold },
-    deckBar:       { marginBottom: spacing.md },
+    deckBar:       { marginBottom: spacing.lg },
     deckFooter:    { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    deckSource:    { flex: 1, fontSize: typography.size.micro + 1, textAlign: 'right' },
+    deckSource:    { flex: 1, fontSize: typography.size.micro + 1, textAlign: 'right', fontWeight: typography.weight.medium },
 });
 
 export default ProgressScreen;

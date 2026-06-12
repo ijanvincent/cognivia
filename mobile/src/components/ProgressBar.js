@@ -15,7 +15,12 @@ const ProgressBar = ({ value, color, style }) => {
             <View
                 style={[
                     styles.fill,
-                    { width: `${clamped}%`, backgroundColor: color || colors.primary },
+                    { 
+                        width: `${clamped}%`, 
+                        backgroundColor: color || colors.primary,
+                        // Add a very subtle gradient effect if we had linear-gradient, 
+                        // but for now we'll stick to solid with better styling.
+                    },
                 ]}
             />
         </View>
@@ -24,7 +29,7 @@ const ProgressBar = ({ value, color, style }) => {
 
 const styles = StyleSheet.create({
     track: {
-        height: 6,
+        height: 8,
         borderRadius: radius.pill,
         overflow: 'hidden',
     },
