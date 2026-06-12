@@ -18,6 +18,14 @@
       "autoIncrement": true,
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://intercity-nonbibulously-brylee.ngrok-free.dev/api",
+        "EXPO_PUBLIC_PUSHER_APP_KEY": "cognivia-key",
+        "EXPO_PUBLIC_PUSHER_HOST": "intercity-nonbibulously-brylee.ngrok-free.dev",
+        "EXPO_PUBLIC_PUSHER_PORT": "443",
+        "EXPO_PUBLIC_PUSHER_SCHEME": "https",
+        "EXPO_PUBLIC_PUSHER_APP_CLUSTER": "mt1"
       }
     }
   },

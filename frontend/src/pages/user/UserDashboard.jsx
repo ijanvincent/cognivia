@@ -21,7 +21,8 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
  *        to remove nothing — both silent failures with no runtime error.
  */
 
-const APP_DOWNLOAD_URL = process.env.REACT_APP_DOWNLOAD_URL || 'https://cognivia.app/download';
+const APP_DOWNLOAD_URL =
+  process.env.REACT_APP_DOWNLOAD_URL || `${window.location.origin}/downloads/cognivia.apk`;
 const APPROVAL_TTL_SECONDS = 60;
 
 const IconUser = () => (

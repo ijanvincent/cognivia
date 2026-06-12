@@ -31,8 +31,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "eb224f7a-fa31-410a-832b-252bbfc926c2"
+        "projectId": "3229db57-f9b8-4746-8e25-bee15b2d9113"
       }
-    }
+    },
+    "owner": "hewhosr"
   }
 }
