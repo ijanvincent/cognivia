@@ -53,6 +53,12 @@ export const getEchoWithToken = (token) => {
  * No changes to this function — token source is now caller-controlled.
  */
 const _buildEchoInstance = (token) => {
+  // Realtime is a convenience signal only — every consumer also polls the
+  // API as the authoritative fallback and already handles a null Echo.
+  // Without a key, new Pusher(undefined) throws inside the caller's render
+  // effect and white-screens the app, so degrade to polling instead.
+  if (!process.env.REACT_APP_PUSHER_APP_KEY) return null;
+
   // Self-hosted Soketi (dev/ngrok): REACT_APP_PUSHER_HOST is set and the
   // connection goes through the nginx /ws proxy. Hosted Pusher (production):
   // leave REACT_APP_PUSHER_HOST unset and pusher-js derives the endpoint
