@@ -1,0 +1,78 @@
+# Render Blueprint for the CogniVia API.
+#
+# Deploys backend/ as a free-tier Docker web service. Values marked
+# `sync: false` are secrets or instance-specific URLs — Render prompts for
+# them when the blueprint is first applied; they never live in git.
+#
+# Full setup walkthrough: see DEPLOYMENT.md at the repo root.
+services:
+  - type: web
+    name: cognivia-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile.production
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      # --- serversideup/php boot automations -------------------------------
+      - key: AUTORUN_ENABLED
+        value: "true" # run migrations + storage:link + config cache on boot
+      - key: AUTORUN_LARAVEL_MIGRATION_SEED
+        value: "true" # DatabaseSeeder only runs the idempotent AdminSeeder
+
+      # --- Application -----------------------------------------------------
+      - key: APP_NAME
+        value: CogniVia
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false # generate: php artisan key:generate --show
+      - key: APP_URL
+        sync: false # this service's URL, e.g. https://cognivia-api.onrender.com
+      - key: FRONTEND_URL
+        sync: false # the Vercel app URL, e.g. https://cognivia.vercel.app (CORS)
+      - key: JWT_SECRET
+        sync: false # generate: openssl rand -base64 64 | tr -d '\n='
+      - key: ADMIN_SEEDER_EMAIL
+        sync: false
+      - key: ADMIN_SEEDER_PASSWORD
+        sync: false # NOTE: re-applied on every deploy — env is the source of truth
+
+      # --- Database (Aiven free MySQL) --------------------------------------
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/secrets/db-ca.pem # upload Aiven's ca.pem as a Render Secret File
+
+      # --- Drivers ----------------------------------------------------------
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      # No background worker on the free tier, so queued jobs (broadcast
+      # events, mail) must run inline.
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: MAIL_MAILER
+        value: log # switch to smtp + add MAIL_* vars to enable password-reset email
+
+      # --- Realtime (optional — set to "pusher" + fill PUSHER_* to enable) ---
+      - key: BROADCAST_CONNECTION
+        value: log

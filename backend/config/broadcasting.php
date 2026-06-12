@@ -28,11 +28,13 @@ return [
             'app_id' => env('PUSHER_APP_ID'),
             'options' => [
                 'cluster'   => env('PUSHER_APP_CLUSTER', 'mt1'),
-                'host'      => env('PUSHER_HOST', 'soketi'),   
+                'host'      => env('PUSHER_HOST', 'soketi'),
                 'port'      => env('PUSHER_PORT', 6001),
                 'scheme'    => env('PUSHER_SCHEME', 'http'),
-                'encrypted' => false,                          
-                'useTLS'    => false,                          
+                // Plain HTTP for in-cluster Soketi (dev); TLS when pointed
+                // at hosted Pusher (PUSHER_SCHEME=https in production).
+                'encrypted' => env('PUSHER_SCHEME', 'http') === 'https',
+                'useTLS'    => env('PUSHER_SCHEME', 'http') === 'https',
             ],
             'client_options' => [],
         ],

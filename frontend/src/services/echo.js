@@ -53,19 +53,27 @@ export const getEchoWithToken = (token) => {
  * No changes to this function — token source is now caller-controlled.
  */
 const _buildEchoInstance = (token) => {
+  // Self-hosted Soketi (dev/ngrok): REACT_APP_PUSHER_HOST is set and the
+  // connection goes through the nginx /ws proxy. Hosted Pusher (production):
+  // leave REACT_APP_PUSHER_HOST unset and pusher-js derives the endpoint
+  // from the cluster — no custom host or path applies there.
+  const wsHost = process.env.REACT_APP_PUSHER_HOST;
+
   return new Echo({
     broadcaster:       'pusher',
     key:               process.env.REACT_APP_PUSHER_APP_KEY,
-    wsHost:            process.env.REACT_APP_PUSHER_HOST,
-    wsPort:            parseInt(process.env.REACT_APP_PUSHER_PORT),
-    wssPort:           parseInt(process.env.REACT_APP_PUSHER_PORT),
     forceTLS:          true,
     encrypted:         true,
     disableStats:      true,
     enabledTransports: ['wss'],
     cluster:           process.env.REACT_APP_PUSHER_APP_CLUSTER,
-    wsPath:            '/ws',
-    httpPath:          '/ws',
+    ...(wsHost && {
+      wsHost,
+      wsPort:   parseInt(process.env.REACT_APP_PUSHER_PORT),
+      wssPort:  parseInt(process.env.REACT_APP_PUSHER_PORT),
+      wsPath:   '/ws',
+      httpPath: '/ws',
+    }),
     authEndpoint:      `${API_BASE_URL}/broadcasting/auth`,
     auth: {
       headers: {

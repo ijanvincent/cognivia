@@ -1,0 +1,22 @@
+# Production image for the CogniVia Laravel API (deployed on Render).
+#
+# serversideup/php ships PHP-FPM + nginx in a single container and provides
+# Laravel-aware boot automations (php artisan migrate, storage:link, config
+# caching) controlled by AUTORUN_* environment variables — set in render.yaml.
+FROM serversideup/php:8.4-fpm-nginx
+
+USER root
+
+# gd + exif are required by phpoffice/phpword + phppresentation (document
+# parsing); bcmath matches the extensions enabled in the dev image.
+RUN install-php-extensions bcmath exif gd
+
+USER www-data
+
+# Install dependencies before copying the app so the vendor layer is cached
+# across builds that only change application code.
+COPY --chown=www-data:www-data composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
+
+COPY --chown=www-data:www-data . .
+RUN composer dump-autoload --optimize --no-dev
