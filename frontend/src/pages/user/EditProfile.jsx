@@ -123,6 +123,25 @@ function EditProfile() {
     return () => clearTimeout(t);
   }, []);
 
+  // Prefill from the server, not just the local cache — the profile may have
+  // been changed on mobile while this browser was closed. Skipped silently
+  // when offline; never overwrites a file the user has already picked here.
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/auth/me')
+      .then(({ data }) => {
+        if (cancelled || !data?.user) return;
+        const merged = { ...getStoredUser(), ...data.user };
+        persistUser(merged);
+        setStoredUser(merged);
+        setFormData(prev => ({ ...prev, username: merged.username || prev.username }));
+        setAvatarPreview(prev =>
+          objectUrlRef.current ? prev : (merged.avatar ? resolveAvatarUrl(merged.avatar) : null));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     return () => {
       if (objectUrlRef.current) {

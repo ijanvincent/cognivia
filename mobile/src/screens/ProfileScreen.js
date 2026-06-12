@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Image,
+    View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Image, Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../services/secureStorage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useDecks } from '../contexts/DeckContext';
-import api from '../services/api';
+import api, { refreshUserProfile, resolveAvatarUrl } from '../services/api';
 import {
     Screen, ScreenHeader, Card, Button, TextField, Pill,
 } from '../components';
@@ -40,12 +40,22 @@ const ProfileScreen = () => {
         } catch (error) {
             console.error('Error loading user:', error);
         }
+        // Server is the source of truth — pick up profile changes made on web
+        // even if the realtime event was missed while the app was closed.
+        try {
+            const fresh = await refreshUserProfile();
+            if (fresh) {
+                setUserData({
+                    name:  fresh.username || fresh.name || 'User',
+                    email: fresh.email || '',
+                });
+                setProfileImage(fresh.avatar || null);
+            }
+        } catch { /* offline or token expired — keep cached values */ }
     }, []);
 
     useEffect(() => { loadUser(); }, [loadUser]);
 
-    // useFocusEffect must not receive an async callback: it would return a
-    // Promise where React Navigation expects a cleanup function.
     useFocusEffect(useCallback(() => { loadUser(); }, [loadUser]));
 
     const handleEditProfile = async () => {
@@ -65,19 +75,32 @@ const ProfileScreen = () => {
             setProfileImage(uri);
             try {
                 const formData = new FormData();
-                formData.append('avatar', { uri, name: 'avatar.jpg', type: 'image/jpeg' });
+                if (Platform.OS === 'web') {
+                    // The RN-style { uri, name, type } object stringifies to
+                    // "[object Object]" in a browser — the server then sees no
+                    // file and silently saves nothing. Send a real File instead.
+                    const blob = await (await fetch(uri)).blob();
+                    const ext  = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+                    formData.append('avatar', new File([blob], `avatar.${ext}`, { type: blob.type || 'image/jpeg' }));
+                } else {
+                    formData.append('avatar', { uri, name: 'avatar.jpg', type: 'image/jpeg' });
+                }
                 const response = await api.post('/auth/profile/update', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
+                const savedAvatar = response.data.user?.avatar;
+                if (!savedAvatar) throw new Error('Server did not store the avatar');
+                setProfileImage(savedAvatar);
                 const userStr = await SecureStore.getItemAsync('user');
                 if (userStr) {
                     const user = JSON.parse(userStr);
-                    user.avatar = response.data.user.avatar;
+                    user.avatar = savedAvatar;
                     await SecureStore.setItemAsync('user', JSON.stringify(user));
                 }
                 Alert.alert('Profile Updated', 'Your profile picture has been updated.');
             } catch (error) {
                 console.error('Error updating avatar:', error);
+                loadUser(); // drop the optimistic preview — show what's actually saved
                 Alert.alert('Update Failed', 'Could not update your profile picture. Please try again.');
             }
         }
@@ -100,10 +123,7 @@ const ProfileScreen = () => {
         setIsImporting(true);
         try {
             const response = await api.post('/decks/import', { shareCode });
-
-            // Refresh decks in context so the home screen updates instantly.
             await refreshDecks();
-
             Alert.alert(
                 'Deck Imported',
                 `"${response.data.deck.title}" was added with ${response.data.deck.card_count} cards.`,
@@ -153,11 +173,11 @@ const ProfileScreen = () => {
         <Screen>
             <ScreenHeader eyebrow="Account" title="Profile" />
 
-            <Card>
+            <Card style={styles.profileCard}>
                 <View style={styles.profileRow}>
                     <View style={styles.avatarWrapper}>
                         {profileImage ? (
-                            <Image source={{ uri: profileImage }} style={styles.avatar} />
+                            <Image source={{ uri: resolveAvatarUrl(profileImage) }} style={styles.avatar} />
                         ) : (
                             <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.primarySoft }]}>
                                 <Text style={[styles.avatarInitial, { color: colors.primary }]}>{userInitial}</Text>
@@ -167,8 +187,6 @@ const ProfileScreen = () => {
                             onPress={handleEditProfile}
                             style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.card }]}
                             activeOpacity={0.85}
-                            accessibilityRole="button"
-                            accessibilityLabel="Change profile picture"
                         >
                             <MaterialCommunityIcons name="camera-outline" size={14} color={colors.onPrimary} />
                         </TouchableOpacity>
@@ -181,12 +199,12 @@ const ProfileScreen = () => {
                         <Text style={[styles.userEmail, { color: colors.subtext }]} numberOfLines={1}>
                             {userData.email}
                         </Text>
-                        <Pill icon="shield-account-outline" label="Learner account" tone="primary" />
+                        <Pill icon="shield-account-outline" label="Pro Member" tone="primary" />
                     </View>
                 </View>
             </Card>
 
-            <Card>
+            <Card style={styles.importCard}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>Import a Deck</Text>
                 <Text style={[styles.cardSubtitle, { color: colors.subtext }]}>
                     Paste a code shared from another device to add the deck to your library.
@@ -205,32 +223,31 @@ const ProfileScreen = () => {
                     icon="tray-arrow-down"
                     onPress={handleInputLink}
                     loading={isImporting}
+                    style={{ marginTop: spacing.sm }}
                 />
             </Card>
 
-            <Card padded={false}>
+            <Card padded={false} style={styles.settingsCard}>
                 <Text style={[styles.cardTitle, styles.preferencesTitle, { color: colors.text }]}>Preferences</Text>
 
                 <TouchableOpacity
                     onPress={handleAboutUs}
                     style={[styles.settingRow, { borderTopColor: colors.border }]}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    accessibilityLabel="About CogniVia"
+                    activeOpacity={0.7}
                 >
                     <View style={[styles.settingIcon, { backgroundColor: colors.surfaceSubtle }]}>
-                        <MaterialCommunityIcons name="information-outline" size={19} color={colors.subtext} />
+                        <MaterialCommunityIcons name="information-outline" size={20} color={colors.subtext} />
                     </View>
                     <View style={styles.settingCopy}>
                         <Text style={[styles.settingText, { color: colors.text }]}>About CogniVia</Text>
-                        <Text style={[styles.settingSubText, { color: colors.subtext }]}>App information and support</Text>
+                        <Text style={[styles.settingSubText, { color: colors.subtext }]}>App version and support</Text>
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={22} color={colors.subtext} />
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.subtext} />
                 </TouchableOpacity>
 
                 <View style={[styles.settingRow, { borderTopColor: colors.border }]}>
                     <View style={[styles.settingIcon, { backgroundColor: colors.surfaceSubtle }]}>
-                        <MaterialCommunityIcons name="theme-light-dark" size={19} color={colors.subtext} />
+                        <MaterialCommunityIcons name="theme-light-dark" size={20} color={colors.subtext} />
                     </View>
                     <View style={styles.settingCopy}>
                         <Text style={[styles.settingText, { color: colors.text }]}>Dark Mode</Text>
@@ -250,24 +267,29 @@ const ProfileScreen = () => {
                 icon="logout"
                 variant="destructive"
                 onPress={handleLogout}
+                style={styles.logoutBtn}
             />
         </Screen>
     );
 };
 
 const styles = StyleSheet.create({
+    profileCard: {
+        padding: spacing.xl,
+        borderRadius: radius.xl,
+    },
     profileRow:        { flexDirection: 'row', alignItems: 'center' },
     avatarWrapper:     { position: 'relative', marginRight: spacing.lg },
-    avatar:            { width: 76, height: 76, borderRadius: 38 },
+    avatar:            { width: 84, height: 84, borderRadius: radius.pill },
     avatarPlaceholder: { alignItems: 'center', justifyContent: 'center' },
-    avatarInitial:     { fontSize: 28, fontWeight: typography.weight.bold },
+    avatarInitial:     { fontSize: 32, fontWeight: typography.weight.bold },
     editBadge:         {
         position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        bottom: 2,
+        right: 2,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
         borderWidth: 2,
         alignItems: 'center',
         justifyContent: 'center',
@@ -277,23 +299,34 @@ const styles = StyleSheet.create({
         fontSize: typography.size.title,
         fontWeight: typography.weight.bold,
         marginBottom: 2,
+        letterSpacing: -0.5,
     },
     userEmail: {
         fontSize: typography.size.caption,
         marginBottom: spacing.sm,
+        fontWeight: typography.weight.medium,
     },
 
+    importCard: {
+        padding: spacing.lg,
+        borderRadius: radius.xl,
+    },
     cardTitle: {
         fontSize: typography.size.heading,
         fontWeight: typography.weight.bold,
-        marginBottom: spacing.xs,
+        marginBottom: 4,
     },
     cardSubtitle: {
         fontSize: typography.size.caption,
-        lineHeight: 19,
+        lineHeight: 20,
         marginBottom: spacing.lg,
+        fontWeight: typography.weight.medium,
     },
 
+    settingsCard: {
+        borderRadius: radius.xl,
+        overflow: 'hidden',
+    },
     preferencesTitle: {
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.lg,
@@ -303,14 +336,14 @@ const styles = StyleSheet.create({
     settingRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.lg,
         paddingHorizontal: spacing.lg,
         borderTopWidth: 1,
-        gap: spacing.md,
+        gap: spacing.lg,
     },
     settingIcon: {
-        width: 36,
-        height: 36,
+        width: 40,
+        height: 40,
         borderRadius: radius.md,
         alignItems: 'center',
         justifyContent: 'center',
@@ -318,10 +351,17 @@ const styles = StyleSheet.create({
     settingCopy:    { flex: 1, paddingRight: spacing.sm },
     settingText:    {
         fontSize: typography.size.body,
-        fontWeight: typography.weight.semibold,
-        marginBottom: 1,
+        fontWeight: typography.weight.bold,
+        marginBottom: 2,
     },
-    settingSubText: { fontSize: typography.size.micro + 1 },
+    settingSubText: { 
+        fontSize: typography.size.micro + 1,
+        fontWeight: typography.weight.medium,
+    },
+    logoutBtn: {
+        marginTop: spacing.md,
+        marginBottom: spacing.xxl,
+    },
 });
 
 export default ProfileScreen;
