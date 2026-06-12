@@ -74,7 +74,7 @@ function DropdownNotification() {
                 </div>
                 {notifications.length === 0 ? (
                     <div className="dropdown-item text-center text-muted p-3">
-                        <i className="fa fa-bell-slash d-block mb-2 fa-2x"></i>
+                        <i className="fa fa-bell-slash fa-2x d-block mb-2 mx-auto"></i>
                         <small>No notifications yet</small>
                     </div>
                 ) : (

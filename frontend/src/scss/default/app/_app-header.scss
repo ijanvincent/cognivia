@@ -40,13 +40,13 @@
 		
 		& .icon-bar {
 			display: block;
-			width: rem(22px);
-			height: rem(2px);
+			width: rem(24px);
+			height: rem(3px);
 			background: var(--#{$prefix}app-header-color);
 			border-radius: var(--#{$prefix}border-radius);
-			
+
 			& + .icon-bar {
-				margin-top: rem(4px);
+				margin-top: rem(5px);
 			}
 		}
 		&:hover {
@@ -56,13 +56,44 @@
 		& + .navbar-brand {
 			@include media-breakpoint-down(md) {
 				justify-content: center;
-				
+
 				@if $enable-rtl {
 					margin-right: auto;
 				} @else {
 					margin-left: auto;
 				}
 			}
+		}
+	}
+	& .navbar-desktop-toggler {
+		position: relative;
+		padding: rem(10px);
+		background-color: transparent;
+		background-image: none;
+		border: none;
+		outline: none;
+		cursor: pointer;
+		color: var(--#{$prefix}app-header-color);
+		border-radius: var(--#{$prefix}border-radius);
+
+		@include media-breakpoint-down(md) {
+			display: none;
+		}
+
+		& .icon-bar {
+			display: block;
+			width: rem(24px);
+			height: rem(3px);
+			background: var(--#{$prefix}app-header-color);
+			border-radius: var(--#{$prefix}border-radius);
+
+			& + .icon-bar {
+				margin-top: rem(5px);
+			}
+		}
+		&:hover {
+			background: none;
+			opacity: 0.75;
 		}
 	}
 	& .navbar-header {

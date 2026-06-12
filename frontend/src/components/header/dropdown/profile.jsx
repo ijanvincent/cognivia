@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api, { STORAGE_KEYS } from '../../../services/api.js';
 
 /*
@@ -42,6 +42,35 @@ function getAdminUser() {
 
 function DropdownProfile() {
   const navigate = useNavigate();
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    // Probe a real external host — a local request (favicon, API on
+    // localhost) succeeds even with no internet, so it can't detect
+    // a dropped connection. gstatic's generate_204 is Google's own
+    // connectivity-check endpoint; no-cors gives an opaque response
+    // that resolves on success and throws on network failure.
+    const check = async () => {
+      try {
+        await fetch('https://www.gstatic.com/generate_204', {
+          method: 'HEAD', mode: 'no-cors', cache: 'no-store',
+          signal: AbortSignal.timeout(5000),
+        });
+        setIsOnline(true);
+      } catch {
+        setIsOnline(false);
+      }
+    };
+    check();
+    const id = setInterval(check, 8000);
+    window.addEventListener('online',  check);
+    window.addEventListener('offline', check);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('online',  check);
+      window.removeEventListener('offline', check);
+    };
+  }, []);
 
   // This component is rendered inside the admin layout — admin data takes
   // priority. Fall back to user data only if no admin session exists.
@@ -90,43 +119,37 @@ function DropdownProfile() {
 
   return (
     <div className="navbar-item navbar-user dropdown">
-      <a href="#/" className="navbar-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-        <div style={{
-          width: '32px', height: '32px', borderRadius: '50%',
-          background: 'linear-gradient(135deg, #1a73e8, #0d47a1)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontWeight: 'bold', fontSize: '14px',
-        }}>
-          {displayName.charAt(0).toUpperCase()}
+      <a href="#/" className="navbar-link d-flex align-items-center" data-bs-toggle="dropdown">
+        <div style={{ position: 'relative', width: '32px', height: '32px' }}>
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1a73e8, #0d47a1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 'bold', fontSize: '14px',
+          }}>
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+          <span style={{
+            position: 'absolute', bottom: '1px', right: '1px',
+            width: '9px', height: '9px', borderRadius: '50%',
+            background: isOnline ? '#4cd137' : '#6c757d',
+            border: '2px solid var(--bs-app-header-bg, #1a1a2e)',
+          }} />
         </div>
-        <span>
-          <span className="d-none d-md-inline">{displayName}</span>
-          <b className="caret"></b>
-        </span>
       </a>
       <div className="dropdown-menu dropdown-menu-end me-1">
-        {!isAdmin && (
-          <>
-            <a href="#/" className="dropdown-item">Edit Profile</a>
-            <a href="#/" className="dropdown-item d-flex align-items-center">
-              Inbox
-              <span className="badge bg-danger rounded-pill ms-auto pb-4px">2</span>
-            </a>
-            <a href="#/" className="dropdown-item">Calendar</a>
-            <a href="#/" className="dropdown-item">Settings</a>
-            <div className="dropdown-divider"></div>
-          </>
-        )}
-        {isAdmin && (
-          <>
-            <div className="dropdown-header text-muted">
-              <small>Logged in as Administrator</small>
-            </div>
-            <div className="dropdown-divider"></div>
-          </>
-        )}
+        <Link to="/admin/profile" className="dropdown-item">
+          <i className="fa fa-user-pen fa-fw me-1"></i> Edit Profile
+        </Link>
+        <a href="#/" className="dropdown-item d-flex align-items-center">
+          <i className="fa fa-envelope fa-fw me-1"></i> Inbox
+        </a>
+        <a href="#/" className="dropdown-item">
+          <i className="fa fa-calendar-days fa-fw me-1"></i> Calendar
+        </a>
+        <div className="dropdown-divider"></div>
         <a href="#/" className="dropdown-item text-danger" onClick={handleLogout}>
-          <i className="fa fa-sign-out-alt me-1"></i> Log Out
+          <i className="fa fa-sign-out-alt fa-fw me-1"></i> Log Out
         </a>
       </div>
     </div>

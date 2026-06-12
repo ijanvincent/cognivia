@@ -24,6 +24,37 @@
 		display: block;
 	}
 	
+	& .navbar-desktop-toggler {
+		position: relative;
+		padding: rem(10px);
+		background-color: transparent;
+		background-image: none;
+		border: none;
+		outline: none;
+		cursor: pointer;
+		color: var(--#{$prefix}component-color);
+		border-radius: $border-radius;
+
+		@include media-breakpoint-down(md) {
+			display: none;
+		}
+
+		& .icon-bar {
+			display: block;
+			width: rem(22px);
+			height: rem(2px);
+			background: var(--#{$prefix}app-header-color);
+			border-radius: $border-radius;
+
+			& + .icon-bar {
+				margin-top: rem(4px);
+			}
+		}
+		&:hover {
+			background: none;
+			opacity: 0.75;
+		}
+	}
 	& .navbar-mobile-toggler {
 		position: relative;
 		padding: rem(10px);
