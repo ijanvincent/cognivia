@@ -30,15 +30,17 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
 
-        // Behind the Docker nginx proxy every request reaches PHP with the
-        // bridge-network gateway as REMOTE_ADDR. Without trusting that proxy,
-        // request()->ip() is identical for all visitors, so the IP-keyed login
-        // throttles share one global bucket — any client can exhaust everyone's
-        // attempts. Trusting the bridge range makes Laravel resolve the real
-        // client IP from X-Forwarded-For (set by nginx/ngrok).
-        $middleware->trustProxies(at: [
-            '172.16.0.0/12',
-        ]);
+        // Behind a proxy every request reaches PHP with the proxy as
+        // REMOTE_ADDR. Without trusting it, request()->ip() is identical for
+        // all visitors, so the IP-keyed login throttles share one global
+        // bucket — any client can exhaust everyone's attempts. The trusted
+        // range differs per environment: the Docker bridge locally (default),
+        // and '*' on Render, whose load-balancer CIDR is unpublished but is
+        // the only path to reach the container.
+        $trustedProxies = env('TRUSTED_PROXIES', '172.16.0.0/12');
+        $middleware->trustProxies(
+            at: $trustedProxies === '*' ? '*' : array_map('trim', explode(',', $trustedProxies)),
+        );
 
         $middleware->alias([
             'admin'          => AdminMiddleware::class,

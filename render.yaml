@@ -30,6 +30,8 @@ services:
         value: "false"
       - key: APP_KEY
         sync: false # generate: php artisan key:generate --show
+      - key: TRUSTED_PROXIES
+        value: "*" # Render's LB CIDR is unpublished; the container is only reachable through it
       - key: APP_URL
         sync: false # this service's URL, e.g. https://cognivia-api.onrender.com
       - key: FRONTEND_URL

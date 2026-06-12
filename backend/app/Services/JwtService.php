@@ -57,8 +57,12 @@ class JwtService
      */
     public function verify(string $token): array
     {
-        $decoded = JWT::decode($token, new Key($this->secret, self::ALGO));
+        $decoded = (array) JWT::decode($token, new Key($this->secret, self::ALGO));
 
-        return (array) $decoded;
+        if (($decoded['iss'] ?? null) !== config('app.url')) {
+            throw new \UnexpectedValueException('Token issuer mismatch.');
+        }
+
+        return $decoded;
     }
 }

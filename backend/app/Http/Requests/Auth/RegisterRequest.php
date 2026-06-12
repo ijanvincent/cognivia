@@ -78,7 +78,9 @@ class RegisterRequest extends FormRequest
 
             'email.required'    => 'Email address is required.',
             'email.email'       => 'Please enter a valid email address.',
-            'email.unique'      => 'This email is already registered. Please use a different email.',
+            // Deliberately vague: confirming "already registered" lets an
+            // attacker enumerate which emails have accounts.
+            'email.unique'      => 'This email address cannot be used. Please use a different one.',
 
             'password.required'  => 'Password is required.',
             'password.min'       => 'Password must be at least 8 characters.',
