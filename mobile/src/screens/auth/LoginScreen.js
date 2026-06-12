@@ -479,11 +479,11 @@ const LoginScreen = () => {
     }, [completeApprovedLogin, handleDeniedLogin]);
 
     const subscribeToApprovalChannel = useCallback((userId, conflictToken, approvalToken) => {
+        // Null when realtime is unavailable (no Pusher config in this build).
+        // Not an error: the status polling effect below is the authoritative
+        // path and completes the approval on its own.
         const echo = getEchoWithToken(conflictToken);
-        if (!echo) {
-            setErrors({ general: 'Could not connect to approval channel. Please try again.' });
-            return;
-        }
+        if (!echo) return;
 
         conflictEchoRef.current = echo;
 

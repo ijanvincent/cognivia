@@ -85,6 +85,12 @@ export const disconnectEcho = () => {
 // Internal — shared Echo + Pusher builder.
 // ---------------------------------------------------------------------------
 const _buildEchoInstance = (token) => {
+    // Realtime is a convenience signal only — every flow that listens for
+    // events also polls the API as the authoritative fallback. When a build
+    // ships without Pusher config (e.g. production until hosted Pusher is
+    // set up), degrade to polling instead of letting `new Pusher('')` throw.
+    if (!PUSHER_KEY || !PUSHER_HOST) return null;
+
     const authHeaders = {
         Authorization: `Bearer ${token}`,
         'X-Platform': 'mobile',
