@@ -57,6 +57,10 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .topBarLogo { display: flex; align-items: center; }
+.topBarBrand {
+  font-family: var(--font-display); font-size: 17px; font-weight: 800;
+  letter-spacing: -0.5px; color: var(--text-primary);
+}
 .topBarNav { display: flex; align-items: center; gap: 28px; }
 .navLink {
   font-size: 14px; font-weight: 500;
@@ -287,28 +291,98 @@
 .footerLinkActive { color: var(--accent-cyan) !important; }
 
 
+/* ── Tablet ────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .topBarNav { display: none; }
-  .hero { padding: 60px 24px 48px; }
-  .contentSection { padding: 32px 24px 60px; }
+  .topBar { padding: 18px 28px; }
+  .hero { padding: 64px 28px 48px; }
+  .contentSection { padding: 28px 20px 60px; }
   .contentCardHeader { padding: 24px 24px 20px; flex-wrap: wrap; gap: 12px; }
   .contentIntro { margin: 16px 16px 0; }
   .sectionsWrap { padding: 8px 24px 24px; }
-  .footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
+  .footer { flex-direction: column; gap: 10px; text-align: center; padding: 22px 24px; }
+  .footerLinks { justify-content: center; }
 }
 
-@media (max-width: 600px) {
-  .tabBar { flex-direction: column; width: calc(100% - 48px); }
-  .tabBtn { justify-content: center; }
-  .contentCardHeader { flex-direction: column; align-items: flex-start; }
-}
-
+/* ── Mobile — background + wave ───────────────────────── */
 @media (max-width: 768px) {
-  .wavePath { animation: none; display: none; }
-  .bgCanvas { display: none; }
-  .pageContainer {
-    background: linear-gradient(135deg, #07080f 0%, #0d0f1f 50%, #07080f 100%);
+  .wavePath { animation: none; }            /* keep waves, just static */
+  .pageContainer { background-color: #0b1120; } /* match mobile auth bg */
+}
+
+/* ── Mobile — layout ───────────────────────────────────── */
+@media (max-width: 640px) {
+  .topBar { padding: 14px 20px; }
+
+  .hero { padding: 48px 20px 36px; text-align: left; }
+  .heroPill { font-size: 10px; padding: 5px 14px; }
+  .heroDivider { margin-left: 0; }
+  .heroTitle { letter-spacing: -1px; }
+  .heroAccent { letter-spacing: -1.5px; }
+  .heroBody { font-size: 14px; line-height: 1.7; margin-bottom: 28px; max-width: 100%; }
+
+  .tabBar {
+    flex-direction: row;
+    width: 100%;
+    gap: 6px;
+    box-sizing: border-box;
   }
+  .tabBtn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 12px;
+    gap: 5px;
+  }
+  .tabBtn svg { width: 13px; height: 13px; }
+
+  .contentSection { padding: 16px 14px 52px; }
+
+  .contentCard { border-radius: 16px; }
+  .contentCardHeader {
+    flex-direction: row;
+    align-items: center;
+    padding: 18px 18px 16px;
+    gap: 12px;
+  }
+  .contentCardTitle { font-size: 17px; }
+  .contentCardMeta { font-size: 11px; }
+  .contentCardBadge { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+  .contentCardBadge svg { width: 18px; height: 18px; }
+
+  .contentIntro {
+    margin: 14px 14px 0;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  .sectionsWrap { padding: 4px 18px 20px; }
+  .legalSection { padding: 20px 0; }
+  .legalSectionTitle { font-size: 13px; margin-bottom: 10px; }
+  .legalSectionBody { font-size: 13px; line-height: 1.8; }
+
+  .sideNote { flex-direction: row; gap: 12px; padding: 16px; }
+  .sideNoteIcon { width: 32px; height: 32px; flex-shrink: 0; }
+  .sideNote p { font-size: 12.5px; padding-top: 4px; }
+
+  .footer { padding: 18px 20px; gap: 8px; }
+  .footerBrand { font-size: 14px; }
+  .footerCopy { font-size: 11px; }
+  .footerLinks { gap: 16px; }
+  .footerLink { font-size: 11px; }
+}
+
+/* ── Very small (≤ 380px) ──────────────────────────────── */
+@media (max-width: 380px) {
+  .topBar { padding: 12px 16px; }
+  .navCta { padding: 8px 16px; font-size: 12px; }
+  .hero { padding: 40px 16px 28px; }
+  .contentSection { padding: 12px 10px 48px; }
+  .contentCardHeader { padding: 16px 14px; }
+  .contentIntro { margin: 12px 10px 0; padding: 12px 14px; }
+  .sectionsWrap { padding: 4px 14px 16px; }
+  .tabBtn { font-size: 11px; padding: 9px 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

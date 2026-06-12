@@ -214,7 +214,9 @@ export default function Legal() {
 
       {/* ── Top Nav ── */}
       <div className={styles.topBar}>
-        <div className={styles.topBarLogo}></div>
+        <div className={styles.topBarLogo}>
+          <span className={styles.topBarBrand}>CogniVia</span>
+        </div>
         <nav className={styles.topBarNav}>
           <Link to="/about"     className={styles.navLink}>About</Link>
           <Link to="/solutions" className={styles.navLink}>Solutions</Link>
