@@ -10,7 +10,11 @@ function NavItem({ menu, ...props }) {
   let location = useLocation();
   let match2 = matchPath({path: menu.path, end: false, },location.pathname);
   
-	let icon = menu.icon && <div className="menu-icon"><i className={menu.icon}></i></div>;
+	let icon = menu.icon && (
+		<div className="menu-icon">
+			<i className={menu.icon}></i>
+		</div>
+	);
 	let img = menu.img && <div className="menu-icon-img"><img src={menu.img} alt="" /></div>;
 	let caret = (menu.children && !menu.badge) && <div className="menu-caret"></div>;
 	let label = menu.label && <span className="menu-label ms-5px">{menu.label}</span>;

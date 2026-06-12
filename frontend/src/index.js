@@ -8,6 +8,7 @@ import 'bootstrap';
 
 // css
 import '@fortawesome/fontawesome-free/css/all.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'react-perfect-scrollbar/dist/css/styles.css';
 import './index.css';
 import './scss/react.scss';

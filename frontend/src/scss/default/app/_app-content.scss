@@ -1,6 +1,7 @@
 .app-content {
 	margin-left: $app-sidebar-width;
 	padding: $app-content-padding-y $app-content-padding-x;
+	transition: margin-left .25s cubic-bezier(.4,0,.2,1);
 	
 	& .app-content-container {
 		margin: (-$app-content-padding-y) (-$app-content-padding-x);

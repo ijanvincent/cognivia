@@ -3,17 +3,17 @@ const Menu = [
     { is_header: true, title: 'Overview' },
     {
         path: '/admin/dashboard',
-        icon: 'fa fa-gauge-high',
+        icon: 'bi bi-display',
         title: 'Dashboard',
     },
     {
         path: '/admin/activity',
-        icon: 'fa fa-wave-square',
+        icon: 'bi bi-activity',
         title: 'Activity',
     },
     {
         path: '/admin/users/analytics',
-        icon: 'fa fa-chart-line',
+        icon: 'bi bi-graph-up-arrow',
         title: 'Analytics',
     },
 
@@ -21,17 +21,17 @@ const Menu = [
     { is_header: true, title: 'Management' },
     {
         path: '/admin/users',
-        icon: 'fa fa-users',
+        icon: 'bi bi-person-workspace',
         title: 'Users',
     },
     {
         path: '/admin/login-approvals',
-        icon: 'fa fa-shield-halved',
+        icon: 'bi bi-fingerprint',
         title: 'Login Approvals',
     },
     {
         path: '/admin/decks',
-        icon: 'fa fa-layer-group',
+        icon: 'bi bi-journals',
         title: 'Deck Library',
     },
 ];

@@ -1,12 +1,16 @@
 .app-sidebar-minified:not(.app-without-sidebar) {
 	& .app-sidebar:not(.app-sidebar-end) {
 		width: $app-sidebar-width-minified;
-		
+
 		& .menu {
+			// header is 15px top + 20px line-height + 3px bottom = 38px.
+			// base padding-top is 16px. compensate so items don't shift: 16 + 38 = 54px.
+			padding-top: rem(54px);
+
 			& > .menu-item {
 				& > .menu-link {
 					padding: rem(10px) rem(20px);
-					
+
 					& .menu-text,
 					& .menu-label,
 					& .menu-badge {
@@ -35,7 +39,7 @@
 			} @else {
 				margin-right: rem(-15px);
 			}
-			
+
 			&:before {
 				transform: rotate(0deg) !important;
 			}
@@ -70,7 +74,7 @@
 			}
 		}
 	}
-	
+
 	&.app-with-end-sidebar {
 		& .app-content {
 			@include media-breakpoint-up(md) {

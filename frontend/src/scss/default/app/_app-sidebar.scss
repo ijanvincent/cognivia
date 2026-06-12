@@ -6,6 +6,7 @@
 	padding-top: $app-header-height;
 	background: var(--#{$prefix}app-sidebar-bg);
 	z-index: $app-sidebar-zindex;
+	transition: width .25s cubic-bezier(.4,0,.2,1);
 	
 	@if $enable-rtl {
 		right: 0;
@@ -25,6 +26,8 @@
 	}
 	
 	& .menu {
+		padding-top: rem(16px);
+		transition: padding-top .25s cubic-bezier(.4,0,.2,1);
 		& .menu-profile {
 			padding: $app-sidebar-component-padding-x;
 			color: var(--#{$prefix}app-sidebar-profile-color);
@@ -592,6 +595,7 @@
 	bottom: 0;
 	width: $app-sidebar-width;
 	z-index: $app-sidebar-zindex - 10;
+	transition: width .25s cubic-bezier(.4,0,.2,1);
 	
 	@if $enable-rtl {
 		left: auto;
