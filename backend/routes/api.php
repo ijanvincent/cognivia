@@ -96,6 +96,7 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function (): void {
     Route::post('/logout', [AdminAuthController::class, 'logout']);
     Route::get('/me', [AdminAuthController::class, 'me']);
+    Route::post('/profile', [AdminAuthController::class, 'updateProfile']);
 
     Route::get('/dashboard', [UserController::class, 'dashboard']);
     Route::get('/activity', [ActivityController::class, 'feed']);
