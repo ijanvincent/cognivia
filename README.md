@@ -1,4 +1,4 @@
-# CogniVia
+CogniVia
 
 **Live:** [cogniviahq.vercel.app](https://cogniviahq.vercel.app)
 
