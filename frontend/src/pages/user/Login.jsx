@@ -395,7 +395,7 @@ function UserLogin() {
             <button
               onClick={handleCancelWaiting}
               className={styles.toastCancelBtn}
-              style={{ marginTop: 12, fontSize: 13, color: 'var(--subtext)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+              style={{ marginTop: 12, fontSize: 13, color: 'var(--cyan)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
             >
               Cancel
             </button>
