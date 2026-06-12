@@ -8,8 +8,18 @@ FROM serversideup/php:8.4-fpm-nginx
 USER root
 
 # gd + exif are required by phpoffice/phpword + phppresentation (document
-# parsing); bcmath matches the extensions enabled in the dev image.
-RUN install-php-extensions bcmath exif gd
+# parsing); bcmath matches the extensions enabled in the dev image. Compiled
+# the same way as docker/php/Dockerfile (jpeg + webp) rather than via
+# install-php-extensions, whose avif/aom codec packages don't resolve on
+# this base image.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libpng-dev \
+        libjpeg62-turbo-dev \
+        libwebp-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install -j"$(nproc)" gd exif bcmath \
+    && rm -rf /var/lib/apt/lists/*
 
 USER www-data
 
@@ -19,4 +29,8 @@ COPY --chown=www-data:www-data composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
 
 COPY --chown=www-data:www-data . .
-RUN composer dump-autoload --optimize --no-dev
+
+# dump-autoload triggers `artisan package:discover`, which boots the app.
+# No env exists at image-build time and the broadcast default is "pusher",
+# whose client requires a key — pin the log driver for this one command.
+RUN BROADCAST_CONNECTION=log composer dump-autoload --optimize --no-dev
