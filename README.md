@@ -1,4 +1,6 @@
-CogniVia
+# CogniVia
+
+**Live:** [cogniviahq.vercel.app](https://cogniviahq.vercel.app)
 
 A full-stack, cross-platform learning system — Laravel 12 API, React web client, Expo React Native mobile app, real-time WebSocket events, and a fully Dockerized local environment.
 
