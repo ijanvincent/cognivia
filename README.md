@@ -50,9 +50,8 @@ cognivia/
 ├── frontend/         # React web app — user dashboard, admin panel, public pages
 ├── mobile/           # Expo React Native app — mobile learning & login approval
 ├── docker/           # Nginx config, PHP-FPM config, Docker assets
-├── docker-compose.yml
-├── docker-compose.dev.yml
-└── ngrok.yml         # Tunnel config for mobile development
+├── docker-compose.yml   # Local dev stack — backend, nginx, mysql, soketi
+└── ngrok.yml            # Tunnel config for mobile development
 ```
 
 ---
@@ -147,7 +146,7 @@ Fill in your `.env` values (see [Environment Variables](#environment-variables))
 ### 2. Start backend infrastructure
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d
+docker compose up -d
 ```
 
 Run migrations and seed:
@@ -203,8 +202,8 @@ Scan the QR code with Expo Go on a physical device.
 
 ```bash
 # Start / stop all services
-docker compose -f docker-compose.dev.yml up -d
-docker compose -f docker-compose.dev.yml down
+docker compose up -d
+docker compose down
 
 # Shell into the backend container
 docker exec -it cognivia_backend bash

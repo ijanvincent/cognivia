@@ -3,10 +3,14 @@ services:
     build:
       context: ./backend
       dockerfile: ../docker/php/Dockerfile
+      network: host
       args:
+        # Match php-fpm's www-data to the host user so it can write to the
+        # bind-mounted volume (storage/, bootstrap/cache). Override per-host
+        # with `UID=$(id -u) GID=$(id -g) docker compose ... build` if needed.
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-    container_name: cognivia_backend
+    container_name: cognivia_backend      
     restart: unless-stopped
     working_dir: /var/www
     volumes:
@@ -15,26 +19,6 @@ services:
     depends_on:
       - mysql
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: ../docker/frontend/Dockerfile
-    container_name: cognivia_frontend
-    restart: unless-stopped
-    ports:
-      - "3001:3001"
-    volumes:                        
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - WDS_SOCKET_PORT=3001
-      - FAST_REFRESH=false
-      - HOST=0.0.0.0
-      - PORT=3001
-    networks:
-      - cognivia_network
   nginx:
     image: nginx:alpine
     container_name: cognivia_nginx
@@ -48,7 +32,6 @@ services:
       - cognivia_network
     depends_on:
       - backend
-      - frontend
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -68,9 +51,25 @@ services:
     networks:
       - cognivia_network
 
+  soketi:
+    image: quay.io/soketi/soketi:latest-16-alpine
+    container_name: cognivia_soketi
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6001:6001"
+      - "127.0.0.1:9601:9601"
+    environment:
+      SOKETI_DEBUG: "0"
+      SOKETI_DEFAULT_APP_ID: "${PUSHER_APP_ID}"
+      SOKETI_DEFAULT_APP_KEY: "${PUSHER_APP_KEY}"
+      SOKETI_DEFAULT_APP_SECRET: "${PUSHER_APP_SECRET}"
+    networks:
+      - cognivia_network
+
 networks:
   cognivia_network:
     driver: bridge
+    name: cognivia_network
     driver_opts:
       com.docker.network.bridge.enable_ip_masquerade: "true"
       com.docker.network.bridge.enable_icc: "true"
