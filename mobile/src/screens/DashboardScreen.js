@@ -81,14 +81,24 @@ const DashboardScreen = ({ navigation }) => {
                 if (!echo) return;
                 echo.private(`user.${userId}`)
                     .listen('.profile.updated', async (event) => {
-                        if (event.source_platform !== 'mobile') {
-                            const stored = await SecureStore.getItemAsync('user');
-                            const current = stored ? JSON.parse(stored) : {};
-                            const merged  = { ...current, username: event.username, avatar: event.avatar };
-                            await SecureStore.setItemAsync('user', JSON.stringify(merged));
-                            setUserName(event.username);
-                            setUserAvatar(event.avatar || null);
-                        }
+                        // REALTIME PROFILE SYNC FIX.
+                        //
+                        // What: Apply the update for every source_platform, including
+                        //       'mobile'. Removed the prior
+                        //       `if (event.source_platform !== 'mobile')` guard.
+                        //
+                        // Why:  The guard meant a profile edit made in one mobile
+                        //       session never reached another mobile session — both
+                        //       report X-Platform: mobile, so the second device stayed
+                        //       stale until a manual reload. The merge only re-applies
+                        //       the broadcast username/avatar, so re-processing this
+                        //       device's own event is idempotent and harmless.
+                        const stored = await SecureStore.getItemAsync('user');
+                        const current = stored ? JSON.parse(stored) : {};
+                        const merged  = { ...current, username: event.username, avatar: event.avatar };
+                        await SecureStore.setItemAsync('user', JSON.stringify(merged));
+                        setUserName(event.username);
+                        setUserAvatar(event.avatar || null);
                     })
                     .listen('.force.logout', async (e) => {
                         if (e.platform === 'mobile') {
