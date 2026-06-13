@@ -173,13 +173,25 @@ function UserDashboard() {
 
     echo.private(`user.${userId}`)
       .listen('.profile.updated', (event) => {
-        if (event.source_platform !== 'web') {
-          const current = getStoredUser();
-          const merged  = { ...current, username: event.username, avatar: event.avatar };
-          persistUser(merged);
-          setUser(merged);
-          setAvatarError(false);
-        }
+        /*
+         * REALTIME PROFILE SYNC FIX.
+         *
+         * What:  Apply the update for every source_platform, including 'web'.
+         *        Removed the prior `if (event.source_platform !== 'web')` guard.
+         *
+         * Why:   The guard meant a profile edit made in one web session never
+         *        reached another web session — a desktop browser and a phone
+         *        browser are both X-Platform: web, so editing on one left the
+         *        other showing the stale name/avatar until a manual reload.
+         *        That is exactly the cross-browser case this screen must keep
+         *        live. The merge only re-applies the broadcast username/avatar,
+         *        so re-processing our own event is idempotent and harmless.
+         */
+        const current = getStoredUser();
+        const merged  = { ...current, username: event.username, avatar: event.avatar };
+        persistUser(merged);
+        setUser(merged);
+        setAvatarError(false);
       })
       .listen('.force.logout', (e) => {
         if (e.platform === 'web') {
