@@ -1,14 +1,31 @@
-CogniVia
+<div align="center">
 
-**Live:** [cogniviahq.vercel.app](https://cogniviahq.vercel.app)
+<img src="frontend/src/assets/cognivia-logo.png" alt="CogniVia logo" width="110" />
 
-A full-stack, cross-platform learning system — Laravel 12 API, React web client, Expo React Native mobile app, real-time WebSocket events, and a fully Dockerized local environment.
+# CogniVia
+
+**AI-powered, cross-platform flashcard learning.**
+Upload a document, get smart flashcards, and study them anywhere — web or mobile, in sync.
+
+[![Live Demo](https://img.shields.io/badge/Live-cogniviahq.vercel.app-2ea44f?style=flat-square&logo=vercel&logoColor=white)](https://cogniviahq.vercel.app)
+[![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
+
+[**Live Demo**](https://cogniviahq.vercel.app) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Development Workflow](#development-workflow)
+
+</div>
 
 ---
+
+> A full-stack, cross-platform learning system — Laravel 12 API, React web client, Expo React Native mobile app, real-time WebSocket events, and a fully Dockerized local environment.
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Repository Structure](#repository-structure)
 - [Architecture](#architecture)
@@ -17,14 +34,32 @@ A full-stack, cross-platform learning system — Laravel 12 API, React web clien
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [Common Commands](#common-commands)
+- [Development Workflow](#development-workflow)
 - [Security Principles](#security-principles)
 - [Pre-merge Checklist](#pre-merge-checklist)
+- [License](#license)
+- [Author](#author)
 
 ---
 
 ## Overview
 
 CogniVia is an AI-powered flashcard learning platform that works seamlessly across web and mobile. Users upload documents (PDF, DOCX, PPTX), the backend parses them and generates smart flashcards via an LLM (OpenRouter/Gemini), and users study those flashcards on any device. Profiles stay in sync across platforms through real-time WebSocket events. Admins get a full management dashboard with analytics, user management, and CSV exports.
+
+The backend is the single source of truth: every client authenticates against the Laravel API over HTTPS, and the AI provider key never leaves the server.
+
+---
+
+## Features
+
+- 📄 **Document-to-flashcards** — upload PDF, DOCX, or PPTX; the backend parses the file and generates study cards with an LLM.
+- 🤖 **Server-side AI** — the OpenRouter/Gemini key lives only on the backend; clients never call the AI provider directly.
+- 📱 **True cross-platform** — a React web app and an Expo React Native app share one API and one account.
+- 🔄 **Real-time sync** — profile and study state propagate instantly via Soketi (Pusher-protocol) WebSockets.
+- 🔐 **Cross-platform login approval** — signing in on a second device is approved from the active one, with a polling fallback.
+- 🛡️ **Platform-aware auth** — separate user/admin sessions and per-platform tokens enforced by middleware.
+- 📊 **Admin dashboard** — analytics, user management, and CSV exports.
+- 🐳 **One-command local stack** — Docker Compose brings up PHP, Nginx, MySQL, and Soketi together.
 
 ---
 
@@ -46,10 +81,10 @@ CogniVia is an AI-powered flashcard learning platform that works seamlessly acro
 
 ```
 cognivia/
-├── backend/          # Laravel 12 API — auth, business logic, broadcasting
-├── frontend/         # React web app — user dashboard, admin panel, public pages
-├── mobile/           # Expo React Native app — mobile learning & login approval
-├── docker/           # Nginx config, PHP-FPM config, Docker assets
+├── backend/             # Laravel 12 API — auth, business logic, broadcasting
+├── frontend/            # React web app — user dashboard, admin panel, public pages
+├── mobile/              # Expo React Native app — mobile learning & login approval
+├── docker/              # Nginx config, PHP-FPM config, Docker assets
 ├── docker-compose.yml   # Local dev stack — backend, nginx, mysql, soketi
 └── ngrok.yml            # Tunnel config for mobile development
 ```
@@ -192,7 +227,7 @@ Scan the QR code with Expo Go on a physical device.
 | `REACT_APP_API_URL` | `frontend/.env` | Web client API base URL |
 | `EXPO_PUBLIC_API_URL` | `mobile/.env` | Mobile client API base URL |
 
-> Never commit real credentials, production tokens, secrets, or tunnel URLs.
+> **Never commit real credentials, production tokens, secrets, or tunnel URLs.** Every `.env` file is gitignored; commit only the `.env.example` templates.
 
 ---
 
@@ -217,6 +252,8 @@ php artisan migrate:fresh --seed
 php artisan optimize:clear
 php artisan route:list
 php artisan storage:link
+php artisan test                  # run the test suite
+./vendor/bin/pint                 # format to PSR-12
 ```
 
 **Frontend:**
@@ -231,6 +268,24 @@ npm run build    # production build
 ```bash
 npx expo start --tunnel --clear   # physical device via ngrok tunnel
 npx expo start                    # local network
+```
+
+---
+
+## Development Workflow
+
+`main` is a protected, release-ready branch — it never receives direct commits.
+
+- **Branch per change.** All work happens on a feature branch (e.g. `feature/admin-analytics`, `fix/login-race`, `docs/readme-polish`), then merges to `main` through a reviewed pull request.
+- **Server-side enforcement.** A GitHub ruleset on `main` requires a pull request, blocks force-pushes and deletions, and enforces linear history.
+- **Local guardrails.** Git hooks block accidental direct commits/pushes to `main` before they ever reach the remote.
+- **Style.** PHP follows PSR-12 (enforced by Laravel Pint); the web and mobile apps use functional React components and hooks throughout.
+
+```bash
+git switch -c feature/my-change   # start work
+# ...commit on the feature branch...
+git push -u origin feature/my-change
+# open a pull request into main
 ```
 
 ---
@@ -264,3 +319,17 @@ Manual smoke tests:
 - [ ] Web active → mobile requests login → web approves
 - [ ] Mobile active → web requests login → mobile approves
 - [ ] Deny flow clears without requiring a page refresh
+
+---
+
+## License
+
+No license has been chosen yet. Until a `LICENSE` file is added, this code is **All Rights Reserved** by default — others may view it but have no rights to use, modify, or distribute it. To allow reuse (recommended for a public portfolio project), add a permissive license such as [MIT](https://choosealicense.com/licenses/mit/).
+
+---
+
+## Author
+
+**Jan Vincent Boiser** — [@ijanvincent](https://github.com/ijanvincent)
+
+🔗 Live demo: [cogniviahq.vercel.app](https://cogniviahq.vercel.app)
