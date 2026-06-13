@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/src/assets/cognivia-logo.png" alt="CogniVia logo" width="110" />
+<img src="docs/logo.png" alt="CogniVia logo" width="96" />
 
 # CogniVia
 
