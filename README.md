@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/src/assets/cognivia-logo.png" alt="CogniVia logo" width="110" />
+<img src="docs/logo.png" alt="CogniVia logo" width="96" />
 
 # CogniVia
 
@@ -13,6 +13,7 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 [**Live Demo**](https://cogniviahq.vercel.app) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Development Workflow](#development-workflow)
 
@@ -38,7 +39,6 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 - [Security Principles](#security-principles)
 - [Pre-merge Checklist](#pre-merge-checklist)
 - [License](#license)
-- [Author](#author)
 
 ---
 
@@ -324,12 +324,13 @@ Manual smoke tests:
 
 ## License
 
-No license has been chosen yet. Until a `LICENSE` file is added, this code is **All Rights Reserved** by default — others may view it but have no rights to use, modify, or distribute it. To allow reuse (recommended for a public portfolio project), add a permissive license such as [MIT](https://choosealicense.com/licenses/mit/).
+Released under the [MIT License](LICENSE).
 
 ---
 
-## Author
+---
 
-**Jan Vincent Boiser** — [@ijanvincent](https://github.com/ijanvincent)
-
-🔗 Live demo: [cogniviahq.vercel.app](https://cogniviahq.vercel.app)
+<div align="center">
+  <sub>Built with Laravel · React · React Native · Soketi · Docker</sub><br/>
+  <sub><a href="https://cogniviahq.vercel.app">cogniviahq.vercel.app</a></sub>
+</div>
