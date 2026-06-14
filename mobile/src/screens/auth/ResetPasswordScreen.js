@@ -242,7 +242,7 @@ const ResetPasswordScreen = () => {
 const styles = StyleSheet.create({
     safeArea:       { flex: 1, backgroundColor: COLORS.bg },
     flex:           { flex: 1 },
-    overlay:        { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    overlay:        { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.30)' },
     scrollContent:  {
         flexGrow:          1,
         paddingHorizontal: 28,

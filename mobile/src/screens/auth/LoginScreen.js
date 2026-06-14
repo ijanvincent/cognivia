@@ -877,7 +877,7 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
     safeArea:      { flex: 1, backgroundColor: COLORS.bg },
     flex:          { flex: 1 },
-    overlay:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    overlay:       { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.30)' },
     scrollContent: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40, minHeight: H, justifyContent: 'center' },
     brandSection:  { alignItems: 'center', marginBottom: 32 },
     brandSub:      { fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: '300', textAlign: 'left' },

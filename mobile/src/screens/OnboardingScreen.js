@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     skipText:        { fontSize: 12, color: C.muted, fontWeight: '700', letterSpacing: 2 },
 
     slide:    { width: W, flex: 1, justifyContent: 'space-between' },
-    overlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
+    overlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.30)' },
     iconArea: { flex: 1 },
 
     textArea: {

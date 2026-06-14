@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(7,8,15,0.55)',
+        backgroundColor: 'rgba(7,8,15,0.30)',
     },
     scrollContent: {
         flexGrow:          1,
