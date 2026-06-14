@@ -20,7 +20,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://cognivia-api-xgsl.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://cognivia-api-xgsl.onrender.com/api",
+        "EXPO_PUBLIC_WEB_URL": "https://cogniviahq.vercel.app"
       }
     }
   },

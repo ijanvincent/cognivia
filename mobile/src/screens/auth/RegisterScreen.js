@@ -14,7 +14,11 @@ import api from '../../services/api';
 
 const { height: H } = Dimensions.get('window');
 
-const WEB_ORIGIN = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/api\/?$/, '');
+// Terms / Privacy are pages on the web frontend (Vercel), NOT the Laravel API.
+// Deriving the origin from EXPO_PUBLIC_API_URL pointed these links at the backend
+// host, which has no such routes — every tap 404'd. Use the frontend origin
+// (overridable via EXPO_PUBLIC_WEB_URL), defaulting to the production site.
+const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://cogniviahq.vercel.app';
 
 const openLegal = async (page) => {
     const url = `${WEB_ORIGIN}/${page}`;
