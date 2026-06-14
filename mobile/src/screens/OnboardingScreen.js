@@ -58,7 +58,7 @@ const WaveBackground = () => (
                 key={`pink-${i}`}
                 d={`M ${-20 + i * 6} ${200 + i * 8} C ${80 + i * 5} ${80 + i * 6}, ${220 + i * 3} ${340 + i * 4}, ${300 + i * 5} ${160 + i * 5} S ${380 + i * 3} ${400 + i * 3}, ${460 + i * 4} ${240 + i * 4}`}
                 fill="none"
-                stroke={`rgba(96, 165, 250, ${0.35 - i * 0.03})`}
+                stroke={`rgba(200, 80, 200, ${0.3 - i * 0.025})`}
                 strokeWidth="1.2"
             />
         ))}
@@ -68,7 +68,7 @@ const WaveBackground = () => (
                 key={`cyan-${i}`}
                 d={`M ${200 + i * 5} ${700} C ${280 + i * 4} ${520 + i * 5}, ${340 + i * 3} ${640 + i * 3}, ${420 + i * 4} ${440 + i * 5} S ${500 + i * 3} ${600 + i * 3}, ${560 + i * 4} ${480 + i * 4}`}
                 fill="none"
-                stroke={`rgba(59, 130, 246, ${0.35 - i * 0.03})`}
+                stroke={`rgba(30, 180, 255, ${0.3 - i * 0.025})`}
                 strokeWidth="1.2"
             />
         ))}
@@ -78,7 +78,7 @@ const WaveBackground = () => (
                 key={`purple-${i}`}
                 d={`M ${80 + i * 10} ${400 + i * 4} C ${160 + i * 6} ${240 + i * 5}, ${280 + i * 4} ${560 + i * 3}, ${400 + i * 5} ${320 + i * 4}`}
                 fill="none"
-                stroke={`rgba(37, 99, 235, ${0.22 - i * 0.02})`}
+                stroke={`rgba(130, 80, 255, ${0.18 - i * 0.02})`}
                 strokeWidth="1"
             />
         ))}
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     skipText:        { fontSize: 12, color: C.muted, fontWeight: '700', letterSpacing: 2 },
 
     slide:    { width: W, flex: 1, justifyContent: 'space-between' },
-    overlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(11,17,32,0.45)' },
+    overlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(7,8,15,0.55)' },
     iconArea: { flex: 1 },
 
     textArea: {
