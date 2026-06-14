@@ -75,15 +75,20 @@ export const shadows = {
 // ---------------------------------------------------------------------------
 
 export const COLORS = {
-    bg: '#0B1120',
+    // Auth/onboarding palette — kept in lockstep with the web login page
+    // (frontend/src/pages/user/styles/login.module.css) so web and mobile
+    // share the exact same dark background and cyan/pink/purple accents. The
+    // mobile values were previously a blue scheme (#3B82F6/#60A5FA/#2563EB) on
+    // a lighter base (#0B1120), which read as washed-out next to the web.
+    bg: '#07080F',                         // web --bg-deep
     bgCard: 'rgba(255,255,255,0.04)',
-    bgCardBorder: 'rgba(255,255,255,0.08)',
+    bgCardBorder: 'rgba(255,255,255,0.09)',
     inputBg: 'rgba(255,255,255,0.05)',
     inputBorder: 'rgba(255,255,255,0.10)',
-    inputFocus: 'rgba(59,130,246,0.55)',
-    cyan: '#3B82F6',
-    pink: '#60A5FA',
-    purple: '#2563EB',
+    inputFocus: 'rgba(34,211,238,0.55)',   // web --accent-cyan @ 0.55
+    cyan: '#22D3EE',                        // web --accent-cyan
+    pink: '#E879F9',                        // web --accent-pink
+    purple: '#A855F7',                      // web --accent-purple
     textPrimary: '#F1F5F9',
     textSecondary: 'rgba(241,245,249,0.60)',
     textMuted: 'rgba(241,245,249,0.38)',
