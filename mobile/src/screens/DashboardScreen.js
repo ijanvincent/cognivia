@@ -67,6 +67,20 @@ const DashboardScreen = ({ navigation }) => {
         }, [refreshDecks])
     );
 
+    // Near-realtime dashboard: while this screen is focused, poll the deck list
+    // so newly generated decks and updated mastery/progress appear on their own
+    // without a manual reload. The interval is cleared on blur to avoid waking
+    // the screen in the background. (True server push would require backend
+    // broadcast events for deck create/update.)
+    useFocusEffect(
+        React.useCallback(() => {
+            const id = setInterval(() => {
+                refreshDecks?.({ silent: true });
+            }, 30000);
+            return () => clearInterval(id);
+        }, [refreshDecks])
+    );
+
     useEffect(() => {
         let userId = null;
 
