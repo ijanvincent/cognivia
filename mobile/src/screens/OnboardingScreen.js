@@ -125,11 +125,6 @@ const PressBtn = ({ onPress, style, children }) => {
 
 const Slide = ({ item }) => (
     <View style={styles.slide}>
-     
-        <WaveBackground />
-     
-        <View style={styles.overlay} />
-   
         <View style={styles.iconArea} />
 
         <View style={styles.textArea}>
@@ -172,6 +167,12 @@ const OnboardingScreen = () => {
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <StatusBar style="light" backgroundColor={C.bg} translucent={false} />
+
+            {/* Full-screen background (same as Login/Register): rendered once on
+                the SafeAreaView so it fills the whole screen instead of being
+                trapped inside a slide that collapses to its content height. */}
+            <WaveBackground />
+            <View style={styles.overlay} />
 
             {!isLast ? (
                 <TouchableOpacity onPress={handleSkip} style={styles.skipBtn}>
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
         maxWidth:      '90%',
     },
 
-    bottom:   { backgroundColor: C.bg },
+    bottom:   { backgroundColor: 'transparent' },
     dotsRow:  {
         flexDirection:   'row',
         justifyContent:  'center',
