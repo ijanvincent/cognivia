@@ -78,3 +78,13 @@ services:
       # --- Realtime (optional — set to "pusher" + fill PUSHER_* to enable) ---
       - key: BROADCAST_CONNECTION
         value: log
+
+      # --- AI (OpenRouter — flashcard generation & answer checking) ---------
+      # Required for /api/flashcards/generate and /check-answer. Without these
+      # the endpoints fail. OPENROUTER_MODEL must be a model that currently
+      # exists (verify at https://openrouter.ai/api/v1/models); ":free" models
+      # are rate-limited and unreliable in production.
+      - key: OPENROUTER_API_KEY
+        sync: false # get a key at https://openrouter.ai/keys
+      - key: OPENROUTER_MODEL
+        value: google/gemini-2.5-flash
