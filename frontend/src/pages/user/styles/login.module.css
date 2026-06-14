@@ -62,6 +62,14 @@
   100% { transform: translateZ(0) translateY(6px) scaleX(0.99); }
 }
 
+/* On mobile/tablet and any touch device, render the same waves but STATIC.
+   The animated 46-path SVG repaints poorly on mobile GPUs and flickers
+   ("blinking"); the colors/layout are unchanged — only the motion is dropped.
+   Desktop (fine pointer, > 1024px) keeps the live animation. */
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  .wavePath { animation: none; }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    MOBILE WAVE BACKGROUND
 ───────────────────────────────────────────────────────────────────────────── */
