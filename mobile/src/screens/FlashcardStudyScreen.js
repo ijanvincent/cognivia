@@ -821,21 +821,43 @@ const FlashcardStudyScreen = ({ route, navigation }) => {
     };
 
     const finishStudySession = async () => {
+        // Guard against an empty deck (division by zero -> NaN mastery).
+        const total = flashcards.length || 1;
+        const masteryPercentage = Math.round((masteredCards.size / total) * 100);
+
+        // Show the result immediately — the session review is computed locally,
+        // so never block it on a server write that can blip on the free tier.
+        setFinalMastery(masteryPercentage);
+        setSessionComplete(true);
+
+        const save = () => api.put(`/decks/${deck.id}`, {
+            mastery:  masteryPercentage,
+            progress: 100,
+            status:   masteryPercentage >= 75 ? 'Mastered' : 'Needs Review',
+        });
+
         try {
-            const masteryPercentage = Math.round(
-                (masteredCards.size / flashcards.length) * 100
+            await save();
+        } catch (err) {
+            // Retry once on a transient failure (network drop, or a cold-start
+            // 502/503/504 from the free-tier backend) before surfacing anything.
+            const transient = !err?.response || [502, 503, 504].includes(err.response.status);
+            if (transient) {
+                try {
+                    await new Promise((r) => setTimeout(r, 1500));
+                    await save();
+                    return;
+                } catch (_) { /* fall through to the notice below */ }
+            }
+            console.error(
+                'finishStudySession save failed:',
+                err?.response?.status,
+                err?.response?.data || err?.message,
             );
-
-            await api.put(`/decks/${deck.id}`, {
-                mastery:  masteryPercentage,
-                progress: 100,
-                status:   masteryPercentage >= 75 ? 'Mastered' : 'Needs Review',
-            });
-
-            setFinalMastery(masteryPercentage);
-            setSessionComplete(true);
-        } catch {
-            Alert.alert('Error', 'Could not save your progress. Please try again.');
+            Alert.alert(
+                'Saved locally',
+                'Your results are shown above, but we couldn’t save them to the server. Check your connection and study again to update your deck.',
+            );
         }
     };
 

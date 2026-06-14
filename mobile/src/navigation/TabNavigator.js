@@ -4,12 +4,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
     ActivityIndicator,
     Modal,
-    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from '../services/secureStorage';
 import { useTheme } from '../contexts/ThemeContext';
 import { radius, spacing, typography } from '../theme/theme';
@@ -25,6 +25,7 @@ const APPROVAL_TTL_SECONDS = 60;
 
 function TabNavigator() {
     const { colors } = useTheme();
+    const insets = useSafeAreaInsets();
 
     const [incomingRequest, setIncomingRequest] = useState(null);
     const [isActioning, setIsActioning] = useState(false);
@@ -242,9 +243,13 @@ function TabNavigator() {
                     tabBarStyle: {
                         backgroundColor: tabBarBackgroundColor,
                         borderTopColor: tabBarBorderColor,
-                        height: Platform.OS === 'ios' ? 90 : 62,
-                        paddingBottom: Platform.OS === 'ios' ? 28 : 6,
-                        paddingTop: 4,
+                        // Responsive height: a fixed content row (~58) plus the
+                        // device's bottom safe-area inset (gesture bar / notch),
+                        // so icons sit just above the system nav on every device
+                        // instead of being pushed too low by hardcoded padding.
+                        height: 58 + insets.bottom,
+                        paddingBottom: insets.bottom + 6,
+                        paddingTop: 6,
                         borderTopWidth: 1,
                         elevation: 10,
                         shadowColor: '#000',
