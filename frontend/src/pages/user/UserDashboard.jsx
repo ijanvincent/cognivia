@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles/dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
-import api, { STORAGE_KEYS, resolveAvatarUrl, ASSET_BASE_URL } from '../../services/api.js';
+import api, { STORAGE_KEYS, resolveAvatarUrl } from '../../services/api.js';
 import { getEcho, disconnectEcho } from '../../services/echo.js';
 
 /*
@@ -24,21 +24,28 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
 /*
  * QR DOWNLOAD URL FIX.
  *
- * What:  Default the APK download URL off ASSET_BASE_URL (the backend host)
- *        instead of window.location.origin (the frontend host).
+ * What:  Default the APK download URL to the GitHub Release asset for the
+ *        latest production Android build (versionCode 3 — the build that fixes
+ *        the blank launcher icon).
  *
- * Why:   The QR code is meant to download the mobile app, but the APK is served
- *        by the backend (backend/public/downloads/cognivia.apk), not the React
- *        site. window.location.origin is the Vercel frontend, which has no such
- *        file — scanning the QR hit the SPA fallback (a dead 404/blank page).
- *        ASSET_BASE_URL is the same backend host already derived for API/avatar
- *        requests, so the QR now points where the APK actually lives.
+ * Why:   The previous default — `${ASSET_BASE_URL}/downloads/cognivia.apk` —
+ *        is dead in production: backend/public/downloads is gitignored (only
+ *        .gitkeep is tracked) and Render's filesystem is ephemeral, so the APK
+ *        never exists on the deployed backend and the QR resolved to a 404.
  *
- * Note:  REACT_APP_DOWNLOAD_URL still overrides this — set it in the frontend
- *        host's env if the APK is distributed elsewhere (e.g. a GitHub release).
+ * Why GitHub Releases (not the EAS artifact): EAS build artifact URLs expire
+ *        ~30 days after the build, which would silently break the QR. The
+ *        GitHub Release asset is permanent, CDN-backed, and downloadable with
+ *        no login because the repo is public. The `latest/download` form always
+ *        resolves to the newest release's `cognivia.apk`, so future rebuilds
+ *        only need a fresh asset upload — no code change here.
+ *
+ * Note:  REACT_APP_DOWNLOAD_URL still overrides this if the APK ever moves.
  */
+const APK_DOWNLOAD_URL =
+  'https://github.com/ijanvincent/cognivia/releases/latest/download/cognivia.apk';
 const APP_DOWNLOAD_URL =
-  process.env.REACT_APP_DOWNLOAD_URL || `${ASSET_BASE_URL}/downloads/cognivia.apk`;
+  process.env.REACT_APP_DOWNLOAD_URL || APK_DOWNLOAD_URL;
 const APPROVAL_TTL_SECONDS = 60;
 
 const IconUser = () => (
