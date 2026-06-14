@@ -24,25 +24,28 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
 /*
  * QR DOWNLOAD URL FIX.
  *
- * What:  Default the APK download URL to the EAS build artifact for the
- *        latest production Android build (versionCode 3, the build that fixes
+ * What:  Default the APK download URL to the GitHub Release asset for the
+ *        latest production Android build (versionCode 3 — the build that fixes
  *        the blank launcher icon).
  *
  * Why:   The previous default — `${ASSET_BASE_URL}/downloads/cognivia.apk` —
  *        is dead in production: backend/public/downloads is gitignored (only
  *        .gitkeep is tracked) and Render's filesystem is ephemeral, so the APK
  *        never exists on the deployed backend and the QR resolved to a 404.
- *        The EAS artifact URL is CDN-hosted and reachable without a backend.
  *
- * Note:  REACT_APP_DOWNLOAD_URL still overrides this. EAS build artifacts
- *        expire ~30 days after the build, so for a durable link host the APK
- *        as a GitHub Release asset and set REACT_APP_DOWNLOAD_URL to it (e.g.
- *        https://github.com/<owner>/<repo>/releases/latest/download/cognivia.apk).
+ * Why GitHub Releases (not the EAS artifact): EAS build artifact URLs expire
+ *        ~30 days after the build, which would silently break the QR. The
+ *        GitHub Release asset is permanent, CDN-backed, and downloadable with
+ *        no login because the repo is public. The `latest/download` form always
+ *        resolves to the newest release's `cognivia.apk`, so future rebuilds
+ *        only need a fresh asset upload — no code change here.
+ *
+ * Note:  REACT_APP_DOWNLOAD_URL still overrides this if the APK ever moves.
  */
-const EAS_BUILD_ARTIFACT_URL =
-  'https://expo.dev/artifacts/eas/Usrfmf4PVF0GL4RfA2JfXxMI-n4OdUGJWWbZ2xlYL0o.apk';
+const APK_DOWNLOAD_URL =
+  'https://github.com/ijanvincent/cognivia/releases/latest/download/cognivia.apk';
 const APP_DOWNLOAD_URL =
-  process.env.REACT_APP_DOWNLOAD_URL || EAS_BUILD_ARTIFACT_URL;
+  process.env.REACT_APP_DOWNLOAD_URL || APK_DOWNLOAD_URL;
 const APPROVAL_TTL_SECONDS = 60;
 
 const IconUser = () => (
