@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles/dashboard.module.css';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
-import api, { STORAGE_KEYS, resolveAvatarUrl, ASSET_BASE_URL } from '../../services/api.js';
+import api, { STORAGE_KEYS, resolveAvatarUrl } from '../../services/api.js';
 import { getEcho, disconnectEcho } from '../../services/echo.js';
 
 /*
@@ -24,21 +24,25 @@ import { getEcho, disconnectEcho } from '../../services/echo.js';
 /*
  * QR DOWNLOAD URL FIX.
  *
- * What:  Default the APK download URL off ASSET_BASE_URL (the backend host)
- *        instead of window.location.origin (the frontend host).
+ * What:  Default the APK download URL to the EAS build artifact for the
+ *        latest production Android build (versionCode 3, the build that fixes
+ *        the blank launcher icon).
  *
- * Why:   The QR code is meant to download the mobile app, but the APK is served
- *        by the backend (backend/public/downloads/cognivia.apk), not the React
- *        site. window.location.origin is the Vercel frontend, which has no such
- *        file — scanning the QR hit the SPA fallback (a dead 404/blank page).
- *        ASSET_BASE_URL is the same backend host already derived for API/avatar
- *        requests, so the QR now points where the APK actually lives.
+ * Why:   The previous default — `${ASSET_BASE_URL}/downloads/cognivia.apk` —
+ *        is dead in production: backend/public/downloads is gitignored (only
+ *        .gitkeep is tracked) and Render's filesystem is ephemeral, so the APK
+ *        never exists on the deployed backend and the QR resolved to a 404.
+ *        The EAS artifact URL is CDN-hosted and reachable without a backend.
  *
- * Note:  REACT_APP_DOWNLOAD_URL still overrides this — set it in the frontend
- *        host's env if the APK is distributed elsewhere (e.g. a GitHub release).
+ * Note:  REACT_APP_DOWNLOAD_URL still overrides this. EAS build artifacts
+ *        expire ~30 days after the build, so for a durable link host the APK
+ *        as a GitHub Release asset and set REACT_APP_DOWNLOAD_URL to it (e.g.
+ *        https://github.com/<owner>/<repo>/releases/latest/download/cognivia.apk).
  */
+const EAS_BUILD_ARTIFACT_URL =
+  'https://expo.dev/artifacts/eas/Usrfmf4PVF0GL4RfA2JfXxMI-n4OdUGJWWbZ2xlYL0o.apk';
 const APP_DOWNLOAD_URL =
-  process.env.REACT_APP_DOWNLOAD_URL || `${ASSET_BASE_URL}/downloads/cognivia.apk`;
+  process.env.REACT_APP_DOWNLOAD_URL || EAS_BUILD_ARTIFACT_URL;
 const APPROVAL_TTL_SECONDS = 60;
 
 const IconUser = () => (
