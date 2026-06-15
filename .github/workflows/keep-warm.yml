@@ -26,15 +26,21 @@ jobs:
     steps:
       - name: Ping the API health endpoint (retry through cold start)
         env:
-          URL: https://cognivia-api-xgsl.onrender.com/up
+          BASE: https://cognivia-api-xgsl.onrender.com
         run: |
+          # 1) Wake the Render instance (liveness — no DB).
           for i in $(seq 1 6); do
-            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 70 "$URL" || echo 000)
-            echo "Attempt $i -> HTTP $code"
-            if [ "$code" = "200" ]; then
-              echo "API is warm."
-              exit 0
-            fi
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 70 "$BASE/up" || echo 000)
+            echo "/up attempt $i -> HTTP $code"
+            if [ "$code" = "200" ]; then echo "Render is warm."; break; fi
             sleep 15
           done
-          echo "::warning::API did not return 200 after 6 attempts (likely still cold-starting)."
+
+          # 2) Warm the database too, so the first real login isn't a cold start.
+          for i in $(seq 1 4); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 70 "$BASE/api/health/db" || echo 000)
+            echo "/api/health/db attempt $i -> HTTP $code"
+            if [ "$code" = "200" ]; then echo "Database is warm."; exit 0; fi
+            sleep 15
+          done
+          echo "::warning::Backend did not fully warm (Render and/or DB still cold)."

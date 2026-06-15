@@ -34,6 +34,27 @@ Route::prefix('admin')->group(function (): void {
 
 /*
 |--------------------------------------------------------------------------
+| Health — database warm-up
+|--------------------------------------------------------------------------
+|
+| Public, side-effect-free DB ping for the keep-warm cron, so the free-tier
+| database doesn't pause and the first real login isn't a slow cold start.
+| Deliberately separate from the framework's /up liveness probe — Render's
+| health check must not depend on database availability (otherwise a paused
+| DB would make Render restart the instance).
+*/
+Route::get('/health/db', function () {
+    try {
+        \Illuminate\Support\Facades\DB::select('select 1');
+
+        return response()->json(['status' => 'ok']);
+    } catch (\Throwable $e) {
+        return response()->json(['status' => 'error'], 503);
+    }
+})->middleware('throttle:30,1');
+
+/*
+|--------------------------------------------------------------------------
 | Broadcasting authentication
 |--------------------------------------------------------------------------
 |
