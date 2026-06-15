@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api, { STORAGE_KEYS } from './../../services/api.js';
 import { PageHeader, avatarColor } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 function getStoredAdmin() {
     try {
@@ -134,7 +135,7 @@ function AdminProfile() {
     return (
         <div>
             <PageHeader
-                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Profile' }]}
+                crumbs={[{ label: 'Admin', to: adminPath('/dashboard') }, { label: 'Profile' }]}
                 title="Profile"
                 subtitle="Manage your account information and security settings"
             />

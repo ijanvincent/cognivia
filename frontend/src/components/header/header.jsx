@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
+import { adminPath } from './../../config/admin-path';
 import DropdownNotification from './dropdown/notification.jsx';
 import DropdownProfile from './dropdown/profile.jsx';
 
@@ -34,7 +35,7 @@ function Header() {
                                 </button>
                             </>
                         )}
-                        <Link to="/admin/dashboard" className="navbar-brand d-flex flex-column justify-content-center" style={{ lineHeight: 1 }}>
+                        <Link to={adminPath('/dashboard')} className="navbar-brand d-flex flex-column justify-content-center" style={{ lineHeight: 1 }}>
                             <span style={{ fontFamily: "'Syne', sans-serif", fontSize: '20px', fontWeight: 700, letterSpacing: '-0.3px' }}>CogniVia</span>
                             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '10px', fontWeight: 500, letterSpacing: '0.15em', opacity: 0.6, textTransform: 'uppercase', marginTop: '2px' }}>Administrator</span>
                         </Link>

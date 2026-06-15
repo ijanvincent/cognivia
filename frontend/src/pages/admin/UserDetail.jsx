@@ -7,6 +7,7 @@ import {
     PageHeader, Avatar, StatCard, SourceBadge, ApprovalBadge, PlatformLabel,
     PresenceDot, EmptyState, timeAgo, fmtDate, fmtDateTime, isOnline,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 function AdminUserDetail() {
     const context  = useContext(AppSettings);
@@ -47,7 +48,7 @@ function AdminUserDetail() {
             <div className="py-5">
                 <EmptyState icon="fa-user-slash" title="User not found"
                     hint="This account may have been permanently deleted.">
-                    <Link to="/admin/users" className="btn btn-default btn-sm">
+                    <Link to={adminPath('/users')} className="btn btn-default btn-sm">
                         <i className="fa-solid fa-arrow-left me-2"></i>Back to users
                     </Link>
                 </EmptyState>
@@ -68,8 +69,8 @@ function AdminUserDetail() {
         <div>
             <PageHeader
                 crumbs={[
-                    { label: 'Admin', to: '/admin/dashboard' },
-                    { label: 'Users', to: '/admin/users' },
+                    { label: 'Admin', to: adminPath('/dashboard') },
+                    { label: 'Users', to: adminPath('/users') },
                     { label: user?.username || `#${id}` },
                 ]}
                 title={

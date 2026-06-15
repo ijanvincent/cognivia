@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ADMIN_BASE, adminPath } from '../config/admin-path';
 
 // ---------------------------------------------------------------------------
 // CHANGE 1 — STORAGE_KEYS: exported constant replacing all magic strings.
@@ -21,7 +22,7 @@ export const STORAGE_KEYS = Object.freeze({
 //        an axios interceptor closure.
 // ---------------------------------------------------------------------------
 function currentRole() {
-  return window.location.pathname.startsWith('/admin') ? 'admin' : 'user';
+  return window.location.pathname.startsWith(ADMIN_BASE) ? 'admin' : 'user';
 }
 
 // ---------------------------------------------------------------------------
@@ -134,7 +135,7 @@ api.interceptors.response.use(
       if (currentRole() === 'admin') {
         localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.ADMIN_DATA);
-        window.location.href = '/admin/login';
+        window.location.href = adminPath('/login');
       } else {
         localStorage.removeItem(STORAGE_KEYS.USER_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER_DATA);

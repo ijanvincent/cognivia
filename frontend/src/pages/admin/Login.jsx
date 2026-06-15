@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { AppSettings } from './../../config/app-settings.js';
 import api, { STORAGE_KEYS } from './../../services/api.js';
 import { unwrapResourceData } from './../../services/storage.js';
+import { adminPath } from './../../config/admin-path';
 // CHANGE 1 — Modified import: api → { api, STORAGE_KEYS }
 // What:  Added named import STORAGE_KEYS to the existing api.js import.
 // Why:   Replaces magic strings 'token'/'user' that caused the namespace
@@ -124,7 +125,7 @@ function AdminLogin() {
   }
 
   if (redirect) {
-    return <Navigate to='/admin/dashboard' replace />;
+    return <Navigate to={adminPath('/dashboard')} replace />;
   }
 
   const hasError = Boolean(errors.general);
