@@ -1,0 +1,40 @@
+name: Keep backend warm
+
+# Render's free tier spins the API down after ~15 min idle; the next request
+# then cold-starts (slow / 502). This pings the health endpoint on a schedule
+# so the instance stays awake and is ready when someone checks the project.
+#
+# Note: GitHub's scheduled runs can be delayed under load, so this is a free
+# best-effort warmer. For tighter, more reliable intervals, also add a free
+# UptimeRobot/cron-job.org monitor on the same URL (see README / PR notes).
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes (well under the ~15 min sleep)
+  workflow_dispatch:           # allow manual "wake it now" runs
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the API health endpoint (retry through cold start)
+        env:
+          URL: https://cognivia-api-xgsl.onrender.com/up
+        run: |
+          for i in $(seq 1 6); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 70 "$URL" || echo 000)
+            echo "Attempt $i -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "API is warm."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::warning::API did not return 200 after 6 attempts (likely still cold-starting)."
