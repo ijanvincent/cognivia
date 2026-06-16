@@ -78,8 +78,16 @@ services:
       # So Gmail SMTP (587 only) can NEVER send from a free instance — the
       # connection just times out and the email is silently dropped.
       # Use a provider that offers SMTP on port 2525, which Render does NOT
-      # block: Brevo (free 300/day) or SendGrid. Verify a sender address with
-      # the provider; MAIL_FROM_ADDRESS must match it.
+      # block: Brevo (free 300/day) or SendGrid.
+      #
+      # CRITICAL: MAIL_FROM_ADDRESS must be on a domain you have AUTHENTICATED
+      # with the provider (DKIM + DMARC DNS records) — NOT a free-mail address
+      # like ...@gmail.com. Free domains (gmail/yahoo/outlook) cannot be DKIM-
+      # signed by the relay, so since Feb 2024 Gmail/Yahoo reject those messages
+      # on DMARC at the recipient. The relay still "accepts" the handoff (its key
+      # shows as "last used"), so the failure is silent — the email simply never
+      # arrives. Merely "verifying" a gmail sender in the provider is NOT enough;
+      # the From domain must be authenticated. Use e.g. no-reply@<your-domain>.
       # (Alternatives: a provider HTTP API on 443, or a paid Render instance.)
       - key: MAIL_MAILER
         value: smtp
@@ -94,7 +102,7 @@ services:
       - key: MAIL_PASSWORD
         sync: false # provider SMTP key
       - key: MAIL_FROM_ADDRESS
-        sync: false # a sender verified with the provider
+        sync: false # address on a DKIM/DMARC-authenticated domain (NOT @gmail.com)
       - key: MAIL_FROM_NAME
         value: CogniVia
 
