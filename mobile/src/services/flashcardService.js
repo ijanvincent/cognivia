@@ -75,6 +75,11 @@ export const generateFlashcards = async (
             document_text:   documentText,
             number_of_cards: numberOfCards,
             card_types:      cardTypes,
+        }, {
+            // Generation is the longest request in the app: a possible backend
+            // cold start (~30s on the free tier) plus a 15-30s AI call. The
+            // default client timeout would abort mid-flight, so give it room.
+            timeout: 90000,
         });
 
         const { flashcards } = response.data;
@@ -86,6 +91,12 @@ export const generateFlashcards = async (
         return flashcards;
 
     } catch (error) {
+        // A timeout means the request ran out of time — usually a cold backend.
+        // Give an actionable message instead of an opaque failure.
+        if (error?.code === 'ECONNABORTED') {
+            throw new Error('The server is taking longer than usual (it may be waking up). Please try again in a moment.');
+        }
+
         // Surface the backend error message if present, otherwise generic.
         const serverMessage = error?.response?.data?.message;
         throw new Error(serverMessage ?? error?.message ?? 'Failed to generate flashcards. Please try again.');

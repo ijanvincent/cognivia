@@ -84,6 +84,27 @@ export const performLogout = async () => {
  * the cache is stale until the next login. Calling this on screen focus
  * keeps web and mobile in sync regardless of socket state.
  */
+/**
+ * Fire-and-forget warm-up ping for the free-tier backend.
+ *
+ * Render free web services spin down after ~15 min idle and cold-start in
+ * ~30s. Flashcard generation is the only long request (cold start + a 15-30s
+ * AI call), so on a cold instance it can take ~50-65s and fail on the device.
+ * Pinging this when the Generate screen opens spins the instance (and DB) up
+ * while the user picks a file and names the deck, so the real generate request
+ * hits a warm instance.
+ */
+export const warmUpBackend = async () => {
+    try {
+        // /health/db is a public, side-effect-free DB ping (routes/api.php).
+        // 70s timeout tolerates a full Render cold start.
+        await api.get('/health/db', { timeout: 70000 });
+    } catch (error) {
+        // Best-effort only; the real request surfaces any genuine problem.
+        console.warn('[CogniVia] Backend warm-up ping failed:', error?.message);
+    }
+};
+
 export const refreshUserProfile = async () => {
     const res   = await api.get('/auth/me');
     const fresh = res.data?.user;
