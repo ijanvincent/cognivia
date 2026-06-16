@@ -2,7 +2,9 @@
 
 namespace App\Mail\Transport;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Symfony\Component\Mailer\SentMessage;
@@ -60,27 +62,52 @@ class GmailApiTransport extends AbstractTransport
     /**
      * Exchange the refresh token for an access token, cached just under its
      * ~1h lifetime so we don't hit the token endpoint on every send.
+     *
+     * The cached value is encrypted with APP_KEY: the cache store is the shared
+     * database in production, so a DB/cache read alone must not yield a usable
+     * `gmail.send` bearer token. A tampered or undecryptable entry is treated as
+     * a miss and transparently refreshed.
      */
     private function accessToken(): string
     {
-        return Cache::remember(self::ACCESS_TOKEN_CACHE_KEY, now()->addMinutes(50), function (): string {
-            $response = Http::asForm()->post(self::TOKEN_ENDPOINT, [
-                'grant_type' => 'refresh_token',
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'refresh_token' => $this->refreshToken,
-            ]);
+        $cached = Cache::get(self::ACCESS_TOKEN_CACHE_KEY);
 
-            $token = $response->json('access_token');
-
-            if ($response->failed() || ! is_string($token)) {
-                throw new RuntimeException(
-                    'Gmail OAuth token refresh failed ('.$response->status().'): '.$response->body()
-                );
+        if (is_string($cached)) {
+            try {
+                return Crypt::decryptString($cached);
+            } catch (DecryptException) {
+                // Fall through to a fresh refresh below.
             }
+        }
 
-            return $token;
-        });
+        $token = $this->refreshAccessToken();
+
+        Cache::put(self::ACCESS_TOKEN_CACHE_KEY, Crypt::encryptString($token), now()->addMinutes(50));
+
+        return $token;
+    }
+
+    /**
+     * Trade the long-lived refresh token for a short-lived access token.
+     */
+    private function refreshAccessToken(): string
+    {
+        $response = Http::asForm()->post(self::TOKEN_ENDPOINT, [
+            'grant_type' => 'refresh_token',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'refresh_token' => $this->refreshToken,
+        ]);
+
+        $token = $response->json('access_token');
+
+        if ($response->failed() || ! is_string($token)) {
+            throw new RuntimeException(
+                'Gmail OAuth token refresh failed ('.$response->status().'): '.$response->body()
+            );
+        }
+
+        return $token;
     }
 
     public function __toString(): string
