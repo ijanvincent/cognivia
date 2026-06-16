@@ -94,12 +94,66 @@ instant.
 3. On **Vercel**, set `REACT_APP_PUSHER_APP_KEY` + `REACT_APP_PUSHER_APP_CLUSTER`
    and redeploy (CRA bakes env vars in at build time).
 
-## 5. Password-reset email (optional)
+## 5. Password-reset email
 
-`MAIL_MAILER` defaults to `log` in production (reset emails go to the Render
-logs). To send real email, set on Render: `MAIL_MAILER=smtp`, `MAIL_HOST`,
-`MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` (e.g. a
-Gmail app password or a free Brevo/Resend SMTP account).
+`MAIL_MAILER` defaults to `log` (reset emails are written to the Render logs).
+To send real email, the recommended setup is the **Gmail API** mailer — it is
+free, needs no custom domain, and works on Render's free tier. See below for
+why SMTP does not.
+
+### Why not SMTP on Render free
+
+Two walls make SMTP unworkable here:
+
+1. Render's free tier **blocks outbound SMTP ports 25/465/587**, so Gmail SMTP
+   is unreachable.
+2. A relay on the allowed port 2525 (e.g. Brevo) connects, but is **not
+   authorized to send "From" an `@gmail.com` address** — `gmail.com`'s SPF only
+   authorizes Google. Such mail fails DMARC and is dropped silently (nothing
+   arrives, not even spam). Fixing this the SMTP way requires authenticating a
+   **custom domain you own** (DKIM/DMARC) with the relay.
+
+### Gmail API mailer (free, no custom domain)
+
+The `gmail` mailer (`App\Mail\Transport\GmailApiTransport`) sends over the Gmail
+API on HTTPS (port 443, not blocked) as the authenticated Google account —
+fully SPF/DKIM/DMARC aligned. Limit: ~500 emails/day on a free Gmail account.
+
+**One-time setup:**
+
+1. **Google Cloud Console** (https://console.cloud.google.com) → create a
+   project → **APIs & Services → Library** → enable **Gmail API**.
+2. **OAuth consent screen** → User type **External** → fill the required fields →
+   add scope `.../auth/gmail.send` → set **Publishing status: In production**
+   (so the refresh token does not expire after 7 days). Add your Gmail as a
+   test user if you keep it in Testing.
+3. **Credentials → Create credentials → OAuth client ID** → type **Web
+   application** → add Authorized redirect URI `http://localhost`. Note the
+   **Client ID** and **Client secret**.
+4. Locally, set `GMAIL_CLIENT_ID` and `GMAIL_CLIENT_SECRET` in `backend/.env`,
+   then run:
+
+   ```bash
+   docker exec cognivia_backend php artisan gmail:authorize
+   ```
+
+   Open the printed URL, approve access, copy the `code` from the
+   `http://localhost/?code=...` redirect (the page will not load — that's
+   expected), then run:
+
+   ```bash
+   docker exec cognivia_backend php artisan gmail:authorize --code=THE_CODE
+   ```
+
+   This prints `GMAIL_REFRESH_TOKEN=...`.
+5. On **Render**, set: `MAIL_MAILER=gmail`, `GMAIL_CLIENT_ID`,
+   `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, and `MAIL_FROM_ADDRESS` = the
+   authorized Gmail address. Redeploy.
+6. Verify delivery:
+
+   ```bash
+   docker exec cognivia_backend php artisan mail:test you@example.com
+   ```
 
 ## 6. Mobile app
 

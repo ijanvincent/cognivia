@@ -69,6 +69,13 @@ return [
             'transport' => 'resend',
         ],
 
+        // Custom transport: sends via the Gmail API over HTTPS (port 443),
+        // bypassing the SMTP port block on hosts like Render's free tier.
+        // Registered in App\Providers\AppServiceProvider via Mail::extend().
+        'gmail' => [
+            'transport' => 'gmail',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
