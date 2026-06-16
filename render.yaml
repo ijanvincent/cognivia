@@ -72,8 +72,28 @@ services:
         value: stderr
       - key: LOG_LEVEL
         value: info
+      # --- Mail (password-reset / forgot-password delivery) -----------------
+      # MAIL_MAILER=log only writes emails to the server log — users never get
+      # them. To actually send (e.g. forgot-password), set MAIL_MAILER=smtp and
+      # fill the SMTP vars below from a free provider (Brevo 300/day, or Gmail
+      # SMTP with an app password). MAIL_FROM_ADDRESS must be a sender the
+      # provider has verified/allows.
       - key: MAIL_MAILER
-        value: log # switch to smtp + add MAIL_* vars to enable password-reset email
+        value: smtp
+      - key: MAIL_HOST
+        sync: false # e.g. smtp-relay.brevo.com  (Gmail: smtp.gmail.com)
+      - key: MAIL_PORT
+        sync: false # 587
+      - key: MAIL_SCHEME
+        sync: false # tls
+      - key: MAIL_USERNAME
+        sync: false # provider SMTP login
+      - key: MAIL_PASSWORD
+        sync: false # provider SMTP key / Gmail app password
+      - key: MAIL_FROM_ADDRESS
+        sync: false # a verified sender, e.g. no-reply@yourdomain or your Gmail
+      - key: MAIL_FROM_NAME
+        value: CogniVia
 
       # --- Realtime (optional — set to "pusher" + fill PUSHER_* to enable) ---
       - key: BROADCAST_CONNECTION
