@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDecks } from '../contexts/DeckContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -12,7 +12,7 @@ import {
     CARD_TYPE_META,
 } from '../services/flashcardService';
 import { pickDocument, parseDocument } from '../services/documentParser';
-import api from '../services/api';
+import api, { warmUpBackend } from '../services/api';
 import {
     Screen, ScreenHeader, Card, SectionHeader,
     Pill, TextField, Button, LoadingOverlay,
@@ -94,6 +94,16 @@ const GenerateScreen = () => {
         : CARD_TYPE_META[selectedTypes[0]]?.label ?? 'One type selected';
     const canDecreaseCards = numberOfCards > 10 && !isLoading;
     const canIncreaseCards = numberOfCards < 60 && !isLoading;
+
+    // Spin the free-tier backend up the moment this screen opens, so the long
+    // generation request later doesn't pay a ~30s cold start on top of the AI
+    // call (the combined time is what fails on-device). Best-effort; runs while
+    // the user is still picking a file and naming the deck.
+    useFocusEffect(
+        useCallback(() => {
+            warmUpBackend();
+        }, [])
+    );
 
     const handleTypeToggle = (type) => {
         setSelectedTypes([type]);
