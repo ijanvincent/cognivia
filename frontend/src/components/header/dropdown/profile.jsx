@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { STORAGE_KEYS } from '../../../services/api.js';
+import { adminPath } from '../../../config/admin-path';
 
 /*
  * NAMESPACE FIX — Replace all generic 'token'/'user' storage reads/removes.
@@ -113,7 +114,7 @@ function DropdownProfile() {
         sessionStorage.removeItem(STORAGE_KEYS.USER_TOKEN);
         sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
       }
-      navigate(isAdmin ? '/admin/login' : '/login');
+      navigate(isAdmin ? adminPath('/login') : '/login');
     }
   }
 
@@ -138,7 +139,7 @@ function DropdownProfile() {
         </div>
       </a>
       <div className="dropdown-menu dropdown-menu-end me-1">
-        <Link to="/admin/profile" className="dropdown-item">
+        <Link to={adminPath('/profile')} className="dropdown-item">
           <i className="fa fa-user-pen fa-fw me-1"></i> Edit Profile
         </Link>
         <a href="#/" className="dropdown-item d-flex align-items-center">

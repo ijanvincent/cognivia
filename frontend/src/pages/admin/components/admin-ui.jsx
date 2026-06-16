@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { adminPath } from './../../../config/admin-path';
 
 // ---------------------------------------------------------------------------
 // Shared building blocks for the admin panel.
@@ -100,7 +101,7 @@ export function UserCell({ user, deleted = false, link = true, size = 32 }) {
     );
     if (!link || !user.id) return body;
     return (
-        <Link to={`/admin/users/${user.id}`} className="text-decoration-none">
+        <Link to={adminPath(`/users/${user.id}`)} className="text-decoration-none">
             {body}
         </Link>
     );
@@ -299,7 +300,7 @@ export function ActivityItem({ event, compact = false }) {
             </span>
             <div className="flex-grow-1 min-w-0">
                 <div style={{ fontSize: '13px' }} className="text-muted">
-                    <Link to={`/admin/users/${event.user?.id}`} className="fw-semibold text-body text-decoration-none">
+                    <Link to={adminPath(`/users/${event.user?.id}`)} className="fw-semibold text-body text-decoration-none">
                         {event.user?.username || 'Unknown user'}
                     </Link>{' '}
                     {describeEvent(event)}

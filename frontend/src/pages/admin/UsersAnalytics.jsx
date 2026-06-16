@@ -8,6 +8,7 @@ import {
     PageHeader, StatCard, UserCell, EmptyState,
     themeColor, timeAgo, fmtDate,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 function cssVar(name, fallback) {
     return (getComputedStyle(document.body).getPropertyValue(name) || fallback).trim();
@@ -177,14 +178,14 @@ function AdminUsersAnalytics() {
         <div>
             <PageHeader
                 crumbs={[
-                    { label: 'Admin', to: '/admin/dashboard' },
-                    { label: 'Users', to: '/admin/users' },
+                    { label: 'Admin', to: adminPath('/dashboard') },
+                    { label: 'Users', to: adminPath('/users') },
                     { label: 'Analytics' },
                 ]}
                 title="User Analytics"
                 subtitle="Registration trends and growth across the platform"
             >
-                <Link to="/admin/users" className="btn btn-default btn-sm">
+                <Link to={adminPath('/users')} className="btn btn-default btn-sm">
                     <i className="fa-solid fa-users me-2"></i>All users
                 </Link>
                 <button type="button" className="btn btn-default btn-sm" onClick={fetchData} title="Refresh">
@@ -360,7 +361,7 @@ function AdminUsersAnalytics() {
                                         </div>
                                     ))}
                                     <div className="text-center border-top py-2 mt-1">
-                                        <Link to="/admin/users" className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
+                                        <Link to={adminPath('/users')} className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
                                             All users <i className="fa-solid fa-arrow-right ms-1" style={{ fontSize: '10px' }}></i>
                                         </Link>
                                     </div>

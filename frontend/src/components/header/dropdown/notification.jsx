@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../services/api.js';
+import { adminPath } from '../../../config/admin-path';
 
 function DropdownNotification() {
     const [notifications, setNotifications] = useState([]);
@@ -115,7 +116,7 @@ function DropdownNotification() {
                     ))
                 )}
                 <div className="dropdown-footer text-center">
-                    <Link to="/admin/users" className="text-decoration-none">
+                    <Link to={adminPath('/users')} className="text-decoration-none">
                         View all users <i className="fa fa-arrow-right ms-1"></i>
                     </Link>
                 </div>

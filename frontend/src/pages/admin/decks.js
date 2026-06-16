@@ -7,6 +7,7 @@ import {
     PageHeader, StatCard, UserCell, SourceBadge, EmptyState, TableSkeleton,
     timeAgo, fmtDateTime,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 const SOURCE_FILTERS = [
     { key: 'all',    label: 'All' },
@@ -84,11 +85,11 @@ function AdminDecks() {
     return (
         <div>
             <PageHeader
-                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Deck Library' }]}
+                crumbs={[{ label: 'Admin', to: adminPath('/dashboard') }, { label: 'Deck Library' }]}
                 title="Deck Library"
                 subtitle="Every flashcard deck created across the platform"
             >
-                <Link to="/admin/activity" className="btn btn-default btn-sm">
+                <Link to={adminPath('/activity')} className="btn btn-default btn-sm">
                     <i className="fa-solid fa-wave-square me-2"></i>Activity
                 </Link>
             </PageHeader>

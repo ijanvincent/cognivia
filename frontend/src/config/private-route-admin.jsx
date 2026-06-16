@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import api, { STORAGE_KEYS } from '../services/api.js';
 import { parseStoredJson, unwrapResourceData } from '../services/storage.js';
+import { adminPath } from './admin-path';
 // CHANGE 1 — Added: import STORAGE_KEYS from api.js
 // What:  Imports the centralised storage-key constants.
 // Why:   Admin token is now stored under 'admin_token'. Reading the old
@@ -99,7 +100,7 @@ function AdminPrivateRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to='/admin/login' replace />;
+    return <Navigate to={adminPath('/login')} replace />;
   }
 
   return children;

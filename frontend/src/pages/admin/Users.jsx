@@ -7,6 +7,7 @@ import {
     PageHeader, Avatar, UserCell, PresenceDot, EmptyState, TableSkeleton,
     timeAgo, fmtDate,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 const MODAL_CONFIG = {
     delete: {
@@ -293,7 +294,7 @@ function AdminUsers() {
             )}
 
             <PageHeader
-                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Users' }]}
+                crumbs={[{ label: 'Admin', to: adminPath('/dashboard') }, { label: 'Users' }]}
                 title="Users"
                 subtitle={
                     <>
@@ -306,10 +307,10 @@ function AdminUsers() {
                     </>
                 }
             >
-                <Link to="/admin/activity" className="btn btn-default btn-sm">
+                <Link to={adminPath('/activity')} className="btn btn-default btn-sm">
                     <i className="fa-solid fa-wave-square me-2"></i>Activity
                 </Link>
-                <Link to="/admin/users/analytics" className="btn btn-default btn-sm">
+                <Link to={adminPath('/users/analytics')} className="btn btn-default btn-sm">
                     <i className="fa-solid fa-chart-line me-2"></i>Analytics
                 </Link>
             </PageHeader>
@@ -443,7 +444,7 @@ function AdminUsers() {
                                                             </button>
                                                         ) : activeTab === 'active' ? (
                                                             <div className="d-inline-flex gap-1">
-                                                                <Link to={`/admin/users/${user.id}`}
+                                                                <Link to={adminPath(`/users/${user.id}`)}
                                                                     className="btn btn-default btn-sm" title="View profile & activity">
                                                                     <i className="fa-solid fa-eye me-1"></i>View
                                                                 </Link>

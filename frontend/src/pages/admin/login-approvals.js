@@ -6,6 +6,7 @@ import {
     PageHeader, StatCard, UserCell, ApprovalBadge, PlatformLabel,
     EmptyState, TableSkeleton, timeAgo, fmtDateTime,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 const FILTERS = ['all', 'pending', 'approved', 'denied', 'expired'];
 
@@ -61,7 +62,7 @@ function AdminLoginApprovals() {
     return (
         <div>
             <PageHeader
-                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Login Approvals' }]}
+                crumbs={[{ label: 'Admin', to: adminPath('/dashboard') }, { label: 'Login Approvals' }]}
                 title="Login Approvals"
                 subtitle="Cross-platform login requests — users switching between web and mobile"
             >

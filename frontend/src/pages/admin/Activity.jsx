@@ -5,6 +5,7 @@ import api from './../../services/api.js';
 import {
     PageHeader, StatCard, ActivityItem, EmptyState,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 const FILTERS = [
     { key: 'all',      label: 'All' },
@@ -105,7 +106,7 @@ function AdminActivity() {
     return (
         <div>
             <PageHeader
-                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Activity' }]}
+                crumbs={[{ label: 'Admin', to: adminPath('/dashboard') }, { label: 'Activity' }]}
                 title="User Activity"
                 subtitle="A live trail of what users are doing — signups, sign-ins, decks, study progress and login approvals."
             >

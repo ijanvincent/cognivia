@@ -5,6 +5,7 @@ import App from './../app.jsx';
 import UserLayout from './../components/layouts/UserLayout.jsx';
 import PrivateRoute from './private-route.jsx';
 import AdminPrivateRoute from './private-route-admin.jsx';
+import { ADMIN_PATH, adminPath } from './admin-path';
 
 import AdminDashboard from './../pages/admin/Dashboard.jsx';
 import AdminActivity from './../pages/admin/Activity.jsx';
@@ -127,16 +128,16 @@ const AppRoute = [
     path: '*',
     element: <App />,
     children: [
-      { path: 'admin',                 element: <Navigate to='/admin/login' replace /> },
-      { path: 'admin/login',           element: <AdminLogin /> },
-      { path: 'admin/dashboard',        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute> },
-      { path: 'admin/activity',         element: <AdminPrivateRoute><AdminActivity /></AdminPrivateRoute> },
-      { path: 'admin/users',            element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute> },
-      { path: 'admin/users/analytics',  element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute> },
-      { path: 'admin/users/:id',        element: <AdminPrivateRoute><AdminUserDetail /></AdminPrivateRoute> },
-      { path: 'admin/decks',            element: <AdminPrivateRoute><AdminDecks /></AdminPrivateRoute> },
-      { path: 'admin/login-approvals',  element: <AdminPrivateRoute><AdminLoginApprovals /></AdminPrivateRoute> },
-      { path: 'admin/profile',          element: <AdminPrivateRoute><AdminProfile /></AdminPrivateRoute> },
+      { path: ADMIN_PATH,                       element: <Navigate to={adminPath('/login')} replace /> },
+      { path: `${ADMIN_PATH}/login`,            element: <AdminLogin /> },
+      { path: `${ADMIN_PATH}/dashboard`,        element: <AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/activity`,         element: <AdminPrivateRoute><AdminActivity /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/users`,            element: <AdminPrivateRoute><AdminUsers /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/users/analytics`,  element: <AdminPrivateRoute><AdminUsersAnalytics /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/users/:id`,        element: <AdminPrivateRoute><AdminUserDetail /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/decks`,            element: <AdminPrivateRoute><AdminDecks /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/login-approvals`,  element: <AdminPrivateRoute><AdminLoginApprovals /></AdminPrivateRoute> },
+      { path: `${ADMIN_PATH}/profile`,          element: <AdminPrivateRoute><AdminProfile /></AdminPrivateRoute> },
       { path: 'email/*', element: <Outlet />, children: [
         { path: 'inbox',   element: <EmailInbox /> },
         { path: 'compose', element: <EmailCompose /> },

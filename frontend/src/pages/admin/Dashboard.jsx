@@ -9,6 +9,7 @@ import {
     PageHeader, StatCard, UserCell, ActivityItem, EmptyState,
     themeColor, timeAgo, fmtDate,
 } from './components/admin-ui.jsx';
+import { adminPath } from './../../config/admin-path';
 
 function getAdminUser() {
     try {
@@ -152,7 +153,7 @@ function AdminDashboard() {
     return (
         <div>
             <PageHeader
-                crumbs={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'Overview' }]}
+                crumbs={[{ label: 'Admin', to: adminPath('/dashboard') }, { label: 'Overview' }]}
                 title="Overview"
                 subtitle={<>Welcome back, <span className="fw-semibold">{adminUser?.username || 'Admin'}</span> — {today}</>}
             >
@@ -165,10 +166,10 @@ function AdminDashboard() {
                     onClick={fetchDashboard} disabled={refreshing} title="Refresh">
                     <i className={`fa-solid fa-rotate-right ${refreshing ? 'fa-spin' : ''}`}></i>
                 </button>
-                <Link to="/admin/activity" className="btn btn-default btn-sm">
+                <Link to={adminPath('/activity')} className="btn btn-default btn-sm">
                     <i className="fa-solid fa-wave-square me-2"></i>Activity
                 </Link>
-                <Link to="/admin/users" className="btn btn-theme btn-sm">
+                <Link to={adminPath('/users')} className="btn btn-theme btn-sm">
                     <i className="fa-solid fa-users me-2"></i>Manage users
                 </Link>
             </PageHeader>
@@ -331,7 +332,7 @@ function AdminDashboard() {
                             )}
                             {!loading && recentEvents.length > 0 && (
                                 <div className="text-center border-top py-2">
-                                    <Link to="/admin/activity" className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
+                                    <Link to={adminPath('/activity')} className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
                                         View all activity <i className="fa-solid fa-arrow-right ms-1" style={{ fontSize: '10px' }}></i>
                                     </Link>
                                 </div>
@@ -360,7 +361,7 @@ function AdminDashboard() {
                                 ))
                             )}
                             <div className="text-center border-top py-2 mt-1">
-                                <Link to="/admin/users" className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
+                                <Link to={adminPath('/users')} className="text-decoration-none fw-semibold" style={{ fontSize: '12px' }}>
                                     All users <i className="fa-solid fa-arrow-right ms-1" style={{ fontSize: '10px' }}></i>
                                 </Link>
                             </div>
