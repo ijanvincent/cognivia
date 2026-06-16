@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Mail\Transport\GmailApiTransport;
 use App\Models\PersonalAccessToken;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,5 +23,14 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        // Register the "gmail" mail transport (config/mail.php → mailers.gmail).
+        Mail::extend('gmail', function (): GmailApiTransport {
+            return new GmailApiTransport(
+                (string) config('services.gmail.client_id'),
+                (string) config('services.gmail.client_secret'),
+                (string) config('services.gmail.refresh_token'),
+            );
+        });
     }
 }

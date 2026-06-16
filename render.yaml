@@ -73,36 +73,33 @@ services:
       - key: LOG_LEVEL
         value: info
       # --- Mail (password-reset / forgot-password delivery) -----------------
-      # IMPORTANT: Render free web services BLOCK outbound SMTP ports 25/465/587
-      # (https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports).
-      # So Gmail SMTP (587 only) can NEVER send from a free instance — the
-      # connection just times out and the email is silently dropped.
-      # Use a provider that offers SMTP on port 2525, which Render does NOT
-      # block: Brevo (free 300/day) or SendGrid.
+      # Two walls make SMTP unworkable on Render's free tier:
+      #   1. Render BLOCKS outbound SMTP ports 25/465/587
+      #      (https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports),
+      #      so Gmail SMTP is unreachable from here.
+      #   2. An SMTP relay on the allowed port 2525 (e.g. Brevo) connects, but is
+      #      NOT authorized to send "From" an @gmail.com address (gmail.com SPF
+      #      only authorizes Google). Such messages fail DMARC and are dropped —
+      #      silently, since the relay still "accepts" the handoff. Nothing
+      #      arrives, not even to spam. (Authenticating a custom domain you own
+      #      with the relay fixes this, but requires buying a domain.)
       #
-      # CRITICAL: MAIL_FROM_ADDRESS must be on a domain you have AUTHENTICATED
-      # with the provider (DKIM + DMARC DNS records) — NOT a free-mail address
-      # like ...@gmail.com. Free domains (gmail/yahoo/outlook) cannot be DKIM-
-      # signed by the relay, so since Feb 2024 Gmail/Yahoo reject those messages
-      # on DMARC at the recipient. The relay still "accepts" the handoff (its key
-      # shows as "last used"), so the failure is silent — the email simply never
-      # arrives. Merely "verifying" a gmail sender in the provider is NOT enough;
-      # the From domain must be authenticated. Use e.g. no-reply@<your-domain>.
-      # (Alternatives: a provider HTTP API on 443, or a paid Render instance.)
+      # Solution used here: the "gmail" mailer (App\Mail\Transport\GmailApiTransport)
+      # sends via the Gmail API over HTTPS (port 443, which Render does NOT block).
+      # This is Google itself sending as the authenticated account — fully
+      # SPF/DKIM/DMARC aligned, free, and needs no custom domain. Get the refresh
+      # token once locally with `php artisan gmail:authorize` (see DEPLOYMENT.md).
+      # MAIL_FROM_ADDRESS must be the authorized Gmail account.
       - key: MAIL_MAILER
-        value: smtp
-      - key: MAIL_HOST
-        sync: false # smtp-relay.brevo.com  (NOT smtp.gmail.com — 587 is blocked)
-      - key: MAIL_PORT
-        sync: false # 2525  (NOT 587/465/25 — those are blocked on Render free)
-      - key: MAIL_SCHEME
-        sync: false # smtp
-      - key: MAIL_USERNAME
-        sync: false # provider SMTP login
-      - key: MAIL_PASSWORD
-        sync: false # provider SMTP key
+        value: gmail
+      - key: GMAIL_CLIENT_ID
+        sync: false # Google Cloud OAuth client ID
+      - key: GMAIL_CLIENT_SECRET
+        sync: false # Google Cloud OAuth client secret
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false # output of `php artisan gmail:authorize`
       - key: MAIL_FROM_ADDRESS
-        sync: false # address on a DKIM/DMARC-authenticated domain (NOT @gmail.com)
+        sync: false # the authorized Gmail address (e.g. you@gmail.com)
       - key: MAIL_FROM_NAME
         value: CogniVia
 

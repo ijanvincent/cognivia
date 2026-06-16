@@ -54,4 +54,20 @@ return [
         'secret' => env('JWT_SECRET'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gmail API — outbound mail transport
+    |--------------------------------------------------------------------------
+    |
+    | Credentials for sending password-reset / transactional email through the
+    | Gmail API over HTTPS (see App\Mail\Transport\GmailApiTransport). Used when
+    | MAIL_MAILER=gmail. The refresh token is obtained once via `gmail:authorize`.
+    |
+    */
+    'gmail' => [
+        'client_id' => env('GMAIL_CLIENT_ID'),
+        'client_secret' => env('GMAIL_CLIENT_SECRET'),
+        'refresh_token' => env('GMAIL_REFRESH_TOKEN'),
+    ],
+
 ];
