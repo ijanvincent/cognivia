@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="92" viewBox="0 0 360 92" role="img" aria-label="CogniVia">
+  <style>
+    .wordmark {
+      font-family: "Liberation Serif", "Times New Roman", Times, serif;
+      font-weight: 400;
+      font-size: 66px;
+      letter-spacing: 0.5px;
+      fill: #1b1f24;
+    }
+    @media (prefers-color-scheme: dark) {
+      .wordmark { fill: #e6edf3; }
+    }
+  </style>
+  <text x="50%" y="64" text-anchor="middle" class="wordmark">CogniVia</text>
+</svg>

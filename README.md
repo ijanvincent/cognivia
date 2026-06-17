@@ -2,7 +2,7 @@
 
 <img src="docs/logo.png" alt="CogniVia logo" width="96" />
 
-# CogniVia
+<img src="docs/title.svg" alt="CogniVia" width="320" />
 
 **AI-powered, cross-platform flashcard learning.**
 Upload a document, get smart flashcards, and study them anywhere — web or mobile, in sync.
@@ -52,14 +52,14 @@ The backend is the single source of truth: every client authenticates against th
 
 ## Features
 
-- 📄 **Document-to-flashcards** — upload PDF, DOCX, or PPTX; the backend parses the file and generates study cards with an LLM.
-- 🤖 **Server-side AI** — the OpenRouter/Gemini key lives only on the backend; clients never call the AI provider directly.
-- 📱 **True cross-platform** — a React web app and an Expo React Native app share one API and one account.
-- 🔄 **Real-time sync** — profile and study state propagate instantly via Soketi (Pusher-protocol) WebSockets.
-- 🔐 **Cross-platform login approval** — signing in on a second device is approved from the active one, with a polling fallback.
-- 🛡️ **Platform-aware auth** — separate user/admin sessions and per-platform tokens enforced by middleware.
-- 📊 **Admin dashboard** — analytics, user management, and CSV exports.
-- 🐳 **One-command local stack** — Docker Compose brings up PHP, Nginx, MySQL, and Soketi together.
+- **Document-to-flashcards** — upload PDF, DOCX, or PPTX; the backend parses the file and generates study cards with an LLM.
+- **Server-side AI** — the OpenRouter/Gemini key lives only on the backend; clients never call the AI provider directly.
+- **True cross-platform** — a React web app and an Expo React Native app share one API and one account.
+- **Real-time sync** — profile and study state propagate instantly via Soketi (Pusher-protocol) WebSockets.
+- **Cross-platform login approval** — signing in on a second device is approved from the active one, with a polling fallback.
+- **Platform-aware auth** — separate user/admin sessions and per-platform tokens enforced by middleware.
+- **Admin dashboard** — analytics, user management, and CSV exports.
+- **One-command local stack** — Docker Compose brings up PHP, Nginx, MySQL, and Soketi together.
 
 ---
 
