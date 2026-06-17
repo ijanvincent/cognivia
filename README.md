@@ -21,7 +21,7 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 
 ---
 
-> A full-stack, cross-platform learning system — Laravel 12 API, React web client, Expo React Native mobile app, real-time WebSocket events, and a fully Dockerized local environment.
+> A full-stack, cross-platform learning system — Laravel 12 API, React web client, Expo React Native mobile app, an LLM-backed flashcard pipeline, AI-graded study sessions, real-time WebSocket events, and a fully Dockerized local environment.
 
 ## Table of Contents
 
@@ -44,22 +44,70 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 
 ## Overview
 
-CogniVia is an AI-powered flashcard learning platform that works seamlessly across web and mobile. Users upload documents (PDF, DOCX, PPTX), the backend parses them and generates smart flashcards via an LLM (OpenRouter/Gemini), and users study those flashcards on any device. Profiles stay in sync across platforms through real-time WebSocket events. Admins get a full management dashboard with analytics, user management, and CSV exports.
+CogniVia is an AI-powered flashcard learning platform that works seamlessly across web and mobile. Users upload a document (PDF, DOCX, or PPTX); the backend parses it, extracts the text, and uses an LLM (OpenRouter / Google Gemini) to generate study-ready flashcards in several formats. Learners then study those cards in interactive sessions where **open-ended answers are graded by AI**, not by string matching, and their **mastery is tracked per deck**.
 
-The backend is the single source of truth: every client authenticates against the Laravel API over HTTPS, and the AI provider key never leaves the server.
+Decks are shareable: every deck carries a unique **share code** that anyone can use to import a full copy into their own account. One account spans both platforms, and **profiles and sessions stay in sync in real time** over WebSockets. A separate admin console provides analytics, user lifecycle management, and engagement insights.
+
+The backend is the single source of truth: every client authenticates against the Laravel API over HTTPS, the AI provider key never leaves the server, and real-time messages are treated as signals that are always reconciled against authenticated endpoints.
 
 ---
 
 ## Features
 
-- **Document-to-flashcards** — upload PDF, DOCX, or PPTX; the backend parses the file and generates study cards with an LLM.
-- **Server-side AI** — the OpenRouter/Gemini key lives only on the backend; clients never call the AI provider directly.
-- **True cross-platform** — a React web app and an Expo React Native app share one API and one account.
-- **Real-time sync** — profile and study state propagate instantly via Soketi (Pusher-protocol) WebSockets.
-- **Cross-platform login approval** — signing in on a second device is approved from the active one, with a polling fallback.
-- **Platform-aware auth** — separate user/admin sessions and per-platform tokens enforced by middleware.
-- **Admin dashboard** — analytics, user management, and CSV exports.
-- **One-command local stack** — Docker Compose brings up PHP, Nginx, MySQL, and Soketi together.
+### AI-Powered Flashcard Generation
+- **Document ingestion** — upload **PDF, DOCX, or PPTX** files (up to 10 MB); the backend extracts the text server-side.
+- **LLM generation** — flashcards are generated through an **OpenRouter / Google Gemini** model. The provider key lives **only** on the backend; clients call the Laravel API, never the AI provider directly.
+- **Configurable decks** — choose how many cards to generate (10–60 per deck).
+- **Five card formats** — *Identification*, *Multiple Choice*, *True / False*, *Explanatory*, and *Mixed*.
+
+### Interactive Study & AI Grading
+- **Study sessions** — work through a deck in a shuffled order with a live progress bar and running score.
+- **AI-graded answers** — open-ended responses are evaluated for **meaning** by the LLM (not exact-string match), returning a correct/incorrect verdict plus natural-language feedback.
+- **Multiple interaction modes** — multiple-choice, true/false, and free-recall identification.
+- **Mastery tracking** — each session computes a mastery percentage, marks the deck *Mastered* (≥ 75%) or *Needs Review*, and offers a reshuffled **Study Again** retry.
+- **Session review** — an end-of-session summary breaks down performance card by card.
+
+### Deck Sharing via Share Codes
+- **Unique share code per deck** — every deck is assigned a code in the form `FC-XXXXXXXX`.
+- **Native sharing (mobile)** — share a deck's code straight from the OS share sheet.
+- **Import by code** — entering a share code clones the full deck (and all its flashcards) into your own account.
+- **Safe-by-design copies** — you can't import your own deck or import the same deck twice; each imported copy gets a **fresh share code** so recipients can re-share their own version. Imports are tracked back to the original deck.
+
+### Progress & Insights
+- **Mobile progress dashboard** — overall mastery, total cards, cards mastered, decks needing review, and your strongest deck.
+- **Per-deck ranking** — decks sorted by mastery with strength labels (*Strong / Improving / Needs review*).
+- **Near-real-time dashboard** — newly generated decks and updated mastery appear automatically while a screen is focused.
+
+### Cross-Platform Accounts & Real-Time Sync
+- **One account, two clients** — a React web app and an Expo React Native app share a single API and identity.
+- **Live profile sync** — username/avatar changes propagate across devices instantly via **Soketi (Pusher protocol) + Laravel Echo**.
+- **Cross-platform login approval** — signing in on a second device must be **approved from the already-active device**, combining a real-time event with an authoritative polling fallback.
+- **Remote force-logout** — sessions can be terminated and the affected client is signed out in real time.
+
+### Security & Authentication
+- **Token auth (Sanctum)** — stateless API tokens with **fully separate user and admin namespaces**.
+- **Platform-bound tokens** — every request carries `X-Platform: web|mobile`, and middleware rejects a token used on the wrong platform.
+- **Rate-limited endpoints** — login, registration, password reset, and approval routes are throttled.
+- **Hardened secrets** — login-approval tokens are high-entropy, stored only as SHA-256 hashes, and single-use; mobile session tokens live in `expo-secure-store`; the AI provider key never leaves the backend.
+- **Password reset by email** — with a custom **Gmail API mail transport** fallback for hosts where outbound SMTP is blocked.
+
+### Admin Console
+- **Dashboard KPIs** — platform-wide user and content metrics.
+- **User lifecycle management** — list, inspect, **soft-delete, restore, and permanently delete** users, with a dedicated trash view.
+- **Engagement analytics** — activity feed and engagement breakdowns.
+- **Content oversight** — deck/content overview and a login-approval monitor.
+- **CSV export** — export user lists for offline analysis.
+
+### Mobile Experience
+- **Expo SDK 54 / React Native** — native iOS and Android from one codebase.
+- **System-aware theming** — light/dark mode that follows the device appearance.
+- **Offline awareness** — connectivity is detected and surfaced; cached profile data persists when offline.
+- **Polished onboarding** — splash, onboarding, and guided auth flows.
+
+### Platform & DevOps
+- **One-command local stack** — Docker Compose brings up PHP-FPM, Nginx, MySQL, and Soketi together.
+- **Production deployment** — web on **Vercel**, API on **Render**, MySQL on **Aiven**, real-time on **Pusher**.
+- **Operational resilience** — a side-effect-free DB warm-up endpoint keeps the free-tier database from cold-starting on first login.
 
 ---
 
@@ -68,12 +116,15 @@ The backend is the single source of truth: every client authenticates against th
 | Layer | Technology |
 |---|---|
 | Backend | Laravel 12 · PHP 8.4 · Laravel Sanctum · Laravel Echo · Soketi |
+| AI / LLM | OpenRouter API · Google Gemini (server-side proxy) |
+| Document parsing | PDF, DOCX, and PPTX text extraction (server-side) |
 | Web | React 18 · React Router · Axios · ApexCharts · FullCalendar |
 | Mobile | Expo SDK 54 · React Native · Expo Secure Store |
 | Database | MySQL 8.0 |
 | Gateway | Nginx (Alpine) |
 | Real-time | Soketi (Pusher-compatible WebSocket server) |
 | Infrastructure | Docker · Docker Compose |
+| Deployment | Vercel (web) · Render (API) · Aiven (MySQL) · Pusher (real-time) |
 
 ---
 
