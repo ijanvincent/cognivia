@@ -66,8 +66,6 @@ const WaveBackground = () => (
 //   │   "Account ready — start learning now."        │
 //   │         [account pill]                         │
 //   │         [hint text]                            │
-//   │  ─────────────── divider ───────────────────── │
-//   │     Already have an account?  [Sign in]        │
 //   └────────────────────────────────────────────────┘
 //   [      Continue to Sign In button      ]
 //
@@ -200,25 +198,6 @@ const RegisterSuccessScreen = () => {
                             You can now sign in with your email and password to
                             access your dashboard and start studying.
                         </Text>
-
-                        {/* ── Divider ────────────────────────────────── */}
-                        <View style={styles.divider} />
-
-                        {/* ── Inline sign-in row ─────────────────────── */}
-                        <View style={styles.signInRow}>
-                            <Text style={styles.signInPrompt}>
-                                Already have an account?{' '}
-                            </Text>
-                            <TouchableOpacity
-                                onPress={() => navigation.replace('Login')}
-                                activeOpacity={0.75}
-                                accessible
-                                accessibilityRole="link"
-                                accessibilityLabel="Sign in to your existing account"
-                            >
-                                <Text style={styles.signInLink}>Sign in</Text>
-                            </TouchableOpacity>
-                        </View>
 
                     </Animated.View>
 
@@ -353,35 +332,6 @@ const styles = StyleSheet.create({
         lineHeight: 21,
         textAlign:  'center',
         maxWidth:   280,
-    },
-
-    // ── Divider ───────────────────────────────────────────────────────────────
-    // Source: .linksSection border-top
-    divider: {
-        width:           '100%',
-        height:          1,
-        backgroundColor: 'rgba(255,255,255,0.06)',
-        marginTop:       22,
-        marginBottom:    20,
-    },
-
-    // ── Inline sign-in row ────────────────────────────────────────────────────
-    // Source: .registerPrompt + mobile .registerLink
-    signInRow: {
-        flexDirection:  'row',
-        alignItems:     'center',
-        justifyContent: 'center',
-    },
-    signInPrompt: {
-        fontSize:   13,
-        color:      'rgba(241,245,249,0.35)',
-        fontWeight: '400',
-    },
-    signInLink: {
-        fontFamily:  'Syne_700Bold',
-        fontSize:    13,
-        fontWeight:  '700',
-        color:       COLORS.cyan,
     },
 
     // ── CTA button ────────────────────────────────────────────────────────────
