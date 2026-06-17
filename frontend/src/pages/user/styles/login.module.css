@@ -1084,11 +1084,6 @@
   transition: background 0.35s ease;
 }
 
-/* >768px (web): the checklist is replaced by the floating strength meter. */
-@media (min-width: 769px) {
-  .reqContainer { display: none; }
-}
-
 /* ≤768px (mobile): keep the original checklist; hide the floating meter. */
 @media (max-width: 768px) {
   .strengthMeter { display: none; }
@@ -1137,6 +1132,14 @@
 .reqTextMet {
   color:       #22c55e;
   font-weight: 500;
+}
+
+/* >768px (web): hide the checklist entirely — the floating strength meter is
+   the only password feedback on web. Declared AFTER the .reqContainer base
+   rule so it wins on source order (equal specificity); the checklist returns
+   below 768px where the meter is hidden instead. */
+@media (min-width: 769px) {
+  .reqContainer { display: none; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
