@@ -2,7 +2,7 @@
 
 <img src="docs/logo.png" alt="CogniVia logo" width="96" />
 
-<img src="docs/title.svg" alt="CogniVia" width="320" />
+# CogniVia
 
 **AI-powered, cross-platform flashcard learning.**
 Upload a document, get smart flashcards, and study them anywhere — web or mobile, in sync.
