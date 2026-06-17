@@ -27,6 +27,7 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 
 - [Overview](#overview)
 - [Features](#features)
+- [Engineering Highlights](#engineering-highlights)
 - [Tech Stack](#tech-stack)
 - [Repository Structure](#repository-structure)
 - [Architecture](#architecture)
@@ -36,6 +37,7 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 - [Environment Variables](#environment-variables)
 - [Common Commands](#common-commands)
 - [Development Workflow](#development-workflow)
+- [Testing & Code Quality](#testing--code-quality)
 - [Security Principles](#security-principles)
 - [Pre-merge Checklist](#pre-merge-checklist)
 - [License](#license)
@@ -111,6 +113,19 @@ The backend is the single source of truth: every client authenticates against th
 
 ---
 
+## Engineering Highlights
+
+A few parts of CogniVia that were the most interesting to design and build:
+
+- **AI grading instead of string matching.** Open-ended answers are scored for *semantic* correctness by the LLM, which returns a verdict plus feedback. The provider key is proxied entirely server-side, so it never reaches a client.
+- **Cross-platform login approval.** A sign-in from a new device must be authorized from the already-active device. It combines a real-time WebSocket event (fast path) with authoritative HTTP polling (fallback), so the flow survives flaky mobile networks, tunnels, and backgrounded browser tabs. Approval tokens are high-entropy, stored only as SHA-256 hashes, and single-use.
+- **Platform-bound tokens.** Each token is scoped to the platform that issued it (`web` / `mobile`); middleware rejects cross-platform reuse, and user/admin sessions live in fully separate namespaces to prevent privilege bleed.
+- **Real-time as a signal, never as truth.** Every WebSocket event is reconciled against an authenticated HTTP endpoint, so a dropped, delayed, or spoofed message can't desync application state.
+- **Clean layering.** The backend follows a Controller → Service → Repository structure with form-request validation, keeping transport, business logic, and persistence cleanly separated and testable.
+- **Production-ready operations.** Docker Compose gives local/prod parity, and a side-effect-free DB warm-up endpoint keeps a free-tier database from cold-starting the first login.
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -146,26 +161,25 @@ cognivia/
 
 The backend is the single source of truth. All clients authenticate against the Laravel API and communicate over HTTPS. Document parsing and AI flashcard generation happen entirely server-side — the OpenRouter/Gemini API key never leaves the backend. Real-time events are broadcast via Soketi (Pusher protocol) and consumed by Laravel Echo on the web and mobile clients.
 
-```
-┌─────────────┐     ┌─────────────┐
-│  React Web  │     │ Expo Mobile │
-└──────┬──────┘     └──────┬──────┘
-       │  HTTPS + WS       │
-       ▼                   ▼
-┌─────────────────────────────────┐
-│           Nginx Gateway         │  :3000
-└────────┬──────────┬─────────────┘
-         │          │
-         ▼          ▼
-┌──────────────┐  ┌────────────┐
-│  Laravel API │  │   Soketi   │  :6001
-│  (PHP-FPM)   │  │ (WebSocket)│
-└──────┬───────┘  └────────────┘
-       │
-       ▼
-┌──────────────┐
-│   MySQL 8.0  │  :3306
-└──────────────┘
+```mermaid
+flowchart TD
+    Web["React Web<br/>X-Platform: web"]
+    Mobile["Expo Mobile<br/>X-Platform: mobile"]
+    GW["Nginx Gateway&nbsp;:3000"]
+    API["Laravel API<br/>(PHP-FPM)"]
+    Soketi["Soketi&nbsp;:6001<br/>WebSocket"]
+    DB[("MySQL 8.0")]
+    AI["OpenRouter / Gemini"]
+
+    Web -->|HTTPS + WS| GW
+    Mobile -->|HTTPS + WS| GW
+    GW --> API
+    GW --> Soketi
+    API --> DB
+    API -->|broadcast events| Soketi
+    API -->|server-side proxy| AI
+    Soketi -.->|real-time events| Web
+    Soketi -.->|real-time events| Mobile
 ```
 
 **Local service endpoints:**
@@ -217,7 +231,7 @@ Relevant files: `PendingLogin`, `LoginApprovalController`, `NewLoginRequest` / `
 
 - Docker & Docker Compose
 - Node.js 18+
-- Expo CLI (`npm install -g expo-cli`)
+- Expo tooling — run via `npx expo` (no global install needed); the [Expo Go](https://expo.dev/go) app on a physical device to preview the mobile client
 
 ### 1. Clone and configure
 
@@ -338,6 +352,19 @@ git switch -c feature/my-change   # start work
 git push -u origin feature/my-change
 # open a pull request into main
 ```
+
+---
+
+## Testing & Code Quality
+
+```bash
+docker exec cognivia_backend php artisan test     # run the backend test suite
+docker exec cognivia_backend ./vendor/bin/pint    # format / lint PHP to PSR-12
+```
+
+- **Backend tests** run on PHPUnit via `php artisan test`.
+- **Static style** is enforced with **Laravel Pint** (PSR-12).
+- **Linear, reviewed history** — every change lands through a pull request into a protected `main` (see [Development Workflow](#development-workflow)).
 
 ---
 
