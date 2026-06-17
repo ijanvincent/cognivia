@@ -20,6 +20,25 @@ const PASSWORD_RULES = [
   { key: 'length',    label: 'Minimum 8 characters',           test: (p) => p.length >= 8 },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Strength scoring — identical to Register.jsx so the web view shows the same
+// animated bars + level label. The mobile (≤768px) checklist still uses
+// PASSWORD_RULES directly; this only powers the desktop strength meter.
+// ─────────────────────────────────────────────────────────────────────────────
+const STRENGTH_LEVELS = [
+  null,
+  { label: 'Too Weak',    color: '#ef4444', bars: 1 },
+  { label: 'Weak',        color: '#f97316', bars: 2 },
+  { label: 'Fair',        color: '#eab308', bars: 3 },
+  { label: 'Strong',      color: '#22c55e', bars: 3 },
+  { label: 'Very Strong', color: '#10b981', bars: 4 },
+];
+
+const getStrength = (password) => {
+  const score = PASSWORD_RULES.filter((r) => r.test(password)).length;
+  return { score, ...(STRENGTH_LEVELS[score] ?? STRENGTH_LEVELS[1]) };
+};
+
 function ResetPassword() {
   const [searchParams]          = useSearchParams();
   const navigate                = useNavigate();
@@ -102,6 +121,12 @@ function ResetPassword() {
    */
   const showPasswordRules = !strengthDismissed &&
     (passwordFocused || (!confirmFocused && formData.password.length > 0));
+
+  /*
+   * CHANGE RP-STRENGTH-1 — Strength score for the desktop meter.
+   * Computed every render from the live password; drives the floating bars.
+   */
+  const strength = getStrength(formData.password);
 
   return (
     <div className={styles.pageContainer}>
@@ -276,8 +301,17 @@ function ResetPassword() {
                  */}
                 <div className={styles.passwordRow}>
 
-                  {/* ── Left column: New Password + strength checklist ──── */}
+                  {/* ── Left column: New Password + strength feedback ───── */}
                   <div className={styles.passwordCol}>
+
+                   {/*
+                    * CHANGE RP-STRENGTH-2 — strengthMeterAnchor wraps the New
+                    * Password field + floating meter so the meter (position:
+                    * absolute) anchors directly beneath the input, matching
+                    * Register.jsx. The meter is shown on web (>768px) and
+                    * hidden ≤768px, where the checklist below takes over.
+                    */}
+                   <div className={styles.strengthMeterAnchor}>
 
                     {/* ── New Password field ─────────────────────────────── */}
                     <div className={`${styles.formGroup} ${styles.formGroupPassword}`}>
@@ -306,12 +340,18 @@ function ResetPassword() {
                           }}
                           onBlur={() => setPasswordFocused(false)}
                           className={`${styles.inputField} ${errors.password ? styles.inputError : ''}`}
-                          placeholder="Enter new password"
+                          placeholder="Password"
                           disabled={loading}
                           autoComplete="new-password"
                           autoFocus
                           aria-invalid={!!errors.password}
-                          aria-describedby="rp-password-rules"
+                          aria-describedby={
+                            [
+                              'rp-password-strength',                    // web meter (always mounted)
+                              showPasswordRules && 'rp-password-rules',  // mobile checklist (conditional)
+                              errors.password && 'password-error',       // error text (conditional)
+                            ].filter(Boolean).join(' ')
+                          }
                         />
                         <button
                           type="button"
@@ -335,7 +375,40 @@ function ResetPassword() {
                       )}
                     </div>
 
-                    {/* ── Password strength checklist ────────────────────── */}
+                    {/*
+                     * CHANGE RP-STRENGTH-3 — Floating strength meter (web view).
+                     * Mirrors Register.jsx: animated bars + level label. Always
+                     * mounted; visibility driven by showPasswordRules via the
+                     * strengthMeterVisible opacity class. Hidden ≤768px by CSS.
+                     */}
+                    <div
+                      id="rp-password-strength"
+                      className={`${styles.strengthMeter} ${showPasswordRules ? styles.strengthMeterVisible : ''}`}
+                      aria-live="polite"
+                      aria-label={`Password strength: ${strength.label || 'none'}`}
+                    >
+                      <div className={styles.strengthHeader}>
+                        <span className={styles.strengthTitle}>Strength</span>
+                        {strength.score > 0 && (
+                          <span className={styles.strengthLabel} style={{ color: strength.color }}>
+                            {strength.label}
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.strengthBars}>
+                        {[0, 1, 2, 3].map((i) => (
+                          <div
+                            key={i}
+                            className={styles.strengthBar}
+                            style={i < strength.bars ? { background: strength.color } : undefined}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                   </div>{/* end strengthMeterAnchor */}
+
+                    {/* ── Password strength checklist (mobile ≤768px) ────── */}
                     {showPasswordRules && (
                       <div
                         id="rp-password-rules"
@@ -395,7 +468,7 @@ function ResetPassword() {
                           }}
                           onBlur={() => setConfirmFocused(false)}
                           className={`${styles.inputField} ${errors.password_confirmation ? styles.inputError : ''}`}
-                          placeholder="Confirm new password"
+                          placeholder="Confirm"
                           disabled={loading}
                           autoComplete="new-password"
                           aria-invalid={!!errors.password_confirmation}

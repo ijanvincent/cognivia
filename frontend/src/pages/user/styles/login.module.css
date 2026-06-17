@@ -1009,35 +1009,89 @@
 
 .successRetry:hover { opacity: 0.72; }
 
-/* ── Password strength ────────────────────────────────────────────────────── */
-.strengthWrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+/* ─────────────────────────────────────────────────────────────────────────────
+   PASSWORD STRENGTH METER — floating dropdown (desktop / web view)
+   Mirrors register.module.css 1:1 so ResetPassword shows the same animated
+   strength bars + level label that Register uses. Shown above the mobile
+   checklist on screens >768px; hidden ≤768px (see media block below), where
+   the .reqContainer checklist takes over instead.
+───────────────────────────────────────────────────────────────────────────── */
+.strengthMeterAnchor {
+  position: relative;
 }
 
-.strengthBar {
-  flex: 1;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
+.strengthMeter {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(7, 8, 15, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity   0.2s ease,
+    transform 0.2s ease;
+}
+
+.strengthMeterVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.strengthHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.strengthTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.strengthLabel {
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.strengthBars {
+  display: flex;
+  gap: 0;
   border-radius: 100px;
   overflow: hidden;
 }
 
-.strengthFill {
-  height: 100%;
-  border-radius: 100px;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease;
+.strengthBar {
+  flex: 1;
+  height: 4px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.35s ease;
 }
 
-.strengthLabel {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: color 0.3s ease;
-  min-width: 44px;
+/* >768px (web): the checklist is replaced by the floating strength meter. */
+@media (min-width: 769px) {
+  .reqContainer { display: none; }
+}
+
+/* ≤768px (mobile): keep the original checklist; hide the floating meter. */
+@media (max-width: 768px) {
+  .strengthMeter { display: none; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
