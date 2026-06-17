@@ -219,11 +219,11 @@ function TabNavigator() {
                         let iconName;
 
                         if (route.name === 'Home') {
-                            iconName = focused ? 'view-grid' : 'view-grid-outline';
+                            iconName = focused ? 'home' : 'home-outline';
                         } else if (route.name === 'Generate') {
-                            iconName = focused ? 'creation' : 'creation-outline';
+                            iconName = focused ? 'card-plus' : 'card-plus-outline';
                         } else if (route.name === 'Progress') {
-                            iconName = focused ? 'chart-bar' : 'chart-bar';
+                            iconName = focused ? 'chart-box' : 'chart-box-outline';
                         } else if (route.name === 'Profile') {
                             iconName = focused ? 'account-circle' : 'account-circle-outline';
                         }
