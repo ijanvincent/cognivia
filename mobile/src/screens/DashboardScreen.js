@@ -230,7 +230,6 @@ const DeckCard = ({ deck }) => {
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.deckAccent, { backgroundColor: tone }]} />
                 </Card>
             </TouchableOpacity>
         );
@@ -384,10 +383,6 @@ const styles = StyleSheet.create({
     deckContent: {
         flex: 1,
         padding: spacing.lg,
-    },
-    deckAccent: {
-        width: 6,
-        height: '100%',
     },
     deckHeaderRow: {
         flexDirection: 'row',
