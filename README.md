@@ -162,25 +162,53 @@ cognivia/
 The backend is the single source of truth. All clients authenticate against the Laravel API and communicate over HTTPS. Document parsing and AI flashcard generation happen entirely server-side — the OpenRouter/Gemini API key never leaves the backend. Real-time events are broadcast via Soketi (Pusher protocol) and consumed by Laravel Echo on the web and mobile clients.
 
 ```mermaid
-flowchart TD
-    Web["React Web<br/>X-Platform: web"]
-    Mobile["Expo Mobile<br/>X-Platform: mobile"]
-    GW["Nginx Gateway&nbsp;:3000"]
-    API["Laravel API<br/>(PHP-FPM)"]
-    Soketi["Soketi&nbsp;:6001<br/>WebSocket"]
-    DB[("MySQL 8.0")]
-    AI["OpenRouter / Gemini"]
+flowchart LR
+    subgraph clients["Client Tier"]
+        direction TB
+        Web["React 18 Web SPA<br/><i>X-Platform: web</i>"]
+        Mobile["Expo · React Native<br/><i>X-Platform: mobile</i>"]
+    end
 
-    Web -->|HTTPS + WS| GW
-    Mobile -->|HTTPS + WS| GW
-    GW --> API
-    GW --> Soketi
-    API --> DB
-    API -->|broadcast events| Soketi
-    API -->|server-side proxy| AI
-    Soketi -.->|real-time events| Web
-    Soketi -.->|real-time events| Mobile
+    subgraph edge["Edge Tier"]
+        GW["Nginx Gateway<br/><i>:3000 · TLS termination · reverse proxy</i>"]
+    end
+
+    subgraph app["Application Tier"]
+        direction TB
+        API["Laravel 12 API<br/><i>PHP-FPM 8.4 · Sanctum auth</i>"]
+        Soketi["Soketi<br/><i>:6001 · Pusher-protocol WebSocket</i>"]
+    end
+
+    subgraph data["Data &amp; External Services"]
+        direction TB
+        DB[("MySQL 8.0")]
+        AI["OpenRouter / Gemini<br/><i>LLM generation</i>"]
+    end
+
+    Web    -- "REST / HTTPS" --> GW
+    Mobile -- "REST / HTTPS" --> GW
+    GW     -- "FastCGI" --> API
+    GW     -- "WSS upgrade" --> Soketi
+
+    API -- "Eloquent ORM" --> DB
+    API -- "broadcast events" --> Soketi
+    API -- "server-side proxy" --> AI
+
+    Soketi -. "real-time events" .-> Web
+    Soketi -. "real-time events" .-> Mobile
+
+    classDef client fill:#1f6feb22,stroke:#1f6feb,stroke-width:1px,color:#c9d1d9;
+    classDef gateway fill:#8957e522,stroke:#8957e5,stroke-width:1px,color:#c9d1d9;
+    classDef service fill:#23863622,stroke:#238636,stroke-width:1px,color:#c9d1d9;
+    classDef store fill:#9e6a0322,stroke:#d29922,stroke-width:1px,color:#c9d1d9;
+
+    class Web,Mobile client;
+    class GW gateway;
+    class API,Soketi service;
+    class DB,AI store;
 ```
+
+> **Request lifecycle.** Clients never talk to the database or the LLM provider directly. Every call enters through the Nginx gateway, is authenticated by Sanctum, and is served by the Laravel API — the single source of truth. Document parsing and AI flashcard generation run entirely server-side, so the OpenRouter/Gemini key never reaches a client bundle. State changes are pushed back to clients as fire-and-forget real-time events (dotted lines), but clients always confirm authoritative state over HTTPS.
 
 **Local service endpoints:**
 
