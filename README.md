@@ -163,23 +163,23 @@ The backend is the single source of truth. All clients authenticate against the 
 
 ```mermaid
 flowchart LR
-    subgraph clients["🖥️ &nbsp;Client Tier"]
+    subgraph clients["Client Tier"]
         direction TB
         Web["React 18 Web SPA<br/><i>X-Platform: web</i>"]
         Mobile["Expo · React Native<br/><i>X-Platform: mobile</i>"]
     end
 
-    subgraph edge["🛡️ &nbsp;Edge Tier"]
+    subgraph edge["Edge Tier"]
         GW["Nginx Gateway<br/><i>:3000 · TLS termination · reverse proxy</i>"]
     end
 
-    subgraph app["⚙️ &nbsp;Application Tier"]
+    subgraph app["Application Tier"]
         direction TB
         API["Laravel 12 API<br/><i>PHP-FPM 8.4 · Sanctum auth</i>"]
         Soketi["Soketi<br/><i>:6001 · Pusher-protocol WebSocket</i>"]
     end
 
-    subgraph data["💾 &nbsp;Data &amp; External Services"]
+    subgraph data["Data &amp; External Services"]
         direction TB
         DB[("MySQL 8.0")]
         AI["OpenRouter / Gemini<br/><i>LLM generation</i>"]
