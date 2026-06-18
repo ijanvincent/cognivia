@@ -60,10 +60,20 @@ services:
         value: /etc/secrets/db-ca.pem # upload Aiven's ca.pem as a Render Secret File
 
       # --- Drivers ----------------------------------------------------------
+      # Cache + sessions are kept on the LOCAL instance filesystem, never the
+      # remote Aiven DB. Why: the `throttle` middleware and the login
+      # RateLimiter use the cache store on every auth request, and Laravel's
+      # web session store is also cache/DB-backed. With CACHE_STORE=database the
+      # round-trip to the geographically-remote Aiven free MySQL (~1.5–2.5s per
+      # query, measured) was paid 4–6x per register/login — before the request
+      # even reached validation. `file` keeps this transient, per-request data
+      # on local disk, which is correct for the single free-tier instance and
+      # removes those remote round-trips entirely. (Move to `redis` if/when the
+      # service is scaled past one instance so the rate-limit bucket is shared.)
       - key: SESSION_DRIVER
-        value: database
+        value: file
       - key: CACHE_STORE
-        value: database
+        value: file
       # No background worker on the free tier, so queued jobs (broadcast
       # events, mail) must run inline.
       - key: QUEUE_CONNECTION

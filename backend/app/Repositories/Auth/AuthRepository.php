@@ -26,11 +26,14 @@ class AuthRepository
 
     public function createUser(array $data): User
     {
-        $user = User::create([
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-        ]);
+        // Build and persist in a single INSERT. `role` is intentionally not in
+        // $fillable (mass-assignment protection), so it is set explicitly on
+        // the instance before the first save rather than via a second UPDATE
+        // round-trip — one fewer remote DB query per registration.
+        $user = new User;
+        $user->username = $data['username'];
+        $user->email = $data['email'];
+        $user->password = $data['password'];
         $user->role = 'user';
         $user->save();
 
