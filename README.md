@@ -14,8 +14,9 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 [![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](CONTRIBUTING.md)
 
-[**Live Demo**](https://cogniviahq.vercel.app) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Development Workflow](#development-workflow)
+[**Live Demo**](https://cogniviahq.vercel.app) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -40,6 +41,8 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 - [Testing & Code Quality](#testing--code-quality)
 - [Security Principles](#security-principles)
 - [Pre-merge Checklist](#pre-merge-checklist)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -425,6 +428,34 @@ Manual smoke tests:
 - [ ] Web active → mobile requests login → web approves
 - [ ] Mobile active → web requests login → mobile approves
 - [ ] Deny flow clears without requiring a page refresh
+
+---
+
+## Documentation
+
+| Document | What's in it |
+|---|---|
+| [README](README.md) | Project overview, architecture, setup, command reference |
+| [CONTRIBUTING](CONTRIBUTING.md) | How to set up, branch, commit, test, and open a PR |
+| [DEPLOYMENT](DEPLOYMENT.md) | Hosting setup — Vercel, Render, Aiven, Pusher |
+| [SCALING](SCALING.md) | Production-readiness roadmap and the free→paid upgrade path |
+
+---
+
+## Contributing
+
+Contributions are welcome — bug reports, features, and documentation fixes alike.
+
+Start with the **[Contributing Guide](CONTRIBUTING.md)**, which covers the full
+workflow. The essentials:
+
+- Branch from an up-to-date `main` (`type/short-description`, e.g. `feature/deck-export`); **never commit to `main` directly**.
+- Follow [Conventional Commits](https://www.conventionalcommits.org/) (`type(scope): summary`).
+- Keep PHP **PSR-12-clean** (`./vendor/bin/pint`) and the suite green (`php artisan test`).
+- Open a pull request into `main` and fill out the PR template; a maintainer will review.
+
+New here? Issues labelled **good first issue** are a great place to start. For
+anything large or architectural, open an issue to discuss the approach first.
 
 ---
 
