@@ -21,6 +21,19 @@ class FlashcardGenerationService
 
     private const MIN_CARDS = 1;
 
+    // Output-token budget for generation, sized to the number of cards instead
+    // of a flat ceiling. A flat 8192 over-reserved tokens for every request,
+    // which (a) needlessly exceeds a low credit balance — OpenRouter rejects a
+    // request whose max_tokens it "can't afford" with a 402 — and (b) costs more
+    // than needed. ~320 tokens comfortably covers the largest card type
+    // (multiple-choice with options + explanation); the base covers the JSON
+    // envelope and the floor guards very small requests against truncation.
+    private const OUTPUT_TOKENS_PER_CARD = 320;
+
+    private const OUTPUT_TOKENS_BASE = 256;
+
+    private const OUTPUT_TOKENS_MIN = 1_024;
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -59,8 +72,9 @@ class FlashcardGenerationService
     public function generate(string $documentText, int $numberOfCards, array $cardTypes): array
     {
         $cardCount = (int) min(max(self::MIN_CARDS, $numberOfCards), self::MAX_CARDS);
+        $maxTokens = max(self::OUTPUT_TOKENS_MIN, self::OUTPUT_TOKENS_BASE + self::OUTPUT_TOKENS_PER_CARD * $cardCount);
         $prompt = $this->buildGenerationPrompt($documentText, $cardCount, $cardTypes);
-        $raw = $this->callOpenRouter($prompt, 8_192, 120);
+        $raw = $this->callOpenRouter($prompt, $maxTokens, 120);
 
         return $this->parseAndNormalise($raw, $cardCount, $cardTypes);
     }
