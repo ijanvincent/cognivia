@@ -7,6 +7,77 @@
  */
 
 import api from './api';
+import { getEcho } from './echoService';
+import * as SecureStore from './secureStorage';
+
+// Worst-case wait for the async result before giving up. Must exceed the
+// backend job timeout (150s) so a slow-but-valid generation isn't cut off.
+const ASYNC_RESULT_TIMEOUT_MS = 160000;
+
+/**
+ * Wait for an async generation result delivered over the private user.{id}
+ * channel after the backend responded 202. Resolves with the flashcards, or
+ * rejects on a broadcast failure / timeout. Only the two flashcard listeners
+ * are removed on cleanup, so any other subscriber on the same channel
+ * (e.g. the dashboard's profile.updated listener) is left intact.
+ *
+ * @param {string} requestId  Correlates the broadcast with this request.
+ * @returns {Promise<Array>}
+ */
+const awaitAsyncGeneration = async (requestId) => {
+    const echo = await getEcho();
+    if (!echo) {
+        throw new Error('Realtime connection unavailable, so the generated cards can’t be delivered. Please try again.');
+    }
+
+    let userId = null;
+    try {
+        const userStr = await SecureStore.getItemAsync('user');
+        userId = userStr ? JSON.parse(userStr)?.id : null;
+    } catch (_) {
+        userId = null;
+    }
+    if (!userId) {
+        throw new Error('Your session has expired. Please log in again.');
+    }
+
+    return new Promise((resolve, reject) => {
+        const channel = echo.private(`user.${userId}`);
+        let settled = false;
+
+        const cleanup = () => {
+            clearTimeout(timer);
+            channel.stopListening('.flashcards.generated');
+            channel.stopListening('.flashcards.generation-failed');
+        };
+
+        const timer = setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            reject(new Error('Generation is taking longer than expected. Please try again.'));
+        }, ASYNC_RESULT_TIMEOUT_MS);
+
+        channel.listen('.flashcards.generated', (event) => {
+            if (settled || (requestId && event?.request_id !== requestId)) return;
+            settled = true;
+            cleanup();
+            const cards = event?.flashcards;
+            if (!Array.isArray(cards) || cards.length === 0) {
+                reject(new Error('No flashcards were generated. Please try again.'));
+                return;
+            }
+            resolve(cards);
+        });
+
+        channel.listen('.flashcards.generation-failed', (event) => {
+            if (settled || (requestId && event?.request_id !== requestId)) return;
+            settled = true;
+            cleanup();
+            reject(new Error(event?.message || 'Failed to generate flashcards. Please try again.'));
+        });
+    });
+};
 
 // =============================================================================
 // Card type constants
@@ -81,6 +152,13 @@ export const generateFlashcards = async (
             // default client timeout would abort mid-flight, so give it room.
             timeout: 90000,
         });
+
+        // Async mode: the backend queued the job (202) and will deliver the
+        // result over the realtime channel. Wait for it here so the caller's
+        // contract is unchanged — it still just awaits an array of cards.
+        if (response.status === 202 || response.data?.async) {
+            return await awaitAsyncGeneration(response.data?.request_id);
+        }
 
         const { flashcards } = response.data;
 
