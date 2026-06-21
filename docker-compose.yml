@@ -18,6 +18,52 @@ services:
     network_mode: host
     depends_on:
       - mysql
+      - redis
+
+  # Queue worker — drains jobs pushed onto the queue (currently the queued
+  # password-reset mail; the natural home for future async work like AI
+  # generation). Reuses the backend image, bind-mount and .env, so it honours
+  # the app's QUEUE_CONNECTION and they always agree.
+  #
+  # Opt-in via the "worker" profile so the default `docker compose up` never
+  # starts it: `queue:work` is unsupported on the `sync` driver (the default)
+  # and would crash-loop. To run it, set QUEUE_CONNECTION=database (free, uses
+  # the existing MySQL) or =redis in backend/.env, then:
+  #   docker compose --profile worker up -d
+  # --max-time recycles the worker hourly so any leaked memory is reclaimed.
+  worker:
+    profiles: ["worker"]
+    build:
+      context: ./backend
+      dockerfile: ../docker/php/Dockerfile
+      network: host
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: cognivia_worker
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan queue:work --tries=3 --backoff=5 --max-time=3600
+    volumes:
+      - ./backend:/var/www
+    network_mode: host
+    depends_on:
+      - mysql
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: cognivia_redis
+    restart: unless-stopped
+    # appendonly persists the queue/cache across restarts so a redeploy doesn't
+    # drop in-flight jobs. Bound to loopback only — never exposed publicly.
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - cognivia_redis_data:/data
+    networks:
+      - cognivia_network
 
   nginx:
     image: nginx:alpine
@@ -76,3 +122,4 @@ networks:
 
 volumes:
   cognivia_mysql_data:
+  cognivia_redis_data:
