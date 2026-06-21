@@ -25,7 +25,7 @@ required to keep running on the free tier; it is the upgrade path.
 | Rate-limit bucket / sessions not shared across instances | **Ready** | Redis-backed cache/session wired; see "Scale out" |
 | No visibility into production errors | **Ready** | Sentry wired behind `SENTRY_LARAVEL_DSN` (no-op until set) |
 | "Is it fast enough?" was a guess | **Measurable** | k6 load tests in [`load-tests/`](load-tests/README.md) |
-| Slow AI work runs in the web request | **Documented, deferred** | Needs a paid worker to matter; see "Make AI generation async" |
+| Slow AI work runs in the web request | **Built, flag-gated (off)** | `GenerateFlashcardsJob` + 202 + broadcast result, behind `FLASHCARD_GENERATION_ASYNC`; enable once a worker + real broadcast exist |
 
 ## Local: run the full scalable stack
 
@@ -92,16 +92,23 @@ Move off free, run **≥2 instances** behind Render's load balancer (redundancy 
 headroom). This is only safe once cache/session/rate-limit live in shared Redis
 (step 3) — otherwise each instance has its own rate-limit bucket and sessions.
 
-### 5. Make AI generation truly async (client change required)
-Today `/api/flashcards/generate` returns the cards synchronously. To stop slow
-generations from occupying web workers at all:
-- Dispatch a `GenerateFlashcardsJob` to the queue; return `202 Accepted` + a job id.
-- Deliver the result over the existing WebSocket layer (Soketi/Pusher) or via polling.
-- **Update the web and mobile clients** to handle `202` + the async result.
+### 5. Turn on async AI generation (already built — just flip the flag)
+The async path is implemented and off by default behind `FLASHCARD_GENERATION_ASYNC`:
+- `GenerateFlashcardsJob` runs the AI call on the queue; `/api/flashcards/generate`
+  returns `202 Accepted` + a `request_id` instead of blocking a web worker.
+- The result is broadcast as `FlashcardsGenerated` / `FlashcardsGenerationFailed`
+  on the private `user.{id}` channel.
+- The mobile client (the only client that generates) already handles both the
+  `200` sync and `202` async responses transparently.
 
-This is deferred deliberately: it only pays off once a worker exists (step 2),
-and it changes the API contract for both clients, so it should land as its own
-reviewed change — not bundled with infra config.
+To enable it you need **both** of the following first, or the result can never
+reach the client:
+1. A running queue worker (step 2) — `QUEUE_CONNECTION` not `sync`.
+2. A real broadcast driver — `BROADCAST_CONNECTION=pusher` (not `log`) with
+   Pusher/Soketi configured on the backend and the mobile client.
+
+Then set `FLASHCARD_GENERATION_ASYNC=true`. Until then the default synchronous
+behaviour is unchanged and fully working.
 
 ### 6. Database
 The free Aiven MySQL pauses on inactivity and adds ~1.5–2.5s/query latency. For
