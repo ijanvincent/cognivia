@@ -13,6 +13,7 @@ use App\Http\Controllers\User\FlashcardController;
 use App\Http\Controllers\User\FlashcardGenerationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,10 +46,10 @@ Route::prefix('admin')->group(function (): void {
 */
 Route::get('/health/db', function () {
     try {
-        \Illuminate\Support\Facades\DB::select('select 1');
+        DB::select('select 1');
 
         return response()->json(['status' => 'ok']);
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         return response()->json(['status' => 'error'], 503);
     }
 })->middleware('throttle:30,1');
@@ -104,9 +105,20 @@ Route::middleware(['auth:sanctum', 'user', 'platform.match'])->group(function ()
     Route::get('/decks/{deckId}/flashcards', [FlashcardController::class, 'index']);
     Route::post('/decks/{deckId}/flashcards', [FlashcardController::class, 'store']);
 
-    Route::post('/document/parse', [DocumentParserController::class, 'parse']);
-    Route::post('/flashcards/generate', [FlashcardGenerationController::class, 'generate']);
-    Route::post('/flashcards/check-answer', [CheckAnswerController::class, 'check']);
+    // These three endpoints each make a synchronous, multi-second outbound
+    // call (OpenRouter for AI; CPU-heavy document parsing) that holds a
+    // PHP-FPM worker for the whole duration. Without a per-user throttle a
+    // single client can fire them in a tight loop and exhaust every worker,
+    // starving cheap endpoints like login. The limits are keyed by the
+    // authenticated user (Sanctum) and sized to real usage: generation and
+    // parsing are deliberate, low-frequency actions; answer-checking happens
+    // repeatedly during a study session, so it gets a higher ceiling.
+    Route::post('/document/parse', [DocumentParserController::class, 'parse'])
+        ->middleware('throttle:20,1');
+    Route::post('/flashcards/generate', [FlashcardGenerationController::class, 'generate'])
+        ->middleware('throttle:15,1');
+    Route::post('/flashcards/check-answer', [CheckAnswerController::class, 'check'])
+        ->middleware('throttle:60,1');
 });
 
 /*

@@ -425,15 +425,13 @@ function UserLogin() {
             </p>
             <p className={styles.toastBody}>{errors.general}</p>
             <div className={styles.toastDivider}></div>
-            {!errors.general.toLowerCase().includes('too many') && (
-              <button
-                onClick={() => setErrors({})}
-                className={styles.toastHintLink}
-                style={{ background: 'none', border: 'none', color: 'var(--cyan)', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
-              >
-                Try again
-              </button>
-            )}
+            <button
+              onClick={() => setErrors({})}
+              className={styles.toastHintLink}
+              style={{ background: 'none', border: 'none', color: 'var(--cyan)', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
+            >
+              {errors.general.toLowerCase().includes('too many') ? 'Back' : 'Try again'}
+            </button>
           </div>
         </div>
       )}

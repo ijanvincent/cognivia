@@ -6,6 +6,9 @@ use App\Http\Middleware\UserMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Support\Facades\Broadcast;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,9 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
         then: function () {
-            \Illuminate\Support\Facades\Broadcast::routes([
+            Broadcast::routes([
                 'middleware' => [
-                    \Illuminate\Http\Middleware\HandleCors::class,
+                    HandleCors::class,
                     'auth:sanctum',
                 ],
                 'prefix' => 'api',
@@ -25,9 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
- 
         $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
+            HandleCors::class,
         ]);
 
         // Behind a proxy every request reaches PHP with the proxy as
@@ -43,11 +45,15 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->alias([
-            'admin'          => AdminMiddleware::class,
-            'user'           => UserMiddleware::class,
+            'admin' => AdminMiddleware::class,
+            'user' => UserMiddleware::class,
             'platform.match' => EnsurePlatformMatch::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Report unhandled exceptions to Sentry. This is a no-op until
+        // SENTRY_LARAVEL_DSN is set, so it is safe in every environment — local
+        // dev and the current free deploy simply skip it. Set the DSN (free
+        // tier at sentry.io) to get production error visibility and alerting.
+        Integration::handles($exceptions);
     })->create();

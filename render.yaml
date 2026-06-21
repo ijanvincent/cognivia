@@ -75,7 +75,11 @@ services:
       - key: CACHE_STORE
         value: file
       # No background worker on the free tier, so queued jobs (broadcast
-      # events, mail) must run inline.
+      # events, mail) must run inline. To go async — and to share the
+      # rate-limit/session store across multiple instances — provision managed
+      # Redis + a worker, then flip QUEUE_CONNECTION/CACHE_STORE/SESSION_DRIVER
+      # to `redis` (and add REDIS_* below). Do NOT flip before that infra
+      # exists or auth throttling breaks. Full steps: see SCALING.md.
       - key: QUEUE_CONNECTION
         value: sync
       - key: LOG_CHANNEL
@@ -126,3 +130,13 @@ services:
         sync: false # get a key at https://openrouter.ai/keys
       - key: OPENROUTER_MODEL
         value: google/gemini-2.5-flash
+
+      # --- Error monitoring (Sentry) ----------------------------------------
+      # Leave SENTRY_LARAVEL_DSN unset to disable (fully no-op). Set it to the
+      # DSN from a free sentry.io project to capture unhandled exceptions.
+      # Traces sampling is off so only errors are sent — performance tracing
+      # would add overhead the free instance can't spare.
+      - key: SENTRY_LARAVEL_DSN
+        sync: false # optional; from a free https://sentry.io project
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0"

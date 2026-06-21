@@ -3,12 +3,22 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class PasswordResetMail extends Mailable
+/**
+ * Implements ShouldQueue so delivery is pushed onto the queue instead of
+ * blocking the HTTP request: the Gmail API transport makes an outbound HTTPS
+ * call that can take a second or more, and the user's forgot-password response
+ * should not wait on it. With QUEUE_CONNECTION=sync (current free-tier default)
+ * Laravel runs the job inline, so behaviour is unchanged; once a Redis-backed
+ * worker exists the same code delivers mail asynchronously, off the request.
+ */
+class PasswordResetMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -39,7 +49,7 @@ class PasswordResetMail extends Mailable
             view: 'emails.password-reset',
             with: [
                 'resetUrl' => $this->resetUrl,
-                'user'     => (object)['username' => $this->username],
+                'user' => (object) ['username' => $this->username],
             ],
         );
     }
@@ -47,7 +57,7 @@ class PasswordResetMail extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {
