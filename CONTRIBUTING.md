@@ -1,8 +1,6 @@
 # Contributing to CogniVia
 
-First off — thanks for taking the time to contribute! 🎉
-
-This guide explains how to get a development environment running, the conventions
+Thank you for taking the time to contribute. This guide explains how to get a development environment running, the conventions
 we follow, and how to get your change reviewed and merged. It complements the
 [README](README.md) (project overview, architecture, full command reference),
 [DEPLOYMENT.md](DEPLOYMENT.md) (hosting), and [SCALING.md](SCALING.md)
@@ -31,9 +29,9 @@ agree to uphold a welcoming, professional environment for everyone.
 
 ## Ways to Contribute
 
-- 🐛 **Report a bug** or 💡 **suggest a feature** by opening an issue.
-- 📝 **Improve documentation** — fixes to the README, this guide, or inline docs are always welcome and a great first contribution.
-- 🔧 **Submit code** — pick up an open issue (comment so others know you're on it) or propose a change.
+- **Report a bug** or **suggest a feature** by opening an issue.
+- **Improve documentation** — fixes to the README, this guide, or inline docs are always welcome and a good first contribution.
+- **Submit code** — pick up an open issue (comment so others know you are on it) or propose a change.
 
 If your change is large or architectural, **open an issue to discuss it first** so
 we can agree on the approach before you invest significant time.
@@ -192,5 +190,5 @@ fix before any public disclosure. Responsible disclosure is genuinely appreciate
 
 ---
 
-Thanks again for contributing to CogniVia! 💛
+Thank you for contributing to CogniVia.
 </content>
