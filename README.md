@@ -39,7 +39,7 @@ The public entry point: a marketing hero alongside an inline **sign-in** card. N
 
 ![CogniVia web dashboard](docs/screenshots/web-dashboard.png)
 
-After signing in on the web, the learner is greeted by name and handed a **QR code to continue on mobile**, where the full study experience lives. Scanning carries the same account onto the Expo app — which is why a second sign-in runs through the cross-platform approval flow.
+After signing in on the web, the learner is greeted by name and handed a **QR code to continue studying on mobile**. Scanning carries the same account onto the Expo app — which is why a second sign-in runs through the cross-platform approval flow.
 
 ### Mobile — Onboarding & Auth
 
@@ -62,7 +62,7 @@ After signing in on the web, the learner is greeted by name and handed a **QR co
 </table>
 </div>
 
-The Expo app opens to a guided onboarding carousel ending on a *Start Your Journey* screen that branches into **Sign In** and **Create Account**. It shares the same identity and API as the web client and follows the device's light/dark appearance. *(The in-app mobile dashboard is still under active development.)*
+The Expo app opens to a guided onboarding carousel ending on a *Start Your Journey* screen that branches into **Sign In** and **Create Account**. It shares the same identity and API as the web client and follows the device's light/dark appearance. Studying works on mobile today; the in-app dashboard/home is still being refined.
 
 ### The Flow
 
@@ -112,7 +112,7 @@ A learner signs in (approving the device if the account is active elsewhere), up
 
 ## Architecture
 
-The backend is the single source of truth. Clients authenticate against the Laravel API over HTTPS; document parsing and AI generation run entirely server-side, and real-time events are broadcast via Soketi and consumed by Laravel Echo — always reconciled against authenticated endpoints.
+Clients authenticate against the Laravel API; document parsing and AI generation run entirely server-side, and real-time events are broadcast via Soketi and consumed by Laravel Echo. The local Nginx gateway proxies plain HTTP on `:3000`; TLS terminates at the hosting edge (Vercel / Render) in production.
 
 ```mermaid
 flowchart LR
@@ -123,7 +123,7 @@ flowchart LR
     end
 
     subgraph edge["Edge Tier"]
-        GW["Nginx Gateway<br/><i>:3000 · TLS · reverse proxy</i>"]
+        GW["Nginx Gateway<br/><i>:3000 · reverse proxy</i>"]
     end
 
     subgraph app["Application Tier"]
@@ -176,8 +176,8 @@ docker exec cognivia_backend php artisan key:generate
 docker exec cognivia_backend php artisan migrate --seed
 docker exec cognivia_backend php artisan storage:link
 
-cd frontend && npm install && npm start                 # web    → http://localhost:3000
-cd ../mobile && npm install && npx expo start --tunnel  # mobile → scan with Expo Go
+cd frontend && npm install && npm start                 # dev server :3001 — app served via gateway on :3000
+cd ../mobile && npm install && npx expo start --tunnel  # mobile — scan with Expo Go
 ```
 
 Full setup, environment variables, and command reference live in **[CONTRIBUTING.md](CONTRIBUTING.md)**.
