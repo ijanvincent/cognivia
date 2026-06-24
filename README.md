@@ -27,6 +27,7 @@ Upload a document, get smart flashcards, and study them anywhere — web or mobi
 ## Table of Contents
 
 - [Overview](#overview)
+- [Screenshots & Flow](#screenshots--flow)
 - [Features](#features)
 - [Engineering Highlights](#engineering-highlights)
 - [Tech Stack](#tech-stack)
@@ -54,6 +55,64 @@ CogniVia is an AI-powered flashcard learning platform that works seamlessly acro
 Decks are shareable: every deck carries a unique **share code** that anyone can use to import a full copy into their own account. One account spans both platforms, and **profiles and sessions stay in sync in real time** over WebSockets. A separate admin console provides analytics, user lifecycle management, and engagement insights.
 
 The backend is the single source of truth: every client authenticates against the Laravel API over HTTPS, the AI provider key never leaves the server, and real-time messages are treated as signals that are always reconciled against authenticated endpoints.
+
+---
+
+## Screenshots & Flow
+
+### Web — Landing
+
+![CogniVia web landing page](docs/screenshots/web-landing.png)
+
+The public entry point. A visitor lands on the marketing hero (with **About / Solutions / How It Works / FAQ** navigation) alongside an inline **sign-in** card. New users tap **Get Started** to register; returning users sign in directly. Authentication runs against the Laravel API and issues a platform-bound Sanctum token (`X-Platform: web`).
+
+### Web — Dashboard
+
+![CogniVia web dashboard](docs/screenshots/web-dashboard.png)
+
+After signing in on the web, the learner is greeted by name and handed a **QR code to continue on mobile** — where the full study experience (document upload, AI generation, and graded study sessions) lives. The header shows live presence (*Online*), and scanning the code carries the same account onto the Expo app, which is why a second sign-in there runs through the cross-platform approval flow.
+
+### Mobile — Onboarding & Auth
+
+<div align="center">
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/mobile-landing.jpg" alt="CogniVia mobile onboarding landing screen" width="230" /></td>
+    <td width="28"></td>
+    <td align="center"><img src="docs/screenshots/mobile-signin.jpg" alt="CogniVia mobile sign-in screen" width="230" /></td>
+    <td width="28"></td>
+    <td align="center"><img src="docs/screenshots/mobile-register.jpg" alt="CogniVia mobile create-account screen" width="230" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Landing</b><br/><sub>Start Your Journey</sub></td>
+    <td width="28"></td>
+    <td align="center"><b>Sign In</b><br/><sub>Returning learners</sub></td>
+    <td width="28"></td>
+    <td align="center"><b>Create Account</b><br/><sub>New learners</sub></td>
+  </tr>
+</table>
+</div>
+
+The Expo React Native app opens to a guided **onboarding carousel** ending on a *Start Your Journey* screen, which branches into **Sign In** and **Create Account**. It shares the same identity and API as the web client — one account spans both platforms, theming follows the device appearance, and signing in here triggers the cross-platform approval flow if the account is already active on the web. *(The in-app mobile dashboard is still under active development.)*
+
+### The Flow
+
+```mermaid
+flowchart LR
+    A["Landing<br/><i>web or mobile</i>"] --> B["Register / Sign in<br/><i>Sanctum token</i>"]
+    B --> C["Dashboard<br/><i>decks & mastery</i>"]
+    C --> D["Upload document<br/><i>PDF · DOCX · PPTX</i>"]
+    D --> E["AI generates flashcards<br/><i>server-side LLM proxy</i>"]
+    E --> F["Study session<br/><i>AI-graded answers</i>"]
+    F --> G["Mastery tracked<br/><i>per deck</i>"]
+    G -. "share code" .-> C
+```
+
+1. **Landing → Auth.** From the landing page (web or mobile) a user registers or signs in. The backend issues a platform-bound token; if the account is already active elsewhere, the new sign-in must be **approved from the active device**.
+2. **Dashboard / handoff.** On the web, the dashboard hands the learner a **QR code to continue on mobile**, where the study experience lives. On mobile, the dashboard shows their decks and mastery and lets them import a deck by **share code** or create a new one.
+3. **Upload → Generate.** A document (PDF, DOCX, or PPTX) is parsed server-side, and an LLM generates study-ready flashcards. The AI provider key never leaves the backend.
+4. **Study → Grade.** In a study session, open-ended answers are graded by AI for *meaning*, not string match, returning a verdict plus feedback.
+5. **Track → Share.** Each session updates per-deck mastery, and any deck can be re-shared via its unique share code — looping a new learner back to the dashboard.
 
 ---
 
