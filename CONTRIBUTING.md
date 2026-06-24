@@ -51,10 +51,10 @@ solution — it helps us find the best fit for the codebase.
 
 ## Development Setup
 
-Full instructions live in the README's [Getting Started](README.md#getting-started)
-section. The short version:
+Get a local environment running with Docker Compose. The [README](README.md)
+carries a condensed Quick Start; the full steps are below.
 
-**Prerequisites:** Docker & Docker Compose, Node.js 18+, and the Expo Go app
+**Prerequisites:** Docker and Docker Compose, Node.js 18+, and the Expo Go app
 (for the mobile client).
 
 ```bash
@@ -69,7 +69,7 @@ docker exec cognivia_backend php artisan key:generate
 docker exec cognivia_backend php artisan migrate --seed
 docker exec cognivia_backend php artisan storage:link
 
-# 3. Web client  → http://localhost:3000
+# 3. Web client (dev server on :3001; app served via the gateway on :3000)
 cd frontend && npm install && npm start
 
 # 4. Mobile client (optional)
@@ -134,7 +134,7 @@ docs(readme): clarify mobile setup steps
 **Backend (Laravel / PHP 8.4)**
 - Follow **PSR-12**, enforced by **Laravel Pint** — run `./vendor/bin/pint`
   before committing.
-- Respect the **Controller → Service → Repository** layering: controllers stay
+- Respect the **Controller, Service, Repository** layering: controllers stay
   thin, business logic lives in services, persistence in repositories.
 - Put request validation in **Form Request** classes (`app/Http/Requests/`), not
   in the service layer.
@@ -172,8 +172,8 @@ docker exec cognivia_backend php -l <file>                     # syntax-check on
 5. A maintainer reviews; address feedback by pushing follow-up commits to the
    same branch. Squash-merge is used to keep history linear.
 
-For **authentication or real-time** changes, also run the manual smoke tests from
-the README's [Pre-merge Checklist](README.md#pre-merge-checklist):
+For **authentication or real-time** changes, also run these checks before
+opening the PR:
 
 ```bash
 docker exec cognivia_backend php -l routes/api.php
