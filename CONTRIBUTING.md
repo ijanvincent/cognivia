@@ -1,8 +1,6 @@
 # Contributing to CogniVia
 
-First off — thanks for taking the time to contribute! 🎉
-
-This guide explains how to get a development environment running, the conventions
+Thank you for taking the time to contribute. This guide explains how to get a development environment running, the conventions
 we follow, and how to get your change reviewed and merged. It complements the
 [README](README.md) (project overview, architecture, full command reference),
 [DEPLOYMENT.md](DEPLOYMENT.md) (hosting), and [SCALING.md](SCALING.md)
@@ -31,9 +29,9 @@ agree to uphold a welcoming, professional environment for everyone.
 
 ## Ways to Contribute
 
-- 🐛 **Report a bug** or 💡 **suggest a feature** by opening an issue.
-- 📝 **Improve documentation** — fixes to the README, this guide, or inline docs are always welcome and a great first contribution.
-- 🔧 **Submit code** — pick up an open issue (comment so others know you're on it) or propose a change.
+- **Report a bug** or **suggest a feature** by opening an issue.
+- **Improve documentation** — fixes to the README, this guide, or inline docs are always welcome and a good first contribution.
+- **Submit code** — pick up an open issue (comment so others know you are on it) or propose a change.
 
 If your change is large or architectural, **open an issue to discuss it first** so
 we can agree on the approach before you invest significant time.
@@ -53,10 +51,10 @@ solution — it helps us find the best fit for the codebase.
 
 ## Development Setup
 
-Full instructions live in the README's [Getting Started](README.md#getting-started)
-section. The short version:
+Get a local environment running with Docker Compose. The [README](README.md)
+carries a condensed Quick Start; the full steps are below.
 
-**Prerequisites:** Docker & Docker Compose, Node.js 18+, and the Expo Go app
+**Prerequisites:** Docker and Docker Compose, Node.js 18+, and the Expo Go app
 (for the mobile client).
 
 ```bash
@@ -71,7 +69,7 @@ docker exec cognivia_backend php artisan key:generate
 docker exec cognivia_backend php artisan migrate --seed
 docker exec cognivia_backend php artisan storage:link
 
-# 3. Web client  → http://localhost:3000
+# 3. Web client (dev server on :3001; app served via the gateway on :3000)
 cd frontend && npm install && npm start
 
 # 4. Mobile client (optional)
@@ -136,7 +134,7 @@ docs(readme): clarify mobile setup steps
 **Backend (Laravel / PHP 8.4)**
 - Follow **PSR-12**, enforced by **Laravel Pint** — run `./vendor/bin/pint`
   before committing.
-- Respect the **Controller → Service → Repository** layering: controllers stay
+- Respect the **Controller, Service, Repository** layering: controllers stay
   thin, business logic lives in services, persistence in repositories.
 - Put request validation in **Form Request** classes (`app/Http/Requests/`), not
   in the service layer.
@@ -174,8 +172,8 @@ docker exec cognivia_backend php -l <file>                     # syntax-check on
 5. A maintainer reviews; address feedback by pushing follow-up commits to the
    same branch. Squash-merge is used to keep history linear.
 
-For **authentication or real-time** changes, also run the manual smoke tests from
-the README's [Pre-merge Checklist](README.md#pre-merge-checklist):
+For **authentication or real-time** changes, also run these checks before
+opening the PR:
 
 ```bash
 docker exec cognivia_backend php -l routes/api.php
@@ -192,5 +190,5 @@ fix before any public disclosure. Responsible disclosure is genuinely appreciate
 
 ---
 
-Thanks again for contributing to CogniVia! 💛
+Thank you for contributing to CogniVia.
 </content>
